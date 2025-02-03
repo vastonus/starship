@@ -92,7 +92,20 @@ spec:
                 --execution-endpoint=http://ethereum-execution-0.ethereum-execution.default.svc.cluster.local:8551 \
                 --jwt-secret=/etc/secrets/jwt.hex \
                 --accept-terms-of-use \
-                --chain-id=1337
+                --http-host 0.0.0.0 \
+                --rpc-host 0.0.0.0 \
+                --chain-id 1337 \
+                --contract-deployment-block=0 \
+                --accept-terms-of-use \
+                --datadir /ethereum/consensus \
+                --genesis-state /ethereum/consensus/genesis.ssz \
+                --min-sync-peers=0 \
+                --chain-config-file=/ethereum/consensus/config.yaml \
+                --network-id 1 \
+                --suggested-fee-recipient=0x123463a4b065722e99115d6c222f267d9cabb524 \
+                --minimum-peers-per-subnet=0 \
+                --enable-debug-rpc-endpoints \
+                --force-clear-db
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:
             - name: ethereum
