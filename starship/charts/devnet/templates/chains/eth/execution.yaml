@@ -41,8 +41,12 @@ spec:
             - bash
             - "-c"
             - |
+              echo "Waiting for genesis file to be ready..."
+              while [ ! -f /genesis/execution/genesis.ready ]; do sleep 1; done
+              echo "Genesis file is ready."
+
               echo "Initializing genesis"
-              cp /config/genesis.json /ethereum/execution/genesis.json
+              cp /genesis/execution/genesis.json /ethereum/execution/genesis.json
               cp /config/jwt.hex /etc/secrets/jwt.hex
               geth --datadir /ethereum/execution init /ethereum/execution/genesis.json
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
@@ -53,6 +57,8 @@ spec:
               mountPath: /config
             - name: ethereum
               mountPath: /ethereum/execution
+            - name: genesis-volume
+              mountPath: /genesis/execution
         containers:
         - name: node
           image: {{ $chain.image }}
@@ -68,6 +74,7 @@ spec:
             - bash
             - "-c"
             - |
+              echo "Starting execution chain"
               echo "Starting execution chain"
               geth --datadir /ethereum/execution --http \
                 --http.addr=0.0.0.0 \
@@ -88,7 +95,9 @@ spec:
                 --unlock=0x123463a4B065722E99115D6c222f267d9cABb524 \
                 --password=/dev/null \
                 --syncmode=full \
-                --networkid=1337
+                --networkid=1337 \
+                --mine \
+                --log.vmodule=engine=6
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:
             - name: ethereum
@@ -103,6 +112,9 @@ spec:
             emptyDir: { }
           - name: secrets
             emptyDir: { }
+          - name: genesis-volume
+            persistentVolumeClaim:
+              claimName: devnet-genesis-pvc
 ---
 {{- end }}
 {{- end }}
