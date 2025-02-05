@@ -48,7 +48,7 @@ type ExposerClient interface {
 	// GetGenesisSSZ returns the genesis file of the node
 	GetGenesisSSZ(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResponseFileData, error)
 	// GetConfigFile returns the config file of the node
-	GetConfigFile(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*structpb.Struct, error)
+	GetConfigFile(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResponseFileData, error)
 	// GetKeysFile returns the keys of the node
 	GetKeys(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*Keys, error)
 	// GetPrivKeys returns the keys of the node
@@ -110,9 +110,9 @@ func (c *exposerClient) GetGenesisSSZ(ctx context.Context, in *emptypb.Empty, op
 	return out, nil
 }
 
-func (c *exposerClient) GetConfigFile(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*structpb.Struct, error) {
+func (c *exposerClient) GetConfigFile(ctx context.Context, in *emptypb.Empty, opts ...grpc.CallOption) (*ResponseFileData, error) {
 	cOpts := append([]grpc.CallOption{grpc.StaticMethod()}, opts...)
-	out := new(structpb.Struct)
+	out := new(ResponseFileData)
 	err := c.cc.Invoke(ctx, Exposer_GetConfigFile_FullMethodName, in, out, cOpts...)
 	if err != nil {
 		return nil, err
@@ -185,7 +185,7 @@ type ExposerServer interface {
 	// GetGenesisSSZ returns the genesis file of the node
 	GetGenesisSSZ(context.Context, *emptypb.Empty) (*ResponseFileData, error)
 	// GetConfigFile returns the config file of the node
-	GetConfigFile(context.Context, *emptypb.Empty) (*structpb.Struct, error)
+	GetConfigFile(context.Context, *emptypb.Empty) (*ResponseFileData, error)
 	// GetKeysFile returns the keys of the node
 	GetKeys(context.Context, *emptypb.Empty) (*Keys, error)
 	// GetPrivKeys returns the keys of the node
@@ -219,7 +219,7 @@ func (UnimplementedExposerServer) GetGenesisFile(context.Context, *emptypb.Empty
 func (UnimplementedExposerServer) GetGenesisSSZ(context.Context, *emptypb.Empty) (*ResponseFileData, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetGenesisSSZ not implemented")
 }
-func (UnimplementedExposerServer) GetConfigFile(context.Context, *emptypb.Empty) (*structpb.Struct, error) {
+func (UnimplementedExposerServer) GetConfigFile(context.Context, *emptypb.Empty) (*ResponseFileData, error) {
 	return nil, status.Errorf(codes.Unimplemented, "method GetConfigFile not implemented")
 }
 func (UnimplementedExposerServer) GetKeys(context.Context, *emptypb.Empty) (*Keys, error) {
