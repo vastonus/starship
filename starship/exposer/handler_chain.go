@@ -95,19 +95,24 @@ func (a *AppServer) GetGenesisFile(ctx context.Context, _ *emptypb.Empty) (*stru
 	return structpb.NewStruct(state)
 }
 
-func (a *AppServer) GetGenesisSSZ(ctx context.Context, _ *emptypb.Empty) (*pb.GenesisSSZ, error) {
-	jsonFile, err := os.Open(a.config.GenesisFile)
+func (a *AppServer) GetGenesisSSZ(ctx context.Context, _ *emptypb.Empty) (*pb.ResponseFileData, error) {
+	data, err := os.ReadFile(a.config.GenesisSSZ)
 	if err != nil {
 		return nil, err
 	}
 
-	data := &pb.GenesisSSZ{}
-	err = jsonpb.Unmarshal(jsonFile, data)
+	// Return the file as raw bytes
+	return &pb.ResponseFileData{Data: data}, nil
+}
+
+func (a *AppServer) GetConfigFile(ctx context.Context, _ *emptypb.Empty) (*pb.ResponseFileData, error) {
+	data, err := os.ReadFile(a.config.ConfigFile)
 	if err != nil {
 		return nil, err
 	}
 
-	return data, nil
+	// Return the file as raw bytes
+	return &pb.ResponseFileData{Data: data}, nil
 }
 
 func (a *AppServer) GetKeys(ctx context.Context, _ *emptypb.Empty) (*pb.Keys, error) {
