@@ -2,17 +2,13 @@
   "lerna": "6",
   "conventionalCommits": true,
   "npmClient": "yarn",
-  "npmClientArgs": [
-    "--no-lockfile"
-  ],
-  "packages": [
-    "packages/*"
-  ],
-  "version": "independent",
+  "npmClientArgs": ["--no-lockfile"],
+  "packages": ["packages/*"],
+  "version": "3.2.0",
   "registry": "https://registry.npmjs.org",
   "command": {
     "create": {
-      "homepage": "https://github.com/cosmology-tech/starship",
+      "homepage": "https://github.com/hyperweb-io/starship",
       "license": "SEE LICENSE IN LICENSE",
       "access": "restricted"
     },

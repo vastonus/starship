@@ -55,7 +55,7 @@ jobs:
       max-parallel: 4
 
     env:
-      DOCKER_REPO: ghcr.io/cosmology-tech/starship
+      DOCKER_REPO: ghcr.io/hyperweb-io/starship
 
     steps:
       - name: Checkout
@@ -71,8 +71,8 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: hyperweb-io
+          password: ${{ secrets.GH_HYPERWEB_PAT }}
 
       - name: Build
         if: github.event_name == 'pull_request'
@@ -97,7 +97,7 @@ jobs:
       packages: write
 
     env:
-      DOCKER_REPO: ghcr.io/cosmology-tech/starship
+      DOCKER_REPO: ghcr.io/hyperweb-io/starship
 
     defaults:
       run:
@@ -117,8 +117,8 @@ jobs:
         uses: docker/login-action@v1
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: hyperweb-io
+          password: ${{ secrets.GH_HYPERWEB_PAT }}
 
       - name: Build chains
         if: github.event_name == 'pull_request'

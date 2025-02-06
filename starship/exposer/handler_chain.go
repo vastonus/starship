@@ -14,7 +14,7 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/structpb"
 
-	pb "github.com/cosmology-tech/starship/exposer/exposer"
+	pb "github.com/hyperweb-io/starship/exposer/exposer"
 )
 
 func fetchNodeStatus(url string) (*pb.Status, error) {
@@ -93,6 +93,26 @@ func (a *AppServer) GetGenesisFile(ctx context.Context, _ *emptypb.Empty) (*stru
 	}
 
 	return structpb.NewStruct(state)
+}
+
+func (a *AppServer) GetGenesisSSZ(ctx context.Context, _ *emptypb.Empty) (*pb.ResponseFileData, error) {
+	data, err := os.ReadFile(a.config.GenesisSSZ)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the file as raw bytes
+	return &pb.ResponseFileData{Data: data}, nil
+}
+
+func (a *AppServer) GetConfigFile(ctx context.Context, _ *emptypb.Empty) (*pb.ResponseFileData, error) {
+	data, err := os.ReadFile(a.config.ConfigFile)
+	if err != nil {
+		return nil, err
+	}
+
+	// Return the file as raw bytes
+	return &pb.ResponseFileData{Data: data}, nil
 }
 
 func (a *AppServer) GetKeys(ctx context.Context, _ *emptypb.Empty) (*pb.Keys, error) {
