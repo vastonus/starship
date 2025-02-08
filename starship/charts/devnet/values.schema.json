@@ -147,8 +147,7 @@
               "kujira",
               "hyperweb",
               "noble",
-              "ethereum-execution",
-              "ethereum-beacon"
+              "ethereum"
             ]
           },
           "numValidators": {

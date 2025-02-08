@@ -1,5 +1,5 @@
 {{- range $chain := .Values.chains }}
-{{- if hasPrefix "ethereum-execution" $chain.name }}
+{{- if hasPrefix "ethereum" $chain.name }}
 {{ $defaultFile := $.Files.Get "defaults.yaml" | fromYaml }}
 
 {{ $chain := include "devnet.fullchain" (dict "name" $chain.id "file" $defaultFile "context" $) | fromJson }}
@@ -115,16 +115,45 @@ spec:
       spec:
         {{- include "imagePullSecrets" $chain | indent 6 }}
         initContainers:
-        - name: init-genesis
+        - name: init-genesis-beacon
+          image: {{ $chain.config.prysmctl.image }}
+          imagePullPolicy: IfNotPresent
+          command:
+            - bash
+            - "-c"
+            - |
+              mkdir -p /ethereum/consensus /ethereum/execution
+              cp /config/genesis.json /ethereum/execution/genesis.json
+              cp /config/config.yaml /ethereum/consensus/config.yaml
+
+              echo "Initializing genesis"
+              prysmctl testnet generate-genesis \
+                --fork=capella \
+                --num-validators={{ $chain.config.validator.numValidator }} \
+                --genesis-time-delay=15 \
+                --output-ssz=/ethereum/consensus/genesis.ssz \
+                --chain-config-file=/ethereum/consensus/config.yaml \
+                --geth-genesis-json-in=/ethereum/execution/genesis.json \
+                --geth-genesis-json-out=/ethereum/execution/genesis.json
+
+              echo "Copy secrets over"
+              cp /config/jwt.hex /etc/secrets/jwt.hex
+          resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
+          volumeMounts:
+            - name: secrets
+              mountPath: /etc/secrets
+            - name: config
+              mountPath: /config
+            - name: ethereum
+              mountPath: /ethereum
+        - name: init-genesis-execution
           image: {{ $chain.image }}
           imagePullPolicy: IfNotPresent
           command:
             - bash
             - "-c"
             - |
-              echo "Initializing genesis"
-              cp /config/genesis.json /ethereum/execution/genesis.json
-              cp /config/jwt.hex /etc/secrets/jwt.hex
+              echo "Initializing genesis geth"
               geth --datadir /ethereum/execution init /ethereum/execution/genesis.json
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:
@@ -133,9 +162,9 @@ spec:
             - name: config
               mountPath: /config
             - name: ethereum
-              mountPath: /ethereum/execution
+              mountPath: /ethereum
         containers:
-        - name: node
+        - name: geth
           image: {{ $chain.image }}
           imagePullPolicy: IfNotPresent
           env:
@@ -175,7 +204,76 @@ spec:
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:
             - name: ethereum
-              mountPath: /ethereum/execution
+              mountPath: /ethereum
+            - name: secrets
+              mountPath: /etc/secrets
+        - name: beacon-chain
+          image: {{ $chain.config.beacon.image }}
+          imagePullPolicy: Always
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          command:
+            - bash
+            - "-c"
+            - |
+              echo "Waiting 15 seconds for execution client to be ready..."
+              sleep 15
+
+              echo "Starting consensus chain"
+              beacon-chain \
+                --execution-endpoint=http://0.0.0.0:8551 \
+                --jwt-secret=/etc/secrets/jwt.hex \
+                --accept-terms-of-use \
+                --http-host 0.0.0.0 \
+                --rpc-host 0.0.0.0 \
+                --chain-id {{ $chain.id }} \
+                --contract-deployment-block=0 \
+                --datadir /ethereum/consensus \
+                --genesis-state /ethereum/consensus/genesis.ssz \
+                --min-sync-peers=0 \
+                --chain-config-file=/ethereum/consensus/config.yaml \
+                --network-id {{ $chain.id }} \
+                --suggested-fee-recipient=0x123463a4B065722E99115D6c222f267d9cABb524 \
+                --minimum-peers-per-subnet=0 \
+                --force-clear-db
+          resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
+          volumeMounts:
+            - name: ethereum
+              mountPath: /ethereum
+            - name: secrets
+              mountPath: /etc/secrets
+        - name: validator
+          image: {{ $chain.config.validator.image }}
+          imagePullPolicy: Always
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+          command:
+            - bash
+            - "-c"
+            - |
+              echo "Waiting 15 seconds for execution client to be ready..."
+              sleep 20
+              mkdir -p /ethereum/consensus/validator
+              echo "Starting validator node"
+              validator \
+                --accept-terms-of-use \
+                --beacon-rpc-provider=localhost:4000 \
+                --datadir=/ethereum/consensus/validator \
+                --interop-num-validators={{ $chain.config.validator.numValidator }} \
+                --interop-start-index=0 \
+                --force-clear-db \
+                --chain-config-file=/ethereum/consensus/config.yaml \
+                --suggested-fee-recipient=0x0C46c2cAFE097b4f7e1BB868B89e5697eE65f934
+          resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
+          volumeMounts:
+            - name: ethereum
+              mountPath: /ethereum
             - name: secrets
               mountPath: /etc/secrets
         volumes:
