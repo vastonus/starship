@@ -4,21 +4,30 @@
 
 {{ $chain := include "devnet.fullchain" (dict "name" $chain.id "file" $defaultFile "context" $) | fromJson }}
 {{ $initParams := dict "chains" (list $chain.id) "port" $.Values.exposer.ports.rest "context" $ }}
+
+{{ $executionChain := include "devnet.fullchain" (dict "name" $chain.config.execution.id "file" $defaultFile "context" $) | fromJson }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: config-{{ $chain.name }}
+data:
+
 ---
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
-  name: {{ $chain.name }}
+  name: {{ $chain.name }}-{{ $chain.id }}
   namespace: {{ $.Release.Namespace }}
   labels:
-    app: {{ $chain.name }}
+    app: {{ $chain.name }}-{{ $chain.id }}
 spec:
-    serviceName: {{ $chain.name }}
+    serviceName: {{ $chain.name }}-{{ $chain.id }}
     replicas: {{ $chain.replicas }}
     selector:
         matchLabels:
-          app.kubernetes.io/instance: {{ $chain.name }}
-          app.kubernetes.io/name: {{ $chain.name }}
+          app.kubernetes.io/instance: {{ $chain.name }}-{{ $chain.id }}
+          app.kubernetes.io/name: {{ $chain.name }}-{{ $chain.id }}
     template:
       metadata:
         annotations:
@@ -27,16 +36,16 @@ spec:
           sla: high
           tier: gateway
         labels:
-          app.kubernetes.io/instance: {{ $chain.name }}
-          app.kubernetes.io/type: {{ $chain.name }}
-          app.kubernetes.io/name: {{ $chain.name }}
-          app.kubernetes.io/rawname: {{ $chain.name }}
+          app.kubernetes.io/instance: {{ $chain.name }}-{{ $chain.id }}
+          app.kubernetes.io/type: {{ $chain.name }}-{{ $chain.id }}
+          app.kubernetes.io/name: {{ $chain.name }}-{{ $chain.id }}
+          app.kubernetes.io/rawname: "{{ $chain.id }}"
           app.kubernetes.io/version: {{ $.Chart.AppVersion }}
       spec:
         {{- include "imagePullSecrets" $chain | indent 6 }}
         initContainers:
         - name: init-genesis
-          image: {{ $chain.config.prysmctl }}
+          image: {{ $chain.config.prysmctl.image }}
           imagePullPolicy: Always
           command:
             - bash
@@ -49,9 +58,7 @@ spec:
               echo "Initializing genesis"
               prysmctl testnet generate-genesis \
                 --fork=capella \
-                {{- if $chain.config.validator.enabled }}
                 --num-validators={{ $chain.config.validator.numValidator }} \
-                {{- end }}
                 --genesis-time-delay=15 \
                 --output-ssz=/ethereum/consensus/genesis.ssz \
                 --chain-config-file=/ethereum/consensus/config.yaml \
@@ -70,7 +77,6 @@ spec:
               mountPath: /config-execution
             - name: ethereum
               mountPath: /ethereum
-        {{- include "devnet.init.wait" $initParams | indent 8 }}
         containers:
         - name: node
           image: {{ $chain.image }}
@@ -91,21 +97,22 @@ spec:
             - "-c"
             - |
               echo "Waiting 15 seconds for execution client to be ready..."
+              sleep 15
 
               echo "Starting consensus chain"
               beacon-chain \
-                --execution-endpoint=http://ethereum-execution-0.ethereum-execution.default.svc.cluster.local:8551 \
+                --execution-endpoint=http://{{ $executionChain.name }}-{{ $executionChain.id }}-0.{{ $executionChain.name }}-{{ $executionChain.id }}.default.svc.cluster.local:8551 \
                 --jwt-secret=/etc/secrets/jwt.hex \
                 --accept-terms-of-use \
                 --http-host 0.0.0.0 \
                 --rpc-host 0.0.0.0 \
-                --chain-id 1337 \
+                --chain-id {{ $executionChain.id }} \
                 --contract-deployment-block=0 \
                 --datadir /ethereum/consensus \
                 --genesis-state /ethereum/consensus/genesis.ssz \
                 --min-sync-peers=0 \
                 --chain-config-file=/ethereum/consensus/config.yaml \
-                --network-id 1337 \
+                --network-id {{ $executionChain.id }} \
                 --suggested-fee-recipient=0x123463a4B065722E99115D6c222f267d9cABb524 \
                 --minimum-peers-per-subnet=0 \
                 --force-clear-db
@@ -116,7 +123,7 @@ spec:
             - name: secrets
               mountPath: /etc/secrets
         - name: validator
-          image: ghcr.io/cosmology-tech/starship/prysm/validator:v5.2.0
+          image: {{ $chain.config.validator.image }}
           imagePullPolicy: Always
           env:
             - name: NAMESPACE
@@ -135,7 +142,7 @@ spec:
                 --accept-terms-of-use \
                 --beacon-rpc-provider=localhost:4000 \
                 --datadir=/ethereum/consensus/validator \
-                --interop-num-validators=1 \
+                --interop-num-validators={{ $chain.config.validator.numValidator }} \
                 --interop-start-index=0 \
                 --force-clear-db \
                 --chain-config-file=/ethereum/consensus/config.yaml \
@@ -146,13 +153,39 @@ spec:
               mountPath: /ethereum
             - name: secrets
               mountPath: /etc/secrets
+        - name: exposer
+          image: {{ $.Values.exposer.image }}
+          imagePullPolicy: Always
+          env:
+            - name: GENESIS_HOST
+              value: "{{ $chain.name }}-{{ $chain.id }}-0"
+            - name: GENESIS_PORT
+              value: "{{ $.Values.exposer.ports.rest }}"
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: EXPOSER_HTTP_PORT
+              value: "8081"
+            - name: EXPOSER_GRPC_PORT
+              value: "9099"
+            - name: EXPOSER_GENESIS_FILE
+              value: /ethereum/execution/genesis.json
+            - name: EXPOSER_GENESIS_SSZ
+              value: /ethereum/execution/genesis.ssz
+            - name: EXPOSER_PRIV_VAL_FILE
+              value: {{ $chain.home }}/config/priv_validator_key.json
+            - name: EXPOSER_NODE_KEY_FILE
+              value: {{ $chain.home }}/config/node_key.json
+            - name: EXPOSER_NODE_ID_FILE
+              value: {{ $chain.home }}/config/node_id.json
+            - name: EXPOSER_PRIV_VAL_STATE_FILE
+              value: {{ $chain.home }}/data/priv_validator_state.json
+          resources: {{- include "devnet.exposer.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
         volumes:
-          - name: config-beacon
+          - name: config
             configMap:
-              name: config-beacon
-          - name: config-execution
-            configMap:
-              name: config-execution
+              name: config-ethereum
           - name: ethereum
             emptyDir: { }
           - name: secrets

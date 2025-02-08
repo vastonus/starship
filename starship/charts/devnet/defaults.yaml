@@ -793,7 +793,7 @@ defaultChains:
             exponent: 6
         coingecko_id: stake
         keywords: [ "stake" ]
-  etherum-execution:
+  ethereum-execution:
     image: ghcr.io/hyperweb-io/starship/ethereum/client-go:latest
     home: /ethereum/execution
     binary: geth
@@ -804,7 +804,7 @@ defaultChains:
     hdPath: m/44'/60'/0'/0/0
     coinType: 60
     repo: https://github.com/ethereum/go-ethereum
-  etherum-beacon:
+  ethereum-beacon:
     image: ghcr.io/hyperweb-io/starship/prysm/beacon-chain:v5.2.0
     home: /ethereum/execution
     binary: geth
@@ -818,10 +818,10 @@ defaultChains:
     config:
       validator:
         enabled: true
-        image: ghcr.io/cosmology-tech/starship/prysm/validator:v5.2.0
-        numValidator: 64
+        image: "ghcr.io/cosmology-tech/starship/prysm/validator:v5.2.0"
+        numValidator: 1
       prysmctl:
-        image: ghcr.io/cosmology-tech/starship/prysm/cmd/prysmctl:v5.2.0
+        image: "ghcr.io/cosmology-tech/starship/prysm/cmd/prysmctl:v5.2.0"
   eth:
     storageClassName: hostpath
     genesisStateUrl: https://github.com/eth-clients/merge-testnets/blob/main/sepolia/genesis.ssz
