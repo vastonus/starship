@@ -5,4 +5,3 @@ chains:
     ports:
       rest: 8545
       rpc: 8551
-      exposer: 8001
