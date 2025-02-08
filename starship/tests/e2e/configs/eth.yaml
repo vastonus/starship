@@ -1,16 +1,7 @@
 chains:
   - id: 1337
-    name: ethereum-execution
+    name: ethereum
     numValidators: 1
     ports:
       rest: 8545
       rpc: 8551
-  - id: 2337
-    name: ethereum-beacon
-    numValidators: 1
-    ports:
-      rest: 4000
-      rpc: 4001
-    config:
-      execution:
-        id: 1337

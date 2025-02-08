@@ -7,13 +7,6 @@
 
 {{ $executionChain := include "devnet.fullchain" (dict "name" $chain.config.execution.id "file" $defaultFile "context" $) | fromJson }}
 ---
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: config-{{ $chain.name }}
-data:
-
----
 apiVersion: apps/v1
 kind: StatefulSet
 metadata:
