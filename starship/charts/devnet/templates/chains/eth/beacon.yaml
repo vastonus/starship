@@ -3,18 +3,7 @@
 {{ $defaultFile := $.Files.Get "defaults.yaml" | fromYaml }}
 
 {{ $chain := include "devnet.fullchain" (dict "name" $chain.id "file" $defaultFile "context" $) | fromJson }}
----
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-  name: devnet-genesis-pvc
-  namespace: default
-spec:
-  accessModes:
-    - ReadWriteOnce
-  resources:
-    requests:
-      storage: 1Gi
+{{ $initParams := dict "chains" (list $chain.id) "port" $.Values.exposer.ports.rest "context" $ }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -47,7 +36,7 @@ spec:
         {{- include "imagePullSecrets" $chain | indent 6 }}
         initContainers:
         - name: init-genesis
-          image: ghcr.io/cosmology-tech/starship/prysm/cmd/prysmctl:v5.2.0
+          image: {{ $chain.config.prysmctl }}
           imagePullPolicy: Always
           command:
             - bash
@@ -60,7 +49,9 @@ spec:
               echo "Initializing genesis"
               prysmctl testnet generate-genesis \
                 --fork=capella \
-                --num-validators=1 \
+                {{- if $chain.config.validator.enabled }}
+                --num-validators={{ $chain.config.validator.numValidator }} \
+                {{- end }}
                 --genesis-time-delay=15 \
                 --output-ssz=/ethereum/consensus/genesis.ssz \
                 --chain-config-file=/ethereum/consensus/config.yaml \
@@ -69,9 +60,6 @@ spec:
 
               echo "Copy secrets over"
               cp /config-execution/jwt.hex /etc/secrets/jwt.hex
-              cp /ethereum/execution/genesis.json /genesis/execution/genesis.json
-
-              touch /genesis/execution/genesis.ready
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:
             - name: secrets
@@ -82,8 +70,7 @@ spec:
               mountPath: /config-execution
             - name: ethereum
               mountPath: /ethereum
-            - name: genesis-volume
-              mountPath: /genesis/execution
+        {{- include "devnet.init.wait" $initParams | indent 8 }}
         containers:
         - name: node
           image: {{ $chain.image }}
@@ -104,7 +91,7 @@ spec:
             - "-c"
             - |
               echo "Waiting 15 seconds for execution client to be ready..."
-              sleep 15
+
               echo "Starting consensus chain"
               beacon-chain \
                 --execution-endpoint=http://ethereum-execution-0.ethereum-execution.default.svc.cluster.local:8551 \
@@ -170,9 +157,6 @@ spec:
             emptyDir: { }
           - name: secrets
             emptyDir: { }
-          - name: genesis-volume
-            persistentVolumeClaim:
-              claimName: devnet-genesis-pvc
 ---
 {{- end }}
 {{- end }}

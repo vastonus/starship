@@ -41,12 +41,8 @@ spec:
             - bash
             - "-c"
             - |
-              echo "Waiting for genesis file to be ready..."
-              while [ ! -f /genesis/execution/genesis.ready ]; do sleep 1; done
-              echo "Genesis file is ready."
-
               echo "Initializing genesis"
-              cp /genesis/execution/genesis.json /ethereum/execution/genesis.json
+              cp /config/genesis.json /ethereum/execution/genesis.json
               cp /config/jwt.hex /etc/secrets/jwt.hex
               geth --datadir /ethereum/execution init /ethereum/execution/genesis.json
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
@@ -112,9 +108,6 @@ spec:
             emptyDir: { }
           - name: secrets
             emptyDir: { }
-          - name: genesis-volume
-            persistentVolumeClaim:
-              claimName: devnet-genesis-pvc
 ---
 {{- end }}
 {{- end }}

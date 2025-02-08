@@ -1,5 +1,5 @@
 chains:
-  - id: ethereum-execution
+  - id: ethereum-execution-1337
     name: ethereum-execution
     image: ghcr.io/cosmology-tech/starship/ethereum/client-go:latest
     numValidators: 1
@@ -7,7 +7,7 @@ chains:
     ports:
       rest: 8545
       rpc: 8551
-  - id: ethereum-beacon
+  - id: ethereum-beacon-1337
     name: ethereum-beacon
     image: ghcr.io/cosmology-tech/starship/prysm/beacon-chain:v5.2.0
     numValidators: 1
