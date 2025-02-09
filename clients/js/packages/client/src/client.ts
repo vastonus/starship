@@ -11,7 +11,6 @@ import { Chain, Relayer, StarshipConfig } from './config';
 import { Ports } from './config';
 import { dependencies as defaultDependencies, Dependency } from './deps';
 import { readAndParsePackageJson } from './package';
-import {type} from "node:os";
 
 export interface StarshipContext {
   name?: string;
@@ -66,7 +65,7 @@ const defaultPorts: PodPorts = {
   chains: {
     ethereum: {
       rpc: 8551,
-      rest: 8545,
+      rest: 8545
     },
     defaultPorts: {
       rpc: 26657,
@@ -720,10 +719,9 @@ export class StarshipClient implements StarshipClientI {
     externalPort: number
   ): void {
     let podName: string;
-    if (typeof(chain.id) === 'string') {
+    if (typeof chain.id === 'string') {
       podName = `${formatChainID(chain.id)}-genesis-0`;
-    }
-    else {
+    } else {
       podName = `${chain.name}-${chain.id}-0`;
     }
 
@@ -753,10 +751,9 @@ export class StarshipClient implements StarshipClientI {
     externalPort: number
   ): void {
     let podName: string;
-    if (typeof(chain.id) === 'string') {
+    if (typeof chain.id === 'string') {
       podName = `${formatChainID(chain.id)}-cometmock-0`;
-    }
-    else {
+    } else {
       podName = `${chain.name}-${chain.id}-0`;
     }
 
