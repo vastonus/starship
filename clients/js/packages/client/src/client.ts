@@ -64,6 +64,10 @@ const defaultPorts: PodPorts = {
     rest: 8080
   },
   chains: {
+    ethereum: {
+      rpc: 8551,
+      rest: 8545,
+    },
     defaultPorts: {
       rpc: 26657,
       grpc: 9090,
