@@ -5,6 +5,6 @@ chains:
     ports:
       rest: 8545
       rpc: 8551
-    resource:
+    resources:
       cpu: "200m"
       memory: "200Mi"
