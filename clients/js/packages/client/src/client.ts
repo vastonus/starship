@@ -741,7 +741,7 @@ export class StarshipClient implements StarshipClientI {
       ]);
       this.log(
         chalk.yellow(
-          `Forwarded ${formatChainID(chain.id)}: local ${localPort} -> target (host) ${externalPort}`
+          `Forwarded ${podName}: local ${localPort} -> target (host) ${externalPort}`
         )
       );
     }
