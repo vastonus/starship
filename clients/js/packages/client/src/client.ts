@@ -11,6 +11,7 @@ import { Chain, Relayer, StarshipConfig } from './config';
 import { Ports } from './config';
 import { dependencies as defaultDependencies, Dependency } from './deps';
 import { readAndParsePackageJson } from './package';
+import {type} from "node:os";
 
 export interface StarshipContext {
   name?: string;
@@ -63,6 +64,10 @@ const defaultPorts: PodPorts = {
     rest: 8080
   },
   chains: {
+    ethereum: {
+      rpc: 8551,
+      rest: 8545,
+    },
     defaultPorts: {
       rpc: 26657,
       grpc: 9090,
@@ -714,11 +719,19 @@ export class StarshipClient implements StarshipClientI {
     localPort: number,
     externalPort: number
   ): void {
+    let podName: string;
+    if (typeof(chain.id) === 'string') {
+      podName = `${formatChainID(chain.id)}-genesis-0`;
+    }
+    else {
+      podName = `${chain.name}-${chain.id}-0`;
+    }
+
     if (localPort !== undefined && externalPort !== undefined) {
       this.exec([
         'kubectl',
         'port-forward',
-        `pods/${formatChainID(chain.id)}-genesis-0`,
+        `pods/${podName}`,
         `${localPort}:${externalPort}`,
         ...this.getArgs(),
         '>',
@@ -728,7 +741,7 @@ export class StarshipClient implements StarshipClientI {
       ]);
       this.log(
         chalk.yellow(
-          `Forwarded ${formatChainID(chain.id)}: local ${localPort} -> target (host) ${externalPort}`
+          `Forwarded ${podName}: local ${localPort} -> target (host) ${externalPort}`
         )
       );
     }
@@ -739,11 +752,19 @@ export class StarshipClient implements StarshipClientI {
     localPort: number,
     externalPort: number
   ): void {
+    let podName: string;
+    if (typeof(chain.id) === 'string') {
+      podName = `${formatChainID(chain.id)}-cometmock-0`;
+    }
+    else {
+      podName = `${chain.name}-${chain.id}-0`;
+    }
+
     if (localPort !== undefined && externalPort !== undefined) {
       this.exec([
         'kubectl',
         'port-forward',
-        `pods/${formatChainID(chain.id)}-cometmock-0`,
+        `pods/${podName}`,
         `${localPort}:${externalPort}`,
         ...this.getArgs(),
         '>',
@@ -753,7 +774,7 @@ export class StarshipClient implements StarshipClientI {
       ]);
       this.log(
         chalk.yellow(
-          `Forwarded ${formatChainID(chain.id)}: local ${localPort} -> target (host) ${externalPort}`
+          `Forwarded ${podName}: local ${localPort} -> target (host) ${externalPort}`
         )
       );
     }
