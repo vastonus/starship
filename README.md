@@ -80,6 +80,26 @@ registry:
 
 For more details on the configuration options and directives available, refer to the [Starship Config](https://docs.cosmology.zone/starship/config).
 
+## Versions & Compatibility
+
+### Current Versions
+| Component	       | Version | Link
+|------------------|---------| --- |
+| Helm Chart       | 	1.2.0  |	- |
+| Starship NPM CLI | 	3.2.0  | NPM |
+| NPM Client       | 3.2.0 | NPM |
+| npm StarshipJS | 	3.0.0 | 	NPM |
+| Starship GitHub Action |	0.5.8 |	- |
+
+### Compatibility Matrix
+| Starship Version | 	Helm Chart         | 	NPM CLI    | 	NPM Client | 	StarshipJS | 	GitHub Action |
+|------------------|---------------------|-------------|-------------|-------------|----------------|
+| 1.2.0 | 	✅ 1.2.0 | 	✅ 3.2.0 | 	✅ 3.2.0    | 	✅ 3.0.0    | 	✅ 0.5.8       |
+| 1.1.0 |	✅ 1.1.0 |	✅ 3.1.0 | 	✅ 3.1.0    | 	✅ 3.0.0    | 	✅ 0.5.6       |
+| 1.0.0 |	✅ 1.0.0 |	✅ 3.0.0 | 	✅ 3.0.0    | 	✅ 3.0.0    | 	✅ 0.5.5       | 
+
+> Note: Starship version 1.2.0+ requires Helm 1.2.0+ and NPM CLI 3.2.0+ for full functionality.
+
 ## Running Starship
 
 ### Deploying 🚀
