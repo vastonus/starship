@@ -83,13 +83,13 @@ For more details on the configuration options and directives available, refer to
 ## Versions & Compatibility
 
 ### Current Versions
-| Component	       | Version | Link |
-|------------------|---------| --- |
-| Helm Chart       | 	1.2.0  |	- |
-| Starship NPM CLI | 	3.2.0  | NPM |
-| NPM Client       | 3.2.0 | NPM |
-| npm StarshipJS | 	3.0.0 | 	NPM |
-| Starship GitHub Action |	0.5.8 |	- |
+| Component	           | Version | Link                                                                                |
+|------------------------|---------|-------------------------------------------------------------------------------------|
+| Helm Chart             | 	1.2.0  | 	-                                                                                  |
+| Starship NPM CLI       | 	3.2.0  | [NPM](https://www.npmjs.com/package/@starship-ci/client/v/3.2.0)                |
+| NPM Client             | 3.2.0 | [NPM](https://www.npmjs.com/package/@starship-ci/cli/v/3.2.0)                       |
+| NPM StarshipJS         | 	3.0.0 | 	[NPM](https://www.npmjs.com/package/starshipjs/v/3.0.0)                            |
+| Starship GitHub Action |	0.5.8 | 	[Github Action](https://github.com/hyperweb-io/starship-action/releases/tag/0.5.8) |
 
 ### Compatibility Matrix
 | Starship Version | 	Helm Chart         | 	NPM CLI    | 	NPM Client | 	StarshipJS | 	GitHub Action |
