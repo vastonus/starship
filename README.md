@@ -94,7 +94,7 @@ For more details on the configuration options and directives available, refer to
 ### Compatibility Matrix
 | Starship Version | 	Helm Chart         | 	NPM CLI    | 	NPM Client | 	StarshipJS | 	GitHub Action |
 |------------------|---------------------|-------------|-------------|-------------|----------------|
-| 1.3.0 | 	✅ 1.3.0 | 	✅ 3.3.0 | 	✅ 3.3.0    | 	✅ 3.3.0    | 	✅ 0.5.8       |
+| 1.3.0 | 	✅ 1.3.0 | 	✅ 3.3.0 | 	✅ 3.3.0    | 	✅ 3.3.0    | 	✅ 0.5.9       |
 | 1.2.0 | 	✅ 1.2.0 | 	✅ 3.2.0 | 	✅ 3.2.0    | 	✅ 3.0.0    | 	✅ 0.5.8       |
 | 1.1.0 |	✅ 1.1.0 |	✅ 3.1.0 | 	✅ 3.1.0    | 	✅ 3.0.0    | 	✅ 0.5.6       |
 | 1.0.0 |	✅ 1.0.0 |	✅ 3.0.0 | 	✅ 3.0.0    | 	✅ 3.0.0    | 	✅ 0.5.5       | 
