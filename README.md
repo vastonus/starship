@@ -89,7 +89,7 @@ For more details on the configuration options and directives available, refer to
 | Starship NPM CLI       | 	3.3.0  | [NPM](https://www.npmjs.com/package/@starship-ci/client/v/3.2.0)                |
 | NPM Client             | 3.3.0   | [NPM](https://www.npmjs.com/package/@starship-ci/cli/v/3.2.0)                       |
 | NPM StarshipJS         | 	3.3.0  | 	[NPM](https://www.npmjs.com/package/starshipjs/v/3.0.0)                            |
-| Starship GitHub Action | 	0.5.8  | 	[Github Action](https://github.com/hyperweb-io/starship-action/releases/tag/0.5.8) |
+| Starship GitHub Action | 	0.5.9  | 	[Github Action](https://github.com/hyperweb-io/starship-action/releases/tag/0.5.8) |
 
 ### Compatibility Matrix
 | Starship Version | 	Helm Chart         | 	NPM CLI    | 	NPM Client | 	StarshipJS | 	GitHub Action |
