@@ -116,6 +116,23 @@ yarn starship start --config config.yaml
 yarn starship stop --config config.yaml
 ```
 
+## Migration to v1
+
+If you are migrating from a previous version of Starship, and you face following error:
+```bash
+Error: repository name (starship) already exists, please specify a different name
+```
+
+Please run the following command:
+```bash
+helm repo remove starship
+```
+
+Then one can run:
+```bash
+yarn starship start --config config.yaml
+```
+
 ## Recommended Usage 📘
 
 Stay tuned for a `create-cosmos-app` boilerplate! For now, this is the most recommended setup. Consider everything else after this section "advanced setup".
