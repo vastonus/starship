@@ -606,7 +606,7 @@ export class StarshipClient implements StarshipClientI {
     });
 
     if (this.podStatuses.size === 0) {
-      this.log(chalk.green('All pods have been sucessfully terminated!'));
+      this.log(chalk.green('All pods have been successfully terminated!'));
       // once the pods are in done state, wait for 1 more seconds
       await new Promise((resolve) => setTimeout(resolve, 1000));
       return;

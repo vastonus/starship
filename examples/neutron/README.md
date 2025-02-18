@@ -95,7 +95,7 @@ Details of each of arguments in the config file can be found [here](https://docs
   * `configs/scripts/`: Custom scripts used by the config file for setup. More details [here](https://docs.cosmology.zone/starship/config/chains#scripts-optional)
 * `scripts/`: Handy scripts for dealing with starship setup and running
   * `scripts/dev-setup.sh`: Checks for dependencies
-  * `scripts/port-forward.sh`: Performs local port-forwarding based on config file definations
+  * `scripts/port-forward.sh`: Performs local port-forwarding based on config file definitions
   * `scripts/install.sh`: Installs helm chart in a connected kubernetes cluster
 * `Makefile`: Single entrypoint for Starship, has all commands needed
 * `READMD.md`: Readme file
