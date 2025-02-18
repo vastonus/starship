@@ -21,7 +21,7 @@ for multichain use cases
 ## Prerequisites
 To get started, you’ll need:
 
-* Kubernetes setup (recommended: Docker Desktop with kubernetes support for local setups): [Docker Desktop](https://www.docker.com/products/docker-desktop/
+* Kubernetes setup (recommended: Docker Desktop with kubernetes support for local setups): [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 * `kubectl`: [Installation Guide](https://kubernetes.io/docs/tasks/tools/)
 * `helm`: [Installation Guide](https://helm.sh/docs/intro/install/)
 
