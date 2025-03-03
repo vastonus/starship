@@ -148,6 +148,7 @@ chains:
     tags:
       - latest
       - stable
+      - v1.15.0
       - v1.14.12
       - v1.14.11
   - name: prysm/beacon-chain
