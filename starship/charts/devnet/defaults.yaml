@@ -794,7 +794,7 @@ defaultChains:
         coingecko_id: stake
         keywords: [ "stake" ]
   ethereum:
-    image: ghcr.io/hyperweb-io/starship/ethereum/client-go:latest
+    image: ghcr.io/hyperweb-io/starship/ethereum/client-go:v1.14.12
     home: /ethereum
     binary: geth
     prefix: eth
