@@ -218,6 +218,15 @@ spec:
               mountPath: /ethereum
             - name: secrets
               mountPath: /etc/secrets
+          readinessProbe:
+            exec:
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  curl -s --data '{"jsonrpc":"2.0","method":"eth_syncing","params":[],"id":1}' -H "Content-Type: application/json" -X POST http://localhost:8545 | grep -q '"result":false'
+            initialDelaySeconds: 15
+            periodSeconds: 10
         - name: beacon-chain
           image: {{ $chain.config.beacon.image }}
           imagePullPolicy: Always
@@ -256,6 +265,12 @@ spec:
               mountPath: /ethereum
             - name: secrets
               mountPath: /etc/secrets
+          readinessProbe:
+            httpGet:
+              path: /eth/v1/node/health
+              port: 3500
+            initialDelaySeconds: 15
+            periodSeconds: 20
         - name: validator
           image: {{ $chain.config.validator.image }}
           imagePullPolicy: Always
@@ -274,7 +289,7 @@ spec:
               echo "Starting validator node"
               validator \
                 --accept-terms-of-use \
-                --beacon-rpc-provider=localhost:4000 \
+                --beacon-rpc-provider=0.0.0.0:4000 \
                 --datadir=/ethereum/consensus/validator \
                 --interop-num-validators={{ $chain.config.validator.numValidator }} \
                 --interop-start-index=0 \
@@ -288,6 +303,12 @@ spec:
               mountPath: /ethereum
             - name: secrets
               mountPath: /etc/secrets
+          readinessProbe:
+            httpGet:
+              path: /eth/v1alpha1/validator/healthz
+              port: 4000
+            initialDelaySeconds: 20
+            periodSeconds: 30
         volumes:
           - name: config
             configMap:
