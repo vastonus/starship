@@ -39,7 +39,7 @@ data:
         },
         {{- range $balances := $chain.balances }}
         "{{ $balances.address }}": {
-          "balance": "{{ $balances.coins }}"
+          "balance": "{{ $balances.amount }}"
         },
         {{- end }}
         "0x4242424242424242424242424242424242424242": {
@@ -183,6 +183,10 @@ spec:
             - bash
             - "-c"
             - |
+              echo "Setting UDP buffer size"
+              sysctl -w net.core.rmem_max=16777216
+              sysctl -w net.core.wmem_max=16777216
+
               echo "Starting execution chain"
               geth --datadir /ethereum/execution --http \
                 --http.addr=0.0.0.0 \
@@ -199,12 +203,14 @@ spec:
                 --http.vhosts=* \
                 --authrpc.vhosts=* \
                 --authrpc.jwtsecret=/etc/secrets/jwt.hex \
-                --allow-insecure-unlock \
                 --unlock=0x123463a4B065722E99115D6c222f267d9cABb524 \
                 --password=/dev/null \
-                --syncmode=full \
+                --syncmode=snap \
+                --snapshot=false \
                 --networkid={{ $chain.id }} \
-                --mine \
+                --verbosity=4 \
+                --maxpeers=50 \
+                --nat=none \
                 --log.vmodule=engine=6
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:
@@ -224,8 +230,8 @@ spec:
             - bash
             - "-c"
             - |
-              echo "Waiting 15 seconds for execution client to be ready..."
-              sleep 15
+              echo "Waiting 30 seconds for execution client to be ready..."
+              sleep 30
 
               echo "Starting consensus chain"
               beacon-chain \
@@ -273,6 +279,7 @@ spec:
                 --interop-num-validators={{ $chain.config.validator.numValidator }} \
                 --interop-start-index=0 \
                 --force-clear-db \
+                --grpc-gateway-host=0.0.0.0 \
                 --chain-config-file=/ethereum/consensus/config.yaml \
                 --suggested-fee-recipient=0x0C46c2cAFE097b4f7e1BB868B89e5697eE65f934
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}

@@ -1,6 +1,7 @@
 package e2e
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -166,6 +167,58 @@ func (s *TestSuite) TestChains_Balances() {
 			s.Require().True(ok, "balance should be a map")
 			coins := fmt.Sprintf("%s%s", balanceMap["amount"], balanceMap["denom"])
 			s.Require().Equal(balance.Amount, coins, "balance mismatch for address %s", balance.Address)
+		}
+	}
+}
+
+func (s *TestSuite) TestChainsEth_Balances() {
+	s.T().Log("running test for eth_getBalance endpoint for each chain")
+
+	for _, chain := range s.config.Chains {
+		if chain.Name != "ethereum" {
+			continue
+		}
+
+		if chain.Balances == nil {
+			chain.Balances = []Balance{}
+		}
+
+		// add default balance to chain balances
+		chain.Balances = append(chain.Balances, Balance{
+			Address: "0x0000000000000000000000000000000000000001",
+			Amount:  0x1000000000000000000})
+
+		for _, balance := range chain.Balances {
+			url := fmt.Sprintf("http://0.0.0.0:%d", chain.Ports.Rest)
+
+			// Create the JSON-RPC request body
+			requestBody, err := json.Marshal(map[string]interface{}{
+				"jsonrpc": "2.0",
+				"method":  "eth_getBalance",
+				"params":  []interface{}{balance.Address, "latest"},
+				"id":      1,
+			})
+			s.Require().NoError(err)
+
+			req, err := http.NewRequest(http.MethodPost, url, bytes.NewBuffer(requestBody))
+			s.Require().NoError(err)
+			req.Header.Set("Content-Type", "application/json")
+
+			body := s.MakeRequest(req, 200)
+
+			// Parse the response body
+			data := map[string]interface{}{}
+			err = json.NewDecoder(body).Decode(&data)
+			s.Require().NoError(err)
+
+			// Extract the result field which contains the balance
+			result, ok := data["result"].(string)
+			s.Require().True(ok, "result should be a string")
+
+			// Convert expected balance to hex for comparison
+			expectedBalance := fmt.Sprintf("0x%x", balance.Amount)
+
+			s.Require().Equal(expectedBalance, result, "balance mismatch for address %s", balance.Address)
 		}
 	}
 }
