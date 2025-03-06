@@ -296,6 +296,8 @@ spec:
                 --force-clear-db \
                 --grpc-gateway-host=0.0.0.0 \
                 --chain-config-file=/ethereum/consensus/config.yaml \
+                --monitoring-host=0.0.0.0 \
+                --monitoring-port=8081 \
                 --suggested-fee-recipient=0x0C46c2cAFE097b4f7e1BB868B89e5697eE65f934
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:
@@ -305,8 +307,8 @@ spec:
               mountPath: /etc/secrets
           readinessProbe:
             httpGet:
-              path: /eth/v1alpha1/validator/healthz
-              port: 4000
+              path: /metrics
+              port: 8081
             initialDelaySeconds: 20
             periodSeconds: 30
         volumes:
