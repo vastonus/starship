@@ -5,25 +5,66 @@
 ```sh
 npm install -g @starship-ci/cli
 ```
+or use npx
+```sh
+npx @starship-ci/cli
+```
 
 ### Install dependencies
+Following command will install all the dependencies required to run the starship.
 ```sh
 starship install
 ```
 
-### Run starship
-
+If all dependencies are installed successfully, you will see the following message:
 ```sh
-starship setup --config ./config/config.yaml
+No name specified, using default name: starship
+No version specified, using default version: v1.5.0
+Checking docker...
+Checking kubectl...
+Checking helm...
+```
+
+### Run starship setp-by-step
+
+1. Setup helm chart
+```sh
+starship setup
+```
+
+2. Deploy starship, run pods, services, and ingress
+```sh
 starship deploy --config ./config/config.yaml
+```
+
+3. Wait for pods to be ready and running
+```sh
+starship wait-for-pods --config ./config/config.yaml
+```
+
+4. Start port-forwarding to be able to connect to ports
+```sh
 starship start-ports --config ./config/config.yaml
+```
+
+Or you can run all the above commands in one go
+```sh
+starship start --config ./config/config.yaml  # will run setup, deploy, wait-for-pods, start-ports
 ```
 
 ### Teardown starship
 
+1. Stop port-forwarding
 ```sh
-starship undeploy --config ./config/config.yaml
-starship teardown --config ./config/config.yaml
+starship stop-ports --config ./config/config.yaml
 ```
 
+2. Delete starship kubernetes resources
+```sh
+starship delete --config ./config/config.yaml
+```
 
+Or you can run both commands in one go
+```sh
+starship stop --config ./config/config.yaml  # will run stop-ports, delete
+```
