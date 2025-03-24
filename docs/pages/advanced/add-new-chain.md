@@ -15,7 +15,7 @@ Dependencies required by starship (apart from chain binary):
 
 #### Starship docker system
 We can either use the starship docker system to add the image.
-Add a section to `starship/docker/chains/version.yaml`.
+Add a section to `starship/docker/chains/versions.yaml`.
 In chains add a section:
 ```yaml
 - name: new-chain
