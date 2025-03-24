@@ -37,7 +37,7 @@ If one wants to use a custom dockerfile, they can add a section to `starship/doc
 
 Then you can have your custom dockerfile in the path specified in `file`, which will be used to build the image.
 
-Note we run the script: [`starship/docker/chains/build.sh`](https://github.com/hyperweb-io/starship/blob/main/starship/docker/chains/build-docker-chains.sh) to build the docker image.
+Note we run the script: [`starship/docker/chains/build-docker-chains.sh`](https://github.com/hyperweb-io/starship/blob/main/starship/docker/chains/build-docker-chains.sh) to build the docker image.
 
 Once this is done, please create a PR to the starship repo.
 Once the PR is merged, our workflows will create and push the docker image to starship [ghcr registry](https://github.com/orgs/hyperweb-io/packages?repo_name=starship) of starship.  
