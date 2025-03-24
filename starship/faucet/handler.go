@@ -74,7 +74,7 @@ func (a *AppServer) Credit(ctx context.Context, requestCredit *pb.RequestCredit)
 		return &pb.ResponseCredit{Status: fmt.Sprintf("error: %v", err)}, err
 	}
 	if !confirmed {
-		return &pb.ResponseCredit{Status: "error: failed to confirm balance update (timeout)"}, nil
+		return &pb.ResponseCredit{Status: "error: failed to confirm balance update (timeout reached)"}, nil
 	}
 
 	return &pb.ResponseCredit{Status: "ok"}, nil
@@ -88,7 +88,7 @@ func (a *AppServer) confirmBalanceUpdate(address, denom string, initialBalance *
 
 	expectedFinalBalance := new(big.Int).Add(initialBalance, expectedIncrease)
 
-	for i := 0; i < 3; i++ { // Try 3 times with 5-second intervals
+	for i := 0; i < a.config.CreditCheckRetry; i++ { // Try x times with t-second intervals
 		currentBalance, err := a.getBalance(address, denom)
 		if err != nil {
 			return false, err
@@ -97,7 +97,7 @@ func (a *AppServer) confirmBalanceUpdate(address, denom string, initialBalance *
 			return true, nil
 		}
 		if i < 2 {
-			time.Sleep(5 * time.Second)
+			time.Sleep(time.Duration(a.config.CreditCheckEpoch) * time.Second)
 		}
 	}
 	return false, nil
