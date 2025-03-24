@@ -8,7 +8,7 @@ import (
 	urlpkg "net/url"
 	"strconv"
 
-	pb "github.com/cosmology-tech/starship/registry/registry"
+	pb "github.com/hyperweb-io/starship/registry/registry"
 )
 
 func (s *TestSuite) MakeFaucetRequest(chain *Chain, req *http.Request, unmarshal map[string]interface{}) {

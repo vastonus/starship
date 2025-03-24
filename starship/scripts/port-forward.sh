@@ -27,6 +27,8 @@ CHAIN_GRPCWEB_PORT=9091
 CHAIN_LCD_PORT=1317
 CHAIN_EXPOSER_PORT=8081
 CHAIN_FAUCET_PORT=8000
+ETHEREUM_REST_PORT=8545
+ETHEREUM_RPC_PORT=8551
 RELAYER_REST_PORT=3000
 RELAYER_EXPOSER_PORT=8081
 EXPLORER_LCD_PORT=8080
@@ -58,28 +60,40 @@ num_chains=$(yq -r ".chains | length - 1" ${CONFIGFILE})
 if [[ $num_chains -gt -1 ]]; then
   for i in $(seq 0 $num_chains); do
     # derive chain pod name from chain id
-    # https://github.com/cosmology-tech/starship/blob/main/charts/devnet/templates/_helpers.tpl#L56
+    # https://github.com/hyperweb-io/starship/blob/main/charts/devnet/templates/_helpers.tpl#L56
     chain=$(yq -r ".chains[$i].id" ${CONFIGFILE} )
     chain=${chain/_/"-"}
-    localrpc=$(yq -r ".chains[$i].ports.rpc" ${CONFIGFILE} )
-    localgrpc=$(yq -r ".chains[$i].ports.grpc" ${CONFIGFILE} )
-    localgrpcweb=$(yq -r ".chains[$i].ports.grpc-web" ${CONFIGFILE} )
-    locallcd=$(yq -r ".chains[$i].ports.rest" ${CONFIGFILE} )
-    localexp=$(yq -r ".chains[$i].ports.exposer" ${CONFIGFILE})
-    localfaucet=$(yq -r ".chains[$i].ports.faucet" ${CONFIGFILE})
-    color yellow "chains: forwarded $chain"
-    if [[ $(yq -r ".chains[$i].cometmock.enabled" $CONFIGFILE) == "true" ]];
-    then
-      [[ "$localrpc" != "null" ]] && color yellow "    cometmock rpc to http://localhost:$localrpc" && kubectl port-forward pods/$chain-cometmock-0 $localrpc:$CHAIN_COMETMOCK_PORT > /dev/null 2>&1 &
+    chain_name=$(yq -r ".chains[$i].name" ${CONFIGFILE})
+
+    if [[ "$chain_name" == *"ethereum"* ]]; then
+      localrest=$ETHEREUM_REST_PORT
+      localrpc=$ETHEREUM_RPC_PORT
+      color yellow "Ethereum chain detected: $chain"
+      color yellow "    Forwarding REST: http://localhost:$localrest"
+      color yellow "    Forwarding RPC: http://localhost:$localrpc"
+      kubectl port-forward pods/$chain_name-$chain-0 $localrest:$ETHEREUM_REST_PORT > /dev/null 2>&1 &
+      kubectl port-forward pods/$chain_name-$chain-0 $localrpc:$ETHEREUM_RPC_PORT > /dev/null 2>&1 &
     else
-      [[ "$localrpc" != "null" ]] && color yellow "    rpc to http://localhost:$localrpc" && kubectl port-forward pods/$chain-genesis-0 $localrpc:$CHAIN_RPC_PORT > /dev/null 2>&1 &
+      localrpc=$(yq -r ".chains[$i].ports.rpc" ${CONFIGFILE} )
+      localgrpc=$(yq -r ".chains[$i].ports.grpc" ${CONFIGFILE} )
+      localgrpcweb=$(yq -r ".chains[$i].ports.grpc-web" ${CONFIGFILE} )
+      locallcd=$(yq -r ".chains[$i].ports.rest" ${CONFIGFILE} )
+      localexp=$(yq -r ".chains[$i].ports.exposer" ${CONFIGFILE})
+      localfaucet=$(yq -r ".chains[$i].ports.faucet" ${CONFIGFILE})
+      color yellow "chains: forwarded $chain"
+      if [[ $(yq -r ".chains[$i].cometmock.enabled" $CONFIGFILE) == "true" ]];
+      then
+        [[ "$localrpc" != "null" ]] && color yellow "    cometmock rpc to http://localhost:$localrpc" && kubectl port-forward pods/$chain-cometmock-0 $localrpc:$CHAIN_COMETMOCK_PORT > /dev/null 2>&1 &
+      else
+        [[ "$localrpc" != "null" ]] && color yellow "    rpc to http://localhost:$localrpc" && kubectl port-forward pods/$chain-genesis-0 $localrpc:$CHAIN_RPC_PORT > /dev/null 2>&1 &
+      fi
+      [[ "$localgrpc" != "null" ]] && color yellow "    grpc to http://localhost:$localgrpc" && kubectl port-forward pods/$chain-genesis-0 $localgrpc:$CHAIN_GRPC_PORT > /dev/null 2>&1 &
+      [[ "$localgrpcweb" != "null" ]] && color yellow "    grpc-web to http://localhost:$localgrpcweb" && kubectl port-forward pods/$chain-genesis-0 $localgrpcweb:$CHAIN_GRPCWEB_PORT > /dev/null 2>&1 &
+      [[ "$locallcd" != "null" ]] && color yellow "    lcd to http://localhost:$locallcd" && kubectl port-forward pods/$chain-genesis-0 $locallcd:$CHAIN_LCD_PORT > /dev/null 2>&1 &
+      [[ "$localexp" != "null" ]] && color yellow "    exposer to http://localhost:$localexp" && kubectl port-forward pods/$chain-genesis-0 $localexp:$CHAIN_EXPOSER_PORT > /dev/null 2>&1 &
+      [[ "$localfaucet" != "null" ]] && color yellow "    faucet to http://localhost:$localfaucet" && kubectl port-forward pods/$chain-genesis-0 $localfaucet:$CHAIN_FAUCET_PORT > /dev/null 2>&1 &
+      sleep 1
     fi
-    [[ "$localgrpc" != "null" ]] && color yellow "    grpc to http://localhost:$localgrpc" && kubectl port-forward pods/$chain-genesis-0 $localgrpc:$CHAIN_GRPC_PORT > /dev/null 2>&1 &
-    [[ "$localgrpcweb" != "null" ]] && color yellow "    grpc-web to http://localhost:$localgrpcweb" && kubectl port-forward pods/$chain-genesis-0 $localgrpcweb:$CHAIN_GRPCWEB_PORT > /dev/null 2>&1 &
-    [[ "$locallcd" != "null" ]] && color yellow "    lcd to http://localhost:$locallcd" && kubectl port-forward pods/$chain-genesis-0 $locallcd:$CHAIN_LCD_PORT > /dev/null 2>&1 &
-    [[ "$localexp" != "null" ]] && color yellow "    exposer to http://localhost:$localexp" && kubectl port-forward pods/$chain-genesis-0 $localexp:$CHAIN_EXPOSER_PORT > /dev/null 2>&1 &
-    [[ "$localfaucet" != "null" ]] && color yellow "    faucet to http://localhost:$localfaucet" && kubectl port-forward pods/$chain-genesis-0 $localfaucet:$CHAIN_FAUCET_PORT > /dev/null 2>&1 &
-    sleep 1
   done
 else
   echo "No chains to port-forward: num: $num_chains"
@@ -91,7 +105,7 @@ num_relayers=$(yq -r ".relayers | length - 1" ${CONFIGFILE})
 if [[ $num_relayers -gt -1 ]]; then
   for i in $(seq 0 $num_relayers); do
     # derive chain pod name from chain id
-    # https://github.com/cosmology-tech/starship/blob/main/charts/devnet/templates/_helpers.tpl#L56
+    # https://github.com/hyperweb-io/starship/blob/main/charts/devnet/templates/_helpers.tpl#L56
     relayer=$(yq -r ".relayers[$i].name" ${CONFIGFILE} )
     relayer=$(yq -r ".relayers[$i].type" ${CONFIGFILE} )-${relayer/_/"-"}
     localrest=$(yq -r ".relayers[$i].ports.rest" ${CONFIGFILE} )

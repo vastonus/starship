@@ -8,11 +8,11 @@ import (
 	"strings"
 	"sync"
 
-	pb "github.com/cosmology-tech/starship/registry/registry"
 	clienttypes "github.com/cosmos/ibc-go/v7/modules/core/02-client/types"
 	"github.com/cosmos/ibc-go/v7/modules/core/exported"
 	ibctm "github.com/cosmos/ibc-go/v7/modules/light-clients/07-tendermint"
 	"github.com/golang/protobuf/jsonpb"
+	pb "github.com/hyperweb-io/starship/registry/registry"
 	lens "github.com/strangelove-ventures/lens/client"
 	"github.com/strangelove-ventures/lens/client/query"
 	"go.uber.org/zap"
@@ -209,7 +209,7 @@ func (c *ChainClient) GetChainKeys(ctx context.Context) (*pb.Keys, error) {
 	return keys, nil
 }
 
-// getChannelPort returns the chains and the counterparty info
+// getChannelsPorts returns the chains and the counterparty info
 func (c *ChainClient) getChannelsPorts() ([]ChannelsInfo, error) {
 	querier := query.Query{Client: c.client, Options: query.DefaultOptions()}
 
@@ -279,7 +279,7 @@ func (c *ChainClient) getConnectionClient(connectionId string) (*ConnectionInfo,
 	}, nil
 }
 
-// GetIBCClients will fetch all the IBC channels for the chain
+// getChainIdFromClient retrieves the chain ID from an IBC client ID
 func (c *ChainClient) getChainIdFromClient(clientId string) (string, error) {
 	querier := query.Query{Client: c.client, Options: query.DefaultOptions()}
 
