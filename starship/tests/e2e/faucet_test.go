@@ -132,7 +132,7 @@ func (s *TestSuite) creditAccount(chain *Chain, addr, denom string) error {
 		return err
 	}
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		return fmt.Errorf("unexpected status code: %d, response: %s", resp.StatusCode, resp.Body)
 	}
 	return nil
 }
