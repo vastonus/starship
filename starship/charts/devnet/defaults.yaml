@@ -993,7 +993,7 @@ defaultFaucet:
     image: ghcr.io/cosmology-tech/starship/cosmjs-faucet:v0.31.1
     concurrency: 5
   starship:
-    image: ghcr.io/hyperweb-io/starship/faucet:20250325-9eb67d7
+    image: anmol1696/faucet:20250325-e08407f # debug faucet # ghcr.io/hyperweb-io/starship/faucet:20250325-9eb67d7
     concurrency: 5
 
 defaultCometmock:

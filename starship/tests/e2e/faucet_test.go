@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
 	urlpkg "net/url"
 	"strconv"
@@ -131,9 +132,17 @@ func (s *TestSuite) creditAccount(chain *Chain, addr, denom string) error {
 	if err != nil {
 		return err
 	}
+
 	if resp.StatusCode != 200 {
-		return fmt.Errorf("unexpected status code: %d", resp.StatusCode)
+		bodyBytes, err := io.ReadAll(resp.Body)
+		if err != nil {
+			return fmt.Errorf("unexpected status code: %d, and failed to read response body: %w", resp.StatusCode, err)
+		}
+		defer resp.Body.Close()
+
+		return fmt.Errorf("unexpected status code: %d, response: %s", resp.StatusCode, string(bodyBytes))
 	}
+
 	return nil
 }
 
@@ -186,6 +195,7 @@ func (s *TestSuite) TestFaucet_Credit_MultipleRequests() {
 			// Send multiple requests
 			numRequests := 3
 			for i := 0; i < numRequests; i++ {
+				s.T().Log("crediting account for request: ", i)
 				err := s.creditAccount(chain, addr, denom)
 				s.Require().NoError(err)
 			}
