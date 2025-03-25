@@ -113,7 +113,7 @@ jobs:
             echo "==================================================="
             echo "Logs for $i"
             kubectl describe pods $i -n $DEVNET_NAMESPACE
-            kubectl logs $i -n $DEVNET_NAMESPACE --all-containers --tail=800
+            kubectl logs $i -n $DEVNET_NAMESPACE --all-containers --tail=10000
             echo "==================================================="
           done
         env:
