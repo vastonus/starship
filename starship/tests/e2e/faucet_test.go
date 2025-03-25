@@ -196,8 +196,8 @@ func (s *TestSuite) TestFaucet_Credit_MultipleRequests() {
 			// Check that the balance has increased by at least the expected amount times the number of requests
 			expectedIncrease := expCreditedAmt * float64(numRequests)
 			actualIncrease := afterBalance - beforeBalance
-			s.Require().GreaterOrEqual(actualIncrease, expectedIncrease, 
-				"Balance didn't increase as expected. Actual increase: %f, Expected increase: %f", 
+			s.Require().GreaterOrEqual(actualIncrease, expectedIncrease,
+				"Balance didn't increase as expected. Actual increase: %f, Expected increase: %f",
 				actualIncrease, expectedIncrease)
 		})
 	}
