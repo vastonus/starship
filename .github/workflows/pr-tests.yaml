@@ -101,6 +101,22 @@ jobs:
           TEST_CONFIG_FILE: ${{ env.CONFIG_FILE }}
         working-directory: starship
 
+      - name: Log pods
+        if: failure()
+        run: |
+          kubectl get pods -n $NAMESPACE
+          for i in `kubectl get po -n $NAMESPACE -o json | jq -r '.items[].metadata.name'`; do
+            echo "==================================================="
+            echo "Logs for $i"
+            kubectl describe pods $i -n $NAMESPACE
+            kubectl logs $i -n $NAMESPACE -c faucet --tail=10000
+            echo "=====================Previous======================"
+            kubectl logs $i -n $NAMESPACE -c faucet --previous --tail=10000
+            echo "==================================================="
+          done
+        env:
+          NAMESPACE: ${{ steps.starship-action.outputs.namespace }}
+
       # todo: change this to be post step of the action
       - name: Cleanup cluster
         if: always()
