@@ -36,7 +36,7 @@ delete:
 
 .PHONY: test
 test:
-	TEST_CONFIG_FILE=$(HELM_FILE) go test -v ./... -count=1
+	TEST_CONFIG_FILE=$(HELM_FILE) CGO_ENABLED=0 go test -v ./... -count=1
 
 ###############################################################################
 ###                              Port forward                              ###

@@ -394,7 +394,7 @@ spec:
             httpGet:
               path: /status
               port: {{ $chain.faucet.ports.rest }}
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 10
         {{- else if eq $chain.faucet.type "starship" }}
         - name: faucet
@@ -463,7 +463,7 @@ spec:
             httpGet:
               path: /status
               port: {{ $chain.faucet.ports.rest }}
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
         {{- end }}
         {{- end }}
