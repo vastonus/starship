@@ -186,6 +186,7 @@ func (s *TestSuite) TestFaucet_Credit_MultipleRequests() {
 			// Send multiple requests
 			numRequests := 3
 			for i := 0; i < numRequests; i++ {
+				s.T().Log("crediting account for request: ", i)
 				err := s.creditAccount(chain, addr, denom)
 				s.Require().NoError(err)
 			}
