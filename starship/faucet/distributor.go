@@ -327,11 +327,11 @@ func (a *Account) queryTxWithRetry(txhash string, maxRetries int) (map[string]in
 	return nil, fmt.Errorf("transaction not found after retries: txhash: %s", txhash)
 }
 
-// sendTokens performs chain binary send txn from account
-func (a *Account) sendTokens(address string, denom string, amount string) error {
+// sendTokens performs chain binary send txn from account, returns txhash
+func (a *Account) sendTokens(address string, denom string, amount string) (string, error) {
 	ok := a.mu.TryLock()
 	if !ok {
-		return fmt.Errorf("account %s busy: %w", a, ErrResourceInUse)
+		return "", fmt.Errorf("account %s busy: %w", a, ErrResourceInUse)
 	}
 	defer a.mu.Unlock()
 
@@ -340,7 +340,7 @@ func (a *Account) sendTokens(address string, denom string, amount string) error 
 	output, err := runCommand(cmdStr)
 	if err != nil {
 		a.logger.Error("send token failed", zap.String("cmd", cmdStr), zap.Error(err))
-		return err
+		return "", err
 	}
 	a.logger.Info("ran cmd to send tokens", zap.String("cmd", cmdStr), zap.String("stdout", string(output)))
 
@@ -348,11 +348,16 @@ func (a *Account) sendTokens(address string, denom string, amount string) error 
 	txhash, err := extractTxHash(string(output))
 	if err != nil {
 		a.logger.Error("failed to extract txhash", zap.Error(err))
-		return err
+		return "", err
 	}
 
 	a.logger.Debug("send tokens txhash", zap.String("txhash", txhash))
 
+	return txhash, nil
+}
+
+// confirmTx checks if the tx has gone through by checking the event
+func (a *Account) confirmTx(txhash, eventType string) error {
 	// query tx to check if the tx was successful
 	txMap, err := a.queryTxWithRetry(txhash, 3)
 	if err != nil {
@@ -360,9 +365,10 @@ func (a *Account) sendTokens(address string, denom string, amount string) error 
 	}
 
 	// check if the tx has the event
-	err = hasEvent(txMap, "transfer")
+	err = hasEvent(txMap, eventType)
 	if err != nil {
-		a.logger.Error("transfer event not found in tx",
+		a.logger.Error("event not found in tx",
+			zap.String("eventType", eventType),
 			zap.String("txhash", txhash),
 			zap.Any("txMap", txMap))
 		return err
@@ -373,14 +379,21 @@ func (a *Account) sendTokens(address string, denom string, amount string) error 
 
 // SendTokens will perform send tokens with retries based on errors
 func (a *Account) SendTokens(address string, denom string, amount string) error {
-	err := a.sendTokens(address, denom, amount)
+	txHash, err := a.sendTokens(address, denom, amount)
 	if err == nil {
 		return nil
 	}
+
 	if strings.Contains(err.Error(), "account sequence mismatch") {
 		// retry sendTokens
 		a.logger.Debug("got account sequence missmatch error, retrying send tokens recursively")
 		return a.SendTokens(address, denom, amount)
+	}
+
+	// Confirm tx has gone through
+	err = a.confirmTx(txHash, "transfer")
+	if err != nil {
+		return err
 	}
 
 	return err
