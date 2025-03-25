@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"strings"
 	"sync"
+	"time"
 
 	"go.uber.org/zap"
 
@@ -293,6 +294,39 @@ func (a *Account) queryTx(txhash string) (map[string]interface{}, error) {
 	return txMap, nil
 }
 
+// queryTxWithRetry wraps queryTx with retry logic on tx "not found" error
+func (a *Account) queryTxWithRetry(txhash string, maxRetries int) (map[string]interface{}, error) {
+	var (
+		txMap map[string]interface{}
+		err   error
+	)
+
+	for attempt := 1; attempt <= maxRetries; attempt++ {
+		txMap, err = a.queryTx(txhash)
+		if err == nil {
+			return txMap, nil
+		}
+
+		// Check explicitly for the "not found" error condition
+		if strings.Contains(err.Error(), "not found") {
+			a.logger.Warn("transaction not found, retrying",
+				zap.String("txhash", txhash),
+				zap.Int("attempt", attempt),
+				zap.Int("maxRetries", maxRetries),
+			)
+
+			// Sleep 2-3 seconds before retry
+			time.Sleep(2*time.Second + time.Duration(rand.Intn(1000))*time.Millisecond)
+			continue
+		}
+
+		// If any other error occurs, return immediately
+		return nil, err
+	}
+
+	return nil, fmt.Errorf("transaction not found after retries: txhash: %s", txhash)
+}
+
 // sendTokens performs chain binary send txn from account
 func (a *Account) sendTokens(address string, denom string, amount string) error {
 	ok := a.mu.TryLock()
@@ -320,7 +354,7 @@ func (a *Account) sendTokens(address string, denom string, amount string) error 
 	a.logger.Debug("send tokens txhash", zap.String("txhash", txhash))
 
 	// query tx to check if the tx was successful
-	txMap, err := a.queryTx(txhash)
+	txMap, err := a.queryTxWithRetry(txhash, 3)
 	if err != nil {
 		return err
 	}
