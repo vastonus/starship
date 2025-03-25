@@ -20,6 +20,8 @@ func NewDefaultConfig() *Config {
 		RefillFactor:      8,
 		RefillThreshold:   20,
 		RefillEpoch:       100,
+		CreditCheckEpoch:  3,
+		CreditCheckRetry:  3,
 		Verbose:           true,
 	}
 }
@@ -55,6 +57,10 @@ type Config struct {
 	RefillEpoch int `name:"refill-epoch" json:"refill_epoch" env:"REFILL_EPOCH" usage:"after every epoch, holder will distrubute tokens to distributor addresses if required"`
 	// CreditCoins is comma seperated list of amount and denom of tokens to be transfered
 	CreditCoins string `name:"credit-coins" json:"credit_coins" env:"CREDIT_COINS" usage:"comma seperated list of amount and denom of tokens to be transfered. eg: 10000000uosmo,1000000uion"`
+	// CreditCheckEpoch is the time (in secs) to sleep, after which holder will check for credit request
+	CreditCheckEpoch int `name:"credit-check-epoch" json:"credit_check_epoch" env:"CREDIT_CHECK_EPOCH" usage:"after every epoch, holder will check for credit request"`
+	// CreditCheckRetry is the number of retries to check for credit request
+	CreditCheckRetry int `name:"credit-check-retry" json:"credit_check_retry" env:"CREDIT_CHECK_RETRY" usage:"number of retries to check for credit request"`
 	// Mnemonic is the mnemonic of the address used as the faucet address
 	Mnemonic string `name:"mnemonic" json:"mnemonic" env:"MNEMONIC" usage:"mnemonic of the address used as the faucet address"`
 	// Verbose switches on debug logging
