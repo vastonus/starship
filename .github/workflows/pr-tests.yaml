@@ -101,24 +101,6 @@ jobs:
           TEST_CONFIG_FILE: ${{ env.CONFIG_FILE }}
         working-directory: starship
 
-      - name: Log if tests step fails
-        if: failure()
-        run: |
-          set -euxo pipefail
-
-          echo "Tests failed Logging everything"
-          kubectl get pods -n $DEVNET_NAMESPACE
-
-          for i in `kubectl get po -n $DEVNET_NAMESPACE -o json | jq -r '.items[].metadata.name'`; do
-            echo "==================================================="
-            echo "Logs for $i"
-            kubectl describe pods $i -n $DEVNET_NAMESPACE
-            kubectl logs $i -n $DEVNET_NAMESPACE --all-containers --tail=10000
-            echo "==================================================="
-          done
-        env:
-          DEVNET_NAMESPACE: ${{ steps.starship-action.outputs.namespace }}
-
       # todo: change this to be post step of the action
       - name: Cleanup cluster
         if: always()
