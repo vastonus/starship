@@ -102,7 +102,7 @@ jobs:
         working-directory: starship
 
       - name: Log if tests step fails
-        if: steps.tests.outcome != 'success'
+        if: failure()
         run: |
           set -euxo pipefail
 
