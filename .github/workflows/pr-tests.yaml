@@ -101,7 +101,7 @@ jobs:
           TEST_CONFIG_FILE: ${{ env.CONFIG_FILE }}
         working-directory: starship
 
-      - name: Log pods
+      - name: Log pods if failure
         if: failure()
         run: |
           kubectl get pods -n $NAMESPACE
@@ -109,9 +109,9 @@ jobs:
             echo "==================================================="
             echo "Logs for $i"
             kubectl describe pods $i -n $NAMESPACE
-            kubectl logs $i -n $NAMESPACE -c faucet --tail=10000
+            kubectl logs $i -n $NAMESPACE --all-containers --tail=10000
             echo "=====================Previous======================"
-            kubectl logs $i -n $NAMESPACE -c faucet --previous --tail=10000
+            kubectl logs $i -n $NAMESPACE --all-containers --previous --tail=10000
             echo "==================================================="
           done
         env:
