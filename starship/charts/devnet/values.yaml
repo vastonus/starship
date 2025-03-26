@@ -230,7 +230,7 @@ registry:
 
 faucet:
   enabled: true
-  type: cosmjs
+  type: starship
   ports:
     rest: 8000
   resources:
