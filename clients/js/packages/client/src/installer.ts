@@ -41,11 +41,15 @@ export class StarshipInstaller {
   }
 
   async checkAndInstallDependencies() {
-    for (const dependency of Object.keys(this.installations)) {
-      console.log(chalk.yellow(`Checking ${dependency}...`));
-      await this.checkAndInstallBinary(dependency);
+    try {
+      for (const dependency of Object.keys(this.installations)) {
+        console.log(chalk.yellow(`Checking ${dependency}...`));
+        await this.checkAndInstallBinary(dependency);
+      }
+      console.log(chalk.green('All dependencies are installed!! Good to go!!'));
+    } catch (err) {
+      console.error(chalk.red(`Error installing dependencies: ${err}`));
     }
-    console.log(chalk.green('All dependencies are installed!! Good to go!!'));
   }
 
   async installBinary(binaryName: string) {
