@@ -42,9 +42,10 @@ export class StarshipInstaller {
 
   async checkAndInstallDependencies() {
     for (const dependency of Object.keys(this.installations)) {
-      console.log(`Checking ${dependency}...`);
+      console.log(chalk.yellow(`Checking ${dependency}...`));
       await this.checkAndInstallBinary(dependency);
     }
+    console.log(chalk.green('All dependencies are installed!! Good to go!!'));
   }
 
   async installBinary(binaryName: string) {
@@ -61,7 +62,3 @@ export class StarshipInstaller {
     shell.exec(command);
   }
 }
-
-// Example usage:
-// const client = new StarshipClient();
-// await client.checkAndInstallBinary('kubectl');
