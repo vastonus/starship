@@ -145,8 +145,8 @@ For more details on the resource directive have a look at [kubernetes resources]
 
 ## `faucet` (optional)
 Every genesis node runs a faucet. We support 2 types of faucet:
-* [cosmjs faucet](https://github.com/cosmos/cosmjs/tree/main/packages/faucet), by default
-* [starship faucet](https://github.com/hyperweb-io/starship/tree/main/starship/faucet)
+* [starship faucet](https://github.com/hyperweb-io/starship/tree/main/starship/faucet), by default
+* [cosmjs faucet](https://github.com/cosmos/cosmjs/tree/main/packages/faucet)
 
 Setting for cosmjs-faucet [here](https://github.com/hyperweb-io/starship/blob/main/starship/charts/devnet/values.yaml#L32...#L38) but can be
 overridden with this directive, specially for compatible cosmjs version with the chain version.
@@ -172,8 +172,6 @@ validator and relayer keys at gentx on genesis. This will take longer during ini
 > Note `concurrency` in `faucet` is the number of concurrent requests the faucet can handle.
 If you are running a chain with less resources, or want faster startup time,
 then you can reduce the `concurrency` to a lower number.
-
-> Note: use `faucet.type: starship` for chains not supported by `cosmjs`. Mainly `injective`, `evmos`, `cheqd` etc.
 
 ## `build` (optional)
 With the `build` directive in the chain, one can basically build chain binaries on the fly before starting the chain.
