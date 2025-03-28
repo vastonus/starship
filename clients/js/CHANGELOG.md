@@ -3,6 +3,14 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.6.0](https://github.com/hyperweb-io/starship/compare/v3.5.0...v3.6.0) (2025-03-28)
+
+### Features
+
+- **faucet:** ensure successful transfer before responding ([35e8b38](https://github.com/hyperweb-io/starship/commit/35e8b383a3cb4d9c7a24a9d1e87ee79322c65c7d)), closes [#417](https://github.com/hyperweb-io/starship/issues/417)
+- support to cosmos/evm chain ([b372c39](https://github.com/hyperweb-io/starship/commit/b372c393f9e46ded3d6f6d1aab7621274745d332))
+- support to xpla ([f4b987c](https://github.com/hyperweb-io/starship/commit/f4b987c10fc2a4c5bfb2750668c8c957217ff08e))
+
 # [3.5.0](https://github.com/hyperweb-io/starship/compare/v3.4.0...v3.5.0) (2025-03-07)
 
 **Note:** Version bump only for package starship-js
