@@ -394,7 +394,7 @@ spec:
             httpGet:
               path: /status
               port: {{ $chain.faucet.ports.rest }}
-            initialDelaySeconds: 15
+            initialDelaySeconds: 30
             periodSeconds: 10
         {{- else if eq $chain.faucet.type "starship" }}
         - name: faucet
@@ -444,10 +444,9 @@ spec:
 
               export | grep "FAUCET"
 
-              while [ $(curl -sw '%{http_code}' http://localhost:26657/status -o /dev/null) -ne 200 ]; do
-                echo "Validator node does not seem to be ready. Waiting for it to start..."
-                echo "Checking: http://localhost:26657/status"
-                sleep 10;
+              until [[ $(curl -s --connect-timeout 2 http://localhost:26657/status | jq -r '.result.sync_info.latest_block_height // "0"' | grep -E '^[1-9][0-9]*$') ]]; do
+                echo "Validator node not ready or block height is still 0. Retrying in 5s..."
+                sleep 5
               done
 
               curl http://localhost:26657/status
@@ -463,7 +462,7 @@ spec:
             httpGet:
               path: /status
               port: {{ $chain.faucet.ports.rest }}
-            initialDelaySeconds: 10
+            initialDelaySeconds: 30
             periodSeconds: 10
         {{- end }}
         {{- end }}

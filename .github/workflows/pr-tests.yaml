@@ -87,18 +87,35 @@ jobs:
 
       - name: Setup Test infra
         id: starship-action
-        uses: hyperweb-io/starship-action@0.5.6
+        uses: hyperweb-io/starship-action@c810d7760328a55474594aebaa7cb834e219f896
         with:
           config: ${{ env.CONFIG_FILE }}
           chart: ./starship/charts/devnet
           cli-version: 0.0.0
 
       - name: Run tests
+        id: tests
         run: |
           cd tests/e2e/ && go test -v ./...
         env:
           TEST_CONFIG_FILE: ${{ env.CONFIG_FILE }}
         working-directory: starship
+
+      - name: Log pods if failure
+        if: failure()
+        run: |
+          kubectl get pods -n $NAMESPACE
+          for i in `kubectl get po -n $NAMESPACE -o json | jq -r '.items[].metadata.name'`; do
+            echo "==================================================="
+            echo "Logs for $i"
+            kubectl describe pods $i -n $NAMESPACE
+            kubectl logs $i -n $NAMESPACE --all-containers --tail=10000
+            echo "=====================Previous======================"
+            kubectl logs $i -n $NAMESPACE --all-containers --previous --tail=10000
+            echo "==================================================="
+          done
+        env:
+          NAMESPACE: ${{ steps.starship-action.outputs.namespace }}
 
       # todo: change this to be post step of the action
       - name: Cleanup cluster
