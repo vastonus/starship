@@ -40,10 +40,10 @@ jobs:
           - "one-custom-chain.yaml"
           - "multi-validator.yaml"
           - "simapp.yaml"
-          - "one-chain-starship-faucet.yaml"
+          - "one-chain-cosmjs-faucet.yaml"
           - "multi-validator-starship-faucet.yaml"
           - "one-chain-cometmock.yaml"
-          - "one-cosmoshub-starship-faucet.yaml"
+          - "one-cosmoshub-cosmjs-faucet.yaml"
           - "eth-lite.yaml"
       fail-fast: true
       max-parallel: 3

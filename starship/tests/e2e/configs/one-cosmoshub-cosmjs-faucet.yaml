@@ -14,7 +14,7 @@ chains:
       cpu: "0.5"
       memory: 500M
     faucet:
-      type: starship
+      type: cosmjs
       concurrency: 2
 
 registry:
