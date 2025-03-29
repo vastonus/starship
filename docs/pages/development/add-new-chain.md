@@ -136,4 +136,44 @@ Finally update chains value `starship/charts/devnet/values.schema.json`:
 Add the chain name to `properties.chains.items.properties.name.enum` array.
 
 ### Step 4: Create a test case
+Tests in Starship exists in `starship/tests/e2e` directory. 
+Create a new config file with your new chain:
+`starship/tests/e2e/configs/<chain-name>.yaml`. Have a look at other chains
 
+Then you can run the test locally with:
+```bash
+cd starship/tests/e2e/
+
+make install HELM_FILE=configs/chain-name.yaml
+
+## wait for pods to start, with:
+kubectl get pods
+kubectl logs <pod-name> -f  ## to see logs
+
+make port-forward HELM_FILE=configs/chain-name.yaml
+
+## Run e2e tests with
+make test HELM_FILE=configs/chain-name.yaml
+```
+
+If the spinning up of the pods work, that is already the first step to success.
+Tests will check the other parts of the system.
+
+Follow the readme in: starship/tests/e2e/README.md for more information on how to run tests.
+
+### Step 5: Create a PR
+Once you have completed the above steps, create a PR to the starship repo.
+Your choice if you want to do it all in one, or want to open 2 PRs, one for the docker image and one for the helm chart.
+
+## Example PRs that added some chains
+
+* Noble Chain addition
+  * Docker integration: https://github.com/hyperweb-io/starship/pull/574
+  * Helm Chart updates: https://github.com/hyperweb-io/starship/pull/576
+  * Test cases: https://github.com/hyperweb-io/starship/pull/581
+* Kujira Chain addition
+  * PR: https://github.com/hyperweb-io/starship/pull/508/files
+* Agoric Chain: Updating helm chart and tests, add PR tests as well
+  * https://github.com/hyperweb-io/starship/pull/423/files
+* XPLA Chain: With custom script
+  * https://github.com/hyperweb-io/starship/pull/643/files
