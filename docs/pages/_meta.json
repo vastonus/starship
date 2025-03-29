@@ -3,6 +3,6 @@
   "get-started": "Get Started",
   "config": "Configuration",
   "cli": "CLI",
-  "tests": "E2E Tests",
-  "advanced": "Advanced Usage"
+  "advanced": "Advanced Usage",
+  "development": "Development"
 }
