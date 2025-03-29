@@ -1,58 +1,58 @@
-## Add new chain to Starship
+## 🚀 Adding a New Chain to Starship
 
-This guide covers the process for adding a new chain to Starship.
+Welcome, brave dev! Whether you're integrating a Cosmos SDK chain or
+a custom chain into the Starship testing environment, this guide has
+your back. We'll walk through setting up Docker images, Helm configuration,
+and end-to-end testing—warp speed style.
 
-### Step 1: Create docker image
-Before we can get started with adding the chain, we need to create a docker image for the chain.
-The docker image should contain the chain binary and some starship specific dependecies.
+### 🧱 Step 1: Build Your Docker Image
+Starship launches testnets using Docker, so each chain needs a compatible image.
 
-Dependencies required by starship (apart from chain binary):
-- `curl`
-- `make`
-- `bash`
-- `jq`
-- `sed`
+#### ✅ Required Dependencies
+The Docker image must include:
+* Your chain binary
+* Standard Starship utilities:
+  * `bash`
+  * `curl`
+  * `make`
+  * `jq`
+  * `sed`
 
-#### Starship docker system
-We can either use the starship docker system to add the image.
-Add a section to `starship/docker/chains/versions.yaml`.
-In chains add a section:
+You can either use Starship's Docker build system or maintain your own.
+
+#### ✨ Option A: Use the Starship Docker System
+Update [`starship/docker/chains/version.yaml`](https://github.com/hyperweb-io/starship/blob/main/starship/docker/chains/versions.yaml) with your chain:
 ```yaml
-- name: new-chain
+- name: mychain
   base: <base docker image>  # Used as base image from which chain binary are installed from `/bin` and `/lib` dir
   tags:
     - <tag>
 ```
 
-By default we use the dockerfile in `starship/docker/chains/Dockerfile` to build the image.
+Want to use a custom Dockerfile? Add the file field:
 
-If one wants to use a custom dockerfile, they can add a section to `starship/docker/chains/version.yaml`:
 ```yaml
-- name: new-chain
-  base: <base docker image>  # Used as base image from which chain binary are installed from `/bin` and `/lib` dir
-  file: <path to custom dockerfile>
+- name: mychain
+  base: <base-docker-image>
+  file: starship/docker/chains/mychain.Dockerfile
   tags:
-    - <tag>
+  - v1.0.0
 ```
 
-Then you can have your custom dockerfile in the path specified in `file`, which will be used to build the image.
+The default build script is [`build-docker-chains.sh`](https://github.com/hyperweb-io/starship/blob/main/starship/docker/chains/build-docker-chains.sh).
+Once your PR is merged, GitHub Actions will automatically build and push the image to [Starship’s GHCR registry](https://github.com/orgs/hyperweb-io/packages?repo_name=starship).
 
-Note we run the script: [`starship/docker/chains/build-docker-chains.sh`](https://github.com/hyperweb-io/starship/blob/main/starship/docker/chains/build-docker-chains.sh) to build the docker image.
 
-Once this is done, please create a PR to the starship repo.
-Once the PR is merged, our workflows will create and push the docker image to starship [ghcr registry](https://github.com/orgs/hyperweb-io/packages?repo_name=starship) of starship.  
+#### 🛠️ Option B: Bring Your Own Docker Image
+You can also build and host the Docker image yourself. Just make sure:
+* It's public or accessible from the Starship test environment.
+* It includes the required Starship dependencies.
 
-#### Maintain own docker image
-Optionally if you dont want to use the starship docker system, you can build the docker image and push it to a docker registry.
-We just need the ability to access and download the docker image.
-Make sure that the docker images are 
+### ⚙️ Step 2: Add Chain to Helm Chart
+Update the chain config in [`starship/charts/defaults.yaml`](https://github.com/hyperweb-io/starship/blob/main/starship/charts/defaults.yaml)
+under `defaultChains`.
 
-### Step 2: Add chain to helm chart
-For a cosmos based chain:
-
-#### Add chain to default values
-Add the chain to the `starship/charts/defaults.yaml` file, in `defaultChains`. 
-New chain add would look something like for the bellow example, i will use the gaia chain as an example:
+Example: Adding Cosmos Hub
 ```yaml
 defaultChains:
   ## add new chain to section
@@ -85,95 +85,69 @@ defaultChains:
       coingecko_id: atom
 ```
 
-If your chain require a different set of default scripts that we use: you can definetly set them here as well.
-By default we have:
-```yaml
+#### Optional: Custom Scripts
+Need special handling for genesis/config/validator etc?
 
-defaultScripts:
+Override default scripts like this:
+```yaml
+scripts:
   createGenesis:
-    file: scripts/default/create-genesis.sh
-  updateGenesis:
-    file: scripts/default/update-genesis.sh
-  updateConfig:
-    file: scripts/default/update-config.sh
-  createValidator:
-    file: scripts/default/create-validator.sh
-  transferTokens:
-    file: scripts/default/transfer-tokens.sh
-  buildChain:
-    file: scripts/default/build-chain.sh
-  ibcConnection:
-    file: scripts/default/ibc-connection.sh
-  createICS:
-    file: scripts/default/create-ics.sh
+    file: scripts/mychain/create-genesis.sh
 ```
 
-If you need to set a custom script for any of the above scripts, you can add them to:
-`starship/charts/scripts/<chain-name>/<script-name>.sh`. Note currently we only support the type of scripts
-mentioned above.
-You can then set them up in the chain config.
-For example the noble file with custom scripts:
-```yaml
-  noble:
-    image: ghcr.io/cosmology-tech/starship/noble:v7.0.0
-    home: /root/.noble
-    binary: nobled
-    prefix: noble
-    denom: uusdc
-    prettyName: Noble
-    coins: 100000000000000uusdc,100000000000000ustake
-    hdPath: m/44'/118'/0'/0/0
-    coinType: 118
-    repo: https://github.com/noble-assets/noble
-    scripts:
-      createGenesis:
-        file: scripts/noble/create-genesis.sh
-      updateGenesis:
-        file: scripts/noble/update-genesis.sh
+Place them under:
+`starship/charts/scripts/<chain-name>/<script>.sh`
+
+#### Add chain name in Default Chains
+Then update [`starship/charts/devnet/values.schema.json`](https://github.com/hyperweb-io/starship/blob/main/starship/charts/devnet/values.schema.json) to include your chain:
+Add the chain name to [`.properties.chains.items.properties.name.enum`](https://github.com/hyperweb-io/starship/blob/main/starship/charts/devnet/values.schema.json#L119) array.
+
+```json
+ "enum": ["cosmoshub", "noble", "mychain"],
 ```
 
-Finally update chains value `starship/charts/devnet/values.schema.json`:
-Add the chain name to `properties.chains.items.properties.name.enum` array.
+### 🧪 Step 3: Write an End-to-End Test
 
-### Step 4: Create a test case
-Tests in Starship exists in `starship/tests/e2e` directory. 
-Create a new config file with your new chain:
-`starship/tests/e2e/configs/<chain-name>.yaml`. Have a look at other chains
-
-Then you can run the test locally with:
+Tests live in [`starship/tests/e2e/configs`](https://github.com/hyperweb-io/starship/tree/main/starship/tests/e2e/configs).
+Add a config:
 ```bash
-cd starship/tests/e2e/
-
-make install HELM_FILE=configs/chain-name.yaml
-
-## wait for pods to start, with:
-kubectl get pods
-kubectl logs <pod-name> -f  ## to see logs
-
-make port-forward HELM_FILE=configs/chain-name.yaml
-
-## Run e2e tests with
-make test HELM_FILE=configs/chain-name.yaml
+touch starship/tests/e2e/configs/mychain.yaml
 ```
 
-If the spinning up of the pods work, that is already the first step to success.
-Tests will check the other parts of the system.
+Use an existing chain config as a template. Then run:
+```bash
+cd starship/tests/e2e
 
-Follow the readme in: starship/tests/e2e/README.md for more information on how to run tests.
+make install HELM_FILE=configs/mychain.yaml
 
-### Step 5: Create a PR
-Once you have completed the above steps, create a PR to the starship repo.
-Your choice if you want to do it all in one, or want to open 2 PRs, one for the docker image and one for the helm chart.
+# Monitor pod startup
+kubectl get pods
+kubectl logs <pod-name> -f
 
-## Example PRs that added some chains
+make port-forward HELM_FILE=configs/mychain.yaml
+make test HELM_FILE=configs/mychain.yaml
+```
+
+See [README.md](https://github.com/hyperweb-io/starship/blob/main/starship/tests/e2e/README.md) for advanced test instructions.
+
+### 🚀 Step 4: Open a PR (or Two)
+You’ve made it! Now open a PR to [hyperweb-io/starship](https://github.com/hyperweb-io/starship):
+* PR #1: Docker image + build config
+* PR #2: Helm + default values + tests
+
+Or combine them in one if you're feeling adventurous.
+
+## 📚 Example PRs that added some chains
 
 * Noble Chain addition
   * Docker integration: https://github.com/hyperweb-io/starship/pull/574
   * Helm Chart updates: https://github.com/hyperweb-io/starship/pull/576
   * Test cases: https://github.com/hyperweb-io/starship/pull/581
-* Kujira Chain addition
-  * PR: https://github.com/hyperweb-io/starship/pull/508/files
-* Agoric Chain: Updating helm chart and tests, add PR tests as well
-  * https://github.com/hyperweb-io/starship/pull/423/files
-* XPLA Chain: With custom script
-  * https://github.com/hyperweb-io/starship/pull/643/files
+* Kujira: https://github.com/hyperweb-io/starship/pull/508/files
+* Agoric Chain: https://github.com/hyperweb-io/starship/pull/423/files
+* XPLA Chain: With custom script: https://github.com/hyperweb-io/starship/pull/643/files
+
+## 💡 Pro Tips
+Keep commits atomic and readable.
+
+Add clear commit messages and PR descriptions.
