@@ -436,7 +436,7 @@ export class StarshipClient implements StarshipClientI {
   }
 
   public deleteHelm(): void {
-    this.exec(['helm', 'delete', this.config.name]);
+    this.exec(['helm', 'delete', this.config.name, ...this.getArgs()]);
   }
 
   public getPods(): void {
