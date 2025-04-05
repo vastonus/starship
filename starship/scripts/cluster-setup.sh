@@ -51,8 +51,9 @@ setup_cert_manager() {
           cert-manager jetstack/cert-manager \
           --namespace cert-manager \
           --create-namespace \
-          --version v1.15.2 \
+          --version v1.17.0 \
           --set crds.enabled=true \
+          --set global.leaderElection.namespace=cert-manager \
           --set prometheus.enabled=false
         color green "Cert-manager setup completed."
     fi
