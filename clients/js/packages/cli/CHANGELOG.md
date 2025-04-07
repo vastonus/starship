@@ -3,6 +3,10 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.7.0](https://github.com/hyperweb-io/starship/compare/v3.6.0...v3.7.0) (2025-04-07)
+
+**Note:** Version bump only for package @starship-ci/cli
+
 # [3.6.0](https://github.com/hyperweb-io/starship/compare/v3.5.0...v3.6.0) (2025-03-28)
 
 **Note:** Version bump only for package @starship-ci/cli
