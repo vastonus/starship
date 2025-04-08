@@ -8,6 +8,7 @@ export interface Ports {
   prometheus?: number;
   grafana?: number;
   cometmock?: number;
+  ws?: number;
 }
 
 export interface Resources {

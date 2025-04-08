@@ -354,6 +354,9 @@
               },
               "faucet": {
                 "type": "number"
+              },
+              "ws": {
+                "type": "number"
               }
             }
           },
