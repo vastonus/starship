@@ -66,7 +66,7 @@ const defaultPorts: PodPorts = {
     ethereum: {
       rpc: 8551,
       rest: 8545,
-      ws: 8546,
+      ws: 8546
     },
     defaultPorts: {
       rpc: 26657,
