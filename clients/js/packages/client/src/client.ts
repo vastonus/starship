@@ -838,25 +838,15 @@ export class StarshipClient implements StarshipClientI {
       const chainPodPorts =
         this.podPorts.chains[chain.name] || this.podPorts.chains.defaultPorts;
 
-      if (chain.cometmock?.enabled) {
-        if (chain.ports?.rpc)
-          this.forwardPortCometmock(
-            chain,
-            chain.ports.rpc,
-            chainPodPorts.cometmock
-          );
-      } else {
-        if (chain.ports?.rpc)
-          this.forwardPort(chain, chain.ports.rpc, chainPodPorts.rpc);
-      }
-      if (chain.ports?.rest)
-        this.forwardPort(chain, chain.ports.rest, chainPodPorts.rest);
-      if (chain.ports?.grpc)
-        this.forwardPort(chain, chain.ports.grpc, chainPodPorts.grpc);
-      if (chain.ports?.exposer)
-        this.forwardPort(chain, chain.ports.exposer, chainPodPorts.exposer);
-      if (chain.ports?.faucet)
-        this.forwardPort(chain, chain.ports.faucet, chainPodPorts.faucet);
+      Object.entries(chain.ports || {}).forEach(([portName, portValue]) => {
+        if (chainPodPorts[portName as keyof Ports]) {
+          if (chain.cometmock?.enabled && portName === 'rpc') {
+            this.forwardPortCometmock(chain, portValue, chainPodPorts.cometmock);
+          } else {
+            this.forwardPort(chain, portValue, chainPodPorts[portName as keyof Ports]);
+          }
+        }
+      });
     });
 
     this.config.relayers?.forEach((relayer) => {
