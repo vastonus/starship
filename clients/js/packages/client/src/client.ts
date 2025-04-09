@@ -841,9 +841,17 @@ export class StarshipClient implements StarshipClientI {
       Object.entries(chain.ports || {}).forEach(([portName, portValue]) => {
         if (chainPodPorts[portName as keyof Ports]) {
           if (chain.cometmock?.enabled && portName === 'rpc') {
-            this.forwardPortCometmock(chain, portValue, chainPodPorts.cometmock);
+            this.forwardPortCometmock(
+              chain,
+              portValue,
+              chainPodPorts.cometmock
+            );
           } else {
-            this.forwardPort(chain, portValue, chainPodPorts[portName as keyof Ports]);
+            this.forwardPort(
+              chain,
+              portValue,
+              chainPodPorts[portName as keyof Ports]
+            );
           }
         }
       });
