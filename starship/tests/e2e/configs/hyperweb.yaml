@@ -1,8 +1,8 @@
-name: hyperweb-devnet-1
+name: starship-e2e-tests
 version: 1.6.0
 
 chains:
-  - id: hyperweb-devnet-1
+  - id: test-hyperweb-1
     name: hyperweb
     numValidators: 2
     image: ghcr.io/hyperweb-io/hyperweb:latest
