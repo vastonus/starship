@@ -1,71 +1,71 @@
-{{- range $ui := .Values.ui }}
+{{- range $frontend := .Values.frontends }}
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ $ui.name }}
+  name: {{ $frontend.name }}
   labels:
-    app.kubernetes.io/name: {{ $ui.name }}
+    app.kubernetes.io/name: {{ $frontend.name }}
 spec:
   clusterIP: None
   ports:
-    {{- if $ui.ports }}
-      {{- if $ui.ports.rest }}
+    {{- if $frontend.ports }}
+      {{- if $frontend.ports.rest }}
     - name: http
-      port: {{ $ui.ports.rest }}
+      port: {{ $frontend.ports.rest }}
       protocol: TCP
       targetPort: http
       {{- end }}
     {{- end }}
   selector:
-    app.kubernetes.io/name: {{ $ui.name }}
+    app.kubernetes.io/name: {{ $frontend.name }}
 ---
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ $ui.name }}
+  name: {{ $frontend.name }}
 spec:
-  replicas: {{ $ui.replicas | default 1 }}
+  replicas: {{ $frontend.replicas | default 1 }}
   revisionHistoryLimit: 3
   selector:
     matchLabels:
-      app.kubernetes.io/instance: {{ $ui.name }}
-      app.kubernetes.io/name: {{ $ui.name }}
+      app.kubernetes.io/instance: {{ $frontend.name }}
+      app.kubernetes.io/name: {{ $frontend.name }}
   template:
     metadata:
       annotations:
         quality: release
-        role: ui
+        role: frontend
         sla: high
         tier: frontend
       labels:
-        app.kubernetes.io/instance: {{ $ui.name }}
-        app.kubernetes.io/type: {{ $ui.type }}
-        app.kubernetes.io/name: {{ $ui.name }}
-        app.kubernetes.io/rawname: {{ $ui.name }}
+        app.kubernetes.io/instance: {{ $frontend.name }}
+        app.kubernetes.io/type: {{ $frontend.type }}
+        app.kubernetes.io/name: {{ $frontend.name }}
+        app.kubernetes.io/rawname: {{ $frontend.name }}
         app.kubernetes.io/version: {{ $.Chart.AppVersion }}
     spec:
-      {{- include "imagePullSecrets" $ui | indent 6 }}
+      {{- include "imagePullSecrets" $frontend | indent 6 }}
       containers:
-        - name: {{ $ui.name }}
-          image: {{ $ui.image }}
+        - name: {{ $frontend.name }}
+          image: {{ $frontend.image }}
           imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
-          {{- if $ui.ports }}
+          {{- if $frontend.ports }}
           ports:
-            {{- if $ui.ports.rest }}
+            {{- if $frontend.ports.rest }}
             - name: http
-              containerPort: {{ $ui.ports.rest }}
+              containerPort: {{ $frontend.ports.rest }}
               protocol: TCP
             {{- end }}
           {{- end }}
-          {{- if $ui.env }}
+          {{- if $frontend.env }}
           env:
-            {{- range $key, $value := $ui.env }}
+            {{- range $key, $value := $frontend.env }}
             - name: {{ $key }}
               value: {{ $value | quote }}
             {{- end }}
           {{- end }}
-          resources: {{- include "getResourceObject" $ui.resources | trim | nindent 12 }}
+          resources: {{- include "getResourceObject" $frontend.resources | trim | nindent 12 }}
           readinessProbe:
             tcpSocket:
               port: http

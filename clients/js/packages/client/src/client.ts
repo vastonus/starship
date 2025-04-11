@@ -48,8 +48,9 @@ export interface PodPorts {
     defaultPorts?: Ports;
     [relayerName: string]: Ports;
   };
-  ui?: {
+  frontends?: {
     defaultPorts?: Ports;
+    [frontendName: string]: Ports;
   };
 }
 
@@ -87,7 +88,7 @@ const defaultPorts: PodPorts = {
       exposer: 8081
     }
   },
-  ui: {
+  frontends: {
     defaultPorts: {
       rest: 3000
     }
@@ -904,10 +905,14 @@ export class StarshipClient implements StarshipClientI {
       );
     }
 
-    // Forward ports for custom UIs
-    this.config.ui?.forEach((ui) => {
-      if (ui.ports?.rest) {
-        this.forwardPortService(ui.name, ui.ports.rest, ui.ports.rest);
+    // Forward ports for frontend services
+    this.config.frontends?.forEach((frontend) => {
+      if (frontend.ports?.rest) {
+        this.forwardPortService(
+          frontend.name,
+          frontend.ports.rest,
+          this.podPorts.frontends.defaultPorts.rest
+        );
       }
     });
   }

@@ -146,7 +146,7 @@ export interface Images {
   imagePullPolicy: string;
 }
 
-export interface UI {
+export interface Frontend {
   name: string;
   type: string;
   image: string;
@@ -166,5 +166,5 @@ export interface StarshipConfig {
   monitoring?: Monitoring;
   ingress?: Ingress;
   images?: Images;
-  ui?: UI[];
+  frontends?: Frontend[];
 }

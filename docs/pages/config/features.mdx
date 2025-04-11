@@ -105,3 +105,78 @@ Above will create following endpoints with the domain, and valid certs:
   * Rest endpoint: `https://rest.<relayer-type>-<relayer-name>.<host>`
   * Exposer endpoint: `https://rest.<relayer-type>-<relayer-name>.<host>/exposer`
 
+## Frontends
+Starship provides flexible frontend services that can be configured to run alongside your infrastructure.
+Frontend services can be customized with different images, ports, and resource allocations.
+
+### Syntax
+
+```yaml
+frontends:
+  - name: my-frontend
+    type: frontend
+    image: ghcr.io/hyperweb-io/starship/frontend:latest
+    replicas: 1
+    ports:
+      rest: 3000
+    env:
+      API_URL: http://localhost:8080
+    resources:
+      cpu: 0.5
+      memory: 512Mi
+```
+
+### Configuration Options
+
+| Field | Type | Description | Default |
+|-------|------|-------------|---------|
+| `name` | string | Name of the frontend service | Required |
+| `type` | string | Type of frontend service (e.g., frontend) | Required |
+| `image` | string | Docker image for the frontend service | Required |
+| `replicas` | integer | Number of frontend service replicas | 1 |
+| `ports.rest` | integer | Port for HTTP/REST traffic | Required |
+| `env` | object | Environment variables for the frontend service | {} |
+| `resources` | object | Resource limits and requests | See below |
+
+### Resource Configuration
+
+The `resources` field follows the standard Kubernetes resource specification:
+
+```yaml
+resources:
+  limits:
+    cpu: "1"
+    memory: "1Gi"
+  requests:
+    cpu: "0.5"
+    memory: "512Mi"
+```
+
+### Health Checks
+
+The frontend service includes both readiness and liveness probes:
+- TCP socket checks on the configured HTTP port
+- Initial delay of 20 seconds
+- Check interval of 10 seconds
+
+### Service Configuration
+
+The frontend service is exposed as a ClusterIP service with:
+- No cluster IP (headless service)
+- HTTP port matching the configured port
+- Proper selector labels for service discovery
+
+### Labels and Annotations
+
+The frontend service includes standard Kubernetes labels and annotations:
+- `app.kubernetes.io/name`: Service name
+- `app.kubernetes.io/type`: Frontend type
+- `app.kubernetes.io/version`: Chart version
+- Quality, role, SLA, and tier annotations
+
+### Usage
+
+After deployment, you can access the frontend service through:
+- Port forwarding: `kubectl port-forward svc/<frontend-name> <local-port>:<frontend-port>`
+- Ingress (if configured): `https://<frontend-name>.<host>`
+
