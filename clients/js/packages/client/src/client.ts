@@ -48,6 +48,9 @@ export interface PodPorts {
     defaultPorts?: Ports;
     [relayerName: string]: Ports;
   };
+  ui?: {
+    defaultPorts?: Ports;
+  };
 }
 
 const defaultName: string = 'starship';
@@ -82,6 +85,11 @@ const defaultPorts: PodPorts = {
     defaultPorts: {
       rest: 3000,
       exposer: 8081
+    }
+  },
+  ui: {
+    defaultPorts: {
+      rest: 3000
     }
   }
 };
@@ -841,17 +849,9 @@ export class StarshipClient implements StarshipClientI {
       Object.entries(chain.ports || {}).forEach(([portName, portValue]) => {
         if (chainPodPorts[portName as keyof Ports]) {
           if (chain.cometmock?.enabled && portName === 'rpc') {
-            this.forwardPortCometmock(
-              chain,
-              portValue,
-              chainPodPorts.cometmock
-            );
+            this.forwardPortCometmock(chain, portValue, chainPodPorts.cometmock);
           } else {
-            this.forwardPort(
-              chain,
-              portValue,
-              chainPodPorts[portName as keyof Ports]
-            );
+            this.forwardPort(chain, portValue, chainPodPorts[portName as keyof Ports]);
           }
         }
       });
@@ -895,6 +895,17 @@ export class StarshipClient implements StarshipClientI {
         this.podPorts.explorer.rest
       );
     }
+
+    // Forward ports for custom UIs
+    this.config.ui?.forEach((ui) => {
+      if (ui.ports?.rest) {
+        this.forwardPortService(
+          ui.name,
+          ui.ports.rest,
+          ui.ports.rest
+        );
+      }
+    });
   }
 
   private getForwardPids(): string[] {

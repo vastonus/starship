@@ -1,0 +1,79 @@
+{{- range $ui := .Values.ui }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ $ui.name }}
+  labels:
+    app.kubernetes.io/name: {{ $ui.name }}
+spec:
+  clusterIP: None
+  ports:
+    {{- if $ui.ports }}
+      {{- if $ui.ports.rest }}
+    - name: http
+      port: {{ $ui.ports.rest }}
+      protocol: TCP
+      targetPort: http
+      {{- end }}
+    {{- end }}
+  selector:
+    app.kubernetes.io/name: {{ $ui.name }}
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ $ui.name }}
+spec:
+  replicas: {{ $ui.replicas | default 1 }}
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: {{ $ui.name }}
+      app.kubernetes.io/name: {{ $ui.name }}
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: ui
+        sla: high
+        tier: frontend
+      labels:
+        app.kubernetes.io/instance: {{ $ui.name }}
+        app.kubernetes.io/type: {{ $ui.type }}
+        app.kubernetes.io/name: {{ $ui.name }}
+        app.kubernetes.io/rawname: {{ $ui.name }}
+        app.kubernetes.io/version: {{ $.Chart.AppVersion }}
+    spec:
+      {{- include "imagePullSecrets" $ui | indent 6 }}
+      containers:
+        - name: {{ $ui.name }}
+          image: {{ $ui.image }}
+          imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
+          {{- if $ui.ports }}
+          ports:
+            {{- if $ui.ports.rest }}
+            - name: http
+              containerPort: {{ $ui.ports.rest }}
+              protocol: TCP
+            {{- end }}
+          {{- end }}
+          {{- if $ui.env }}
+          env:
+            {{- range $key, $value := $ui.env }}
+            - name: {{ $key }}
+              value: {{ $value | quote }}
+            {{- end }}
+          {{- end }}
+          resources: {{- include "getResourceObject" $ui.resources | trim | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: http
+            initialDelaySeconds: 20
+            periodSeconds: 10
+{{- end }}

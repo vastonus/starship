@@ -146,6 +146,16 @@ export interface Images {
   imagePullPolicy: string;
 }
 
+export interface UI {
+  name: string;
+  type: string;
+  image: string;
+  replicas?: number;
+  ports?: Ports;
+  env?: Record<string, string>;
+  resources?: Resources;
+}
+
 export interface StarshipConfig {
   name: string;
   version: string;
@@ -156,4 +166,5 @@ export interface StarshipConfig {
   monitoring?: Monitoring;
   ingress?: Ingress;
   images?: Images;
+  ui?: UI[];
 }
