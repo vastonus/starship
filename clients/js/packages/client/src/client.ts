@@ -830,7 +830,9 @@ export class StarshipClient implements StarshipClientI {
         '&'
       ]);
       this.log(
-        `Forwarded ${serviceName} on port ${localPort} to target port ${externalPort}`
+        chalk.yellow(
+          `Forwarded ${serviceName}: local ${localPort} -> target (host) ${externalPort}`
+        )
       );
     }
   }
