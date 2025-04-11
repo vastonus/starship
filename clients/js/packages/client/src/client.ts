@@ -48,10 +48,6 @@ export interface PodPorts {
     defaultPorts?: Ports;
     [relayerName: string]: Ports;
   };
-  frontends?: {
-    defaultPorts?: Ports;
-    [frontendName: string]: Ports;
-  };
 }
 
 const defaultName: string = 'starship';
@@ -86,11 +82,6 @@ const defaultPorts: PodPorts = {
     defaultPorts: {
       rest: 3000,
       exposer: 8081
-    }
-  },
-  frontends: {
-    defaultPorts: {
-      rest: 3000
     }
   }
 };
