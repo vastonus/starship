@@ -909,12 +909,14 @@ export class StarshipClient implements StarshipClientI {
 
     // Forward ports for frontend services
     this.config.frontends?.forEach((frontend) => {
-      if (frontend.ports?.rest) {
-        this.forwardPortService(
-          frontend.name,
-          frontend.ports.rest,
-          this.podPorts.frontends.defaultPorts.rest
-        );
+      if (frontend.ports) {
+        if (frontend.ports.rest) {
+          this.forwardPortService(
+            frontend.name,
+            frontend.ports.rest,
+            frontend.ports.rest
+          );
+        }
       }
     });
   }
