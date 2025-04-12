@@ -87,7 +87,7 @@ For more details on the configuration options and directives available, refer to
 |------------------------|---------|-------------------------------------------------------------------------------------|
 | Helm Chart             | 	1.7.0  | 	-                                                                                  |
 | Starship NPM CLI       | 	3.10.0  | [NPM](https://www.npmjs.com/package/@starship-ci/client/v/3.10.0)                    |
-| NPM Client             | 3.10.0   | [NPM](https://www.npmjs.com/package/@starship-ci/cli/v/3.10.0)                       |
+| NPM Client             |  3.10.0  | [NPM](https://www.npmjs.com/package/@starship-ci/cli/v/3.10.0)                       |
 | NPM StarshipJS         | 	3.3.0  | 	[NPM](https://www.npmjs.com/package/starshipjs/v/3.3.0)                            |
 | Starship GitHub Action | 	0.5.9  | 	[Github Action](https://github.com/hyperweb-io/starship-action/releases/tag/0.5.9) |
 
