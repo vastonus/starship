@@ -12,6 +12,8 @@
    <a href="https://github.com/hyperweb-io/starship/actions/workflows/docs.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/docs.yaml/badge.svg"></a>
    <a href="https://github.com/hyperweb-io/starship/actions/workflows/starship-docker.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/starship-docker.yaml/badge.svg"></a>
    <a href="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml/badge.svg" /></a>
+   <a href="https://www.npmjs.com/package/@starship-ci/cli"><img height="20" src="https://img.shields.io/npm/v/@starship-ci/cli.svg"></a>
+   <a href="https://github.com/hyperweb-io/starship/tree/main/charts/devnet"><img height="20" src="https://img.shields.io/badge/devnet-1.7.0-blue"></a>
 </p>
 
 Universal interchain development environment in k8s. The vision of this project
@@ -19,7 +21,7 @@ is to have a single easy to use developer environment with full testing support
 for multichain use cases
 
 ## Prerequisites
-To get started, you’ll need:
+To get started, you'll need:
 
 * Kubernetes setup (recommended: Docker Desktop with kubernetes support for local setups): [Docker Desktop](https://www.docker.com/products/docker-desktop/)
 * `kubectl`: [Installation Guide](https://kubernetes.io/docs/tasks/tools/)
@@ -37,7 +39,7 @@ npm install -g @starship-ci/cli
 
 ## Configuration
 To configure Starship for multichain support, create a configuration file (e.g., `config.yaml`).
-Here’s a sample configuration:
+Here's a sample configuration:
 
 ```yaml
 name: starship-localnet
@@ -165,11 +167,11 @@ A unified toolkit for building applications and smart contracts in the Interchai
 
 ## Credits
 
-🛠 Built by Hyperweb (formerly Cosmology) — if you like our tools, please checkout and contribute to [our github ⚛️](https://github.com/hyperweb-io)
+🛠 Built by Hyperweb (formerly Cosmology) — if you like our tools, please checkout and contribute to [our github ⚛️](https://github.com/hyperweb-io)
 
 ## Disclaimer
 
-AS DESCRIBED IN THE LICENSES, THE SOFTWARE IS PROVIDED “AS IS”, AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF ANY KIND.
+AS DESCRIBED IN THE LICENSES, THE SOFTWARE IS PROVIDED "AS IS", AT YOUR OWN RISK, AND WITHOUT WARRANTIES OF ANY KIND.
 
 No developer or entity involved in creating this software will be liable for any claims or damages whatsoever associated with your use, inability to use, or your interaction with other users of the code, including any direct, indirect, incidental, special, exemplary, punitive or consequential damages, or loss of profits, cryptocurrencies, tokens, or anything else of value.
 
