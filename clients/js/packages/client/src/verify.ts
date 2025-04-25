@@ -1,5 +1,6 @@
-import { Chain, StarshipConfig } from './config';
 import axios from 'axios';
+
+import { StarshipConfig } from './config';
 
 export interface VerificationResult {
   service: string;
@@ -14,7 +15,9 @@ export interface VerificationContext {
   localPorts: Map<string, number>;
 }
 
-export type VerificationFunction = (context: VerificationContext) => Promise<VerificationResult>;
+export type VerificationFunction = (
+  context: VerificationContext
+) => Promise<VerificationResult>;
 
 export class VerificationRegistry {
   private verifiers: Map<string, VerificationFunction[]> = new Map();
@@ -28,7 +31,7 @@ export class VerificationRegistry {
 
   async run(context: VerificationContext): Promise<VerificationResult[]> {
     const results: VerificationResult[] = [];
-    
+
     for (const [service, verifiers] of this.verifiers.entries()) {
       for (const verifier of verifiers) {
         try {
@@ -44,7 +47,7 @@ export class VerificationRegistry {
         }
       }
     }
-    
+
     return results;
   }
 }
@@ -54,7 +57,7 @@ export const createDefaultVerifiers = (registry: VerificationRegistry) => {
   // Chain REST endpoint verification
   registry.register('chain', async (context) => {
     const results: VerificationResult[] = [];
-    
+
     for (const chain of context.config.chains) {
       const port = context.localPorts.get(`${chain.id}-rest`);
       if (!port) {
@@ -84,7 +87,7 @@ export const createDefaultVerifiers = (registry: VerificationRegistry) => {
         });
       }
     }
-    
+
     return results[0]; // Return first result for now
   });
 
@@ -147,4 +150,4 @@ export const createDefaultVerifiers = (registry: VerificationRegistry) => {
       };
     }
   });
-}; 
+};
