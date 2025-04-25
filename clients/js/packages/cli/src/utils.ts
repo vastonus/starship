@@ -78,6 +78,7 @@ Commands:
   delete             Delete a specific Helm release.
   get-pods           Get the list of pods for the Helm release.
   clean              Perform a clean operation to tidy up resources.
+  verify             Verify the status of deployed services and endpoints.
   version, -v        Display the version of the Starship Client.
 
 Configuration File:
@@ -95,6 +96,7 @@ Command-line Options:
 Examples:
   $ starship start --config ./config/two-chain.yaml
   $ starship stop --config ./config/two-chain.yaml
+  $ starship verify --config ./config/two-chain.yaml
 
 If you want to setup starship for the first time
   $ starship setup

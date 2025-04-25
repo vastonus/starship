@@ -11,6 +11,7 @@ import { Chain, Relayer, StarshipConfig } from './config';
 import { Ports } from './config';
 import { dependencies as defaultDependencies, Dependency } from './deps';
 import { readAndParsePackageJson } from './package';
+import { VerificationRegistry, createDefaultVerifiers } from './verify';
 
 export interface StarshipContext {
   name?: string;
@@ -132,6 +133,7 @@ export class StarshipClient implements StarshipClientI {
   depsChecked: boolean = false;
   config: StarshipConfig;
   podPorts: PodPorts = defaultPorts;
+  private verificationRegistry: VerificationRegistry = new VerificationRegistry();
 
   private podStatuses = new Map<string, PodStatus>(); // To keep track of pod statuses
 
@@ -139,6 +141,7 @@ export class StarshipClient implements StarshipClientI {
     this.ctx = deepmerge(defaultStarshipContext, ctx);
     // TODO add semver check against net
     this.version = readAndParsePackageJson().version;
+    createDefaultVerifiers(this.verificationRegistry);
   }
 
   private exec(
@@ -952,5 +955,58 @@ export class StarshipClient implements StarshipClientI {
     pids.forEach((pid) => {
       console.log(pid);
     });
+  }
+
+  public async verify(): Promise<void> {
+    this.log(chalk.blue('Starting verification of deployed services...'));
+
+    // Get all forwarded ports
+    const localPorts = new Map<string, number>();
+    
+    // Add chain ports
+    this.config.chains.forEach(chain => {
+      if (chain.ports) {
+        Object.entries(chain.ports).forEach(([key, port]) => {
+          localPorts.set(`${chain.id}-${key}`, port);
+        });
+      }
+    });
+
+    // Add registry ports
+    if (this.config.registry?.ports) {
+      Object.entries(this.config.registry.ports).forEach(([key, port]) => {
+        localPorts.set(`registry-${key}`, port);
+      });
+    }
+
+    // Add explorer ports
+    if (this.config.explorer?.ports) {
+      Object.entries(this.config.explorer.ports).forEach(([key, port]) => {
+        localPorts.set(`explorer-${key}`, port);
+      });
+    }
+
+    const context = {
+      config: this.config,
+      localPorts
+    };
+
+    const results = await this.verificationRegistry.run(context);
+
+    // Display results
+    this.log('\nVerification Results:');
+    results.forEach(result => {
+      if (result.status === 'success') {
+        this.log(chalk.green(`✓ ${result.service} (${result.endpoint}): Success`));
+      } else {
+        this.log(chalk.red(`✗ ${result.service} (${result.endpoint}): ${result.error}`));
+      }
+    });
+
+    // Check if any verifications failed
+    const hasFailures = results.some(result => result.status === 'failure');
+    if (hasFailures) {
+      this.exit(1);
+    }
   }
 }
