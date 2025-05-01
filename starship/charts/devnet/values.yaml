@@ -43,7 +43,7 @@ timeouts:
   timeout_precommit_delta: 400ms
   timeout_commit: 800ms
 
-name: "starship-devnet"
+name: ""
 
 chains: []
   # Examples running chains
