@@ -5,18 +5,13 @@ import { StarshipConfig } from './config';
 export interface VerificationResult {
   service: string;
   endpoint: string;
-  status: 'success' | 'failure';
+  status: 'success' | 'failure' | 'skipped';
   error?: string;
   details?: any;
 }
 
-export interface VerificationContext {
-  config: StarshipConfig;
-  localPorts: Map<string, number>;
-}
-
 export type VerificationFunction = (
-  context: VerificationContext
+  config: StarshipConfig
 ) => Promise<VerificationResult>;
 
 export class VerificationRegistry {
@@ -29,13 +24,13 @@ export class VerificationRegistry {
     this.verifiers.get(service)!.push(verifier);
   }
 
-  async run(context: VerificationContext): Promise<VerificationResult[]> {
+  async run(config: StarshipConfig): Promise<VerificationResult[]> {
     const results: VerificationResult[] = [];
 
     for (const [service, verifiers] of this.verifiers.entries()) {
       for (const verifier of verifiers) {
         try {
-          const result = await verifier(context);
+          const result = await verifier(config);
           results.push(result);
         } catch (error) {
           results.push({
@@ -55,16 +50,16 @@ export class VerificationRegistry {
 // Default verifiers
 export const createDefaultVerifiers = (registry: VerificationRegistry) => {
   // Chain REST endpoint verification
-  registry.register('chain', async (context) => {
+  registry.register('chain', async (config) => {
     const results: VerificationResult[] = [];
 
-    for (const chain of context.config.chains) {
-      const port = context.localPorts.get(`${chain.id}-rest`);
+    for (const chain of config.chains) {
+      const port = chain.ports?.rest;
       if (!port) {
         results.push({
           service: `chain-${chain.id}`,
           endpoint: 'rest',
-          status: 'failure',
+          status: 'skipped',
           error: 'Port not found'
         });
         continue;
@@ -92,13 +87,13 @@ export const createDefaultVerifiers = (registry: VerificationRegistry) => {
   });
 
   // Registry verification
-  registry.register('registry', async (context) => {
-    const port = context.localPorts.get('registry-rest');
+  registry.register('registry', async (config) => {
+    const port = config.registry?.ports?.rest;
     if (!port) {
       return {
         service: 'registry',
         endpoint: 'rest',
-        status: 'failure',
+        status: 'skipped',
         error: 'Port not found'
       };
     }
@@ -122,13 +117,13 @@ export const createDefaultVerifiers = (registry: VerificationRegistry) => {
   });
 
   // Explorer verification
-  registry.register('explorer', async (context) => {
-    const port = context.localPorts.get('explorer-rest');
+  registry.register('explorer', async (config) => {
+    const port = config.explorer?.ports?.rest;
     if (!port) {
       return {
         service: 'explorer',
         endpoint: 'rest',
-        status: 'failure',
+        status: 'skipped',
         error: 'Port not found'
       };
     }
