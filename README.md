@@ -5,15 +5,15 @@
 </p>
 
 <p align="center" width="100%">
-   <a href="https://github.com/hyperweb-io/starship/blob/main/LICENSE"><img height="20" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
-   <a href="https://github.com/hyperweb-io/starship/releases/latest"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/release.yaml/badge.svg"></a>
-   <a href="https://github.com/hyperweb-io/starship/actions/workflows/build.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/build.yaml/badge.svg"></a>
-   <a href="https://github.com/hyperweb-io/starship/actions/workflows/pr-tests.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/pr-tests.yaml/badge.svg"></a>
-   <a href="https://github.com/hyperweb-io/starship/actions/workflows/docs.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/docs.yaml/badge.svg"></a>
-   <a href="https://github.com/hyperweb-io/starship/actions/workflows/starship-docker.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/starship-docker.yaml/badge.svg"></a>
-   <a href="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml/badge.svg" /></a>
-   <a href="https://www.npmjs.com/package/@starship-ci/cli"><img height="20" src="https://img.shields.io/npm/v/@starship-ci/cli.svg"></a>
-   <a href="https://github.com/hyperweb-io/starship/tree/main/charts/devnet"><img height="20" src="https://img.shields.io/badge/devnet-1.7.0-blue"></a>
+   <a href="https://github.com/hyperweb-io/starship/blob/main/LICENSE"><img height="20" src="https://img.shields.io/badge/license-MIT-blue.svg" alt="License" /></a>
+   <a href="https://github.com/hyperweb-io/starship/releases/latest"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/release.yaml/badge.svg" alt="Release" /></a>
+   <a href="https://github.com/hyperweb-io/starship/actions/workflows/build.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/build.yaml/badge.svg" alt="Build" /></a>
+   <a href="https://github.com/hyperweb-io/starship/actions/workflows/pr-tests.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/pr-tests.yaml/badge.svg" alt="PR Tests" /></a>
+   <a href="https://github.com/hyperweb-io/starship/actions/workflows/docs.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/docs.yaml/badge.svg" alt="Docs" /></a>
+   <a href="https://github.com/hyperweb-io/starship/actions/workflows/starship-docker.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/starship-docker.yaml/badge.svg" alt="Docker" /></a>
+   <a href="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml/badge.svg" alt="Client Tests" /></a>
+   <a href="https://www.npmjs.com/package/@starship-ci/cli"><img height="20" src="https://img.shields.io/npm/v/@starship-ci/cli.svg" alt="NPM Version" /></a>
+   <a href="https://github.com/hyperweb-io/starship/tree/main/charts/devnet"><img height="20" src="https://img.shields.io/badge/devnet-1.7.0-blue" alt="Devnet Version" /></a>
 </p>
 
 Universal interchain development environment in k8s. The vision of this project
