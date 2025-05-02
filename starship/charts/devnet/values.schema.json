@@ -876,6 +876,7 @@
     }
   },
   "required": [
+    "name",
     "chains"
   ],
   "$def": {
