@@ -133,6 +133,7 @@ export class StarshipClient implements StarshipClientI {
   depsChecked: boolean = false;
   config: StarshipConfig;
   podPorts: PodPorts = defaultPorts;
+
   private verificationRegistry: VerificationRegistry =
     new VerificationRegistry();
 
@@ -961,38 +962,7 @@ export class StarshipClient implements StarshipClientI {
   public async verify(): Promise<void> {
     this.log(chalk.blue('Starting verification of deployed services...'));
 
-    // Get all forwarded ports
-    const localPorts = new Map<string, number>();
-
-    // Add chain ports
-    this.config.chains.forEach((chain) => {
-      if (chain.ports) {
-        Object.entries(chain.ports).forEach(([key, port]) => {
-          localPorts.set(`${chain.id}-${key}`, port);
-        });
-      }
-    });
-
-    // Add registry ports
-    if (this.config.registry?.ports) {
-      Object.entries(this.config.registry.ports).forEach(([key, port]) => {
-        localPorts.set(`registry-${key}`, port);
-      });
-    }
-
-    // Add explorer ports
-    if (this.config.explorer?.ports) {
-      Object.entries(this.config.explorer.ports).forEach(([key, port]) => {
-        localPorts.set(`explorer-${key}`, port);
-      });
-    }
-
-    const context = {
-      config: this.config,
-      localPorts
-    };
-
-    const results = await this.verificationRegistry.run(context);
+    const results = await this.verificationRegistry.run(this.config);
 
     // Display results
     this.log('\nVerification Results:');
