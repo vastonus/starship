@@ -272,6 +272,7 @@ export const verifyExplorerLocalGrpc = async (config: StarshipConfig): Promise<V
     return [result];
   }
 }
+
 // Default verifiers
 export const createDefaultVerifiers = (registry: VerificationRegistry) => {
   // Chain REST endpoint verification
