@@ -48,12 +48,14 @@ export class VerificationRegistry {
   }
 }
 
-export const verifyChainLocalRest = async (chain: Chain): Promise<VerificationResult> => {
+export const verifyChainLocalRest = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.rest;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
     endpoint: 'rest',
-    status: 'failure',
+    status: 'failure'
   };
 
   if (!port) {
@@ -64,7 +66,9 @@ export const verifyChainLocalRest = async (chain: Chain): Promise<VerificationRe
 
   try {
     // Get the supply of the chain, should work for most chains
-    const response = await axios.get(`http://localhost:${port}/cosmos/bank/v1beta1/supply`);
+    const response = await axios.get(
+      `http://localhost:${port}/cosmos/bank/v1beta1/supply`
+    );
     result.details = response.data;
     if (response.status !== 200) {
       result.error = 'Failed to get chain supply';
@@ -84,15 +88,16 @@ export const verifyChainLocalRest = async (chain: Chain): Promise<VerificationRe
     result.error = error instanceof Error ? error.message : 'Unknown error';
     return result;
   }
-}
+};
 
-
-export const verifyChainLocalRpc = async (chain: Chain): Promise<VerificationResult> => {
+export const verifyChainLocalRpc = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.rpc;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
     endpoint: 'rest',
-    status: 'failure',
+    status: 'failure'
   };
 
   if (!port) {
@@ -110,7 +115,9 @@ export const verifyChainLocalRpc = async (chain: Chain): Promise<VerificationRes
       return result;
     }
 
-    const blockHeight = Number(response.data.results?.sync_info?.latest_block_height);
+    const blockHeight = Number(
+      response.data.results?.sync_info?.latest_block_height
+    );
 
     if (blockHeight > 0) {
       result.status = 'success';
@@ -125,14 +132,16 @@ export const verifyChainLocalRpc = async (chain: Chain): Promise<VerificationRes
     result.error = error instanceof Error ? error.message : 'Unknown error';
     return result;
   }
-}
+};
 
-export const verifyChainLocalFaucet = async (chain: Chain): Promise<VerificationResult> => {
+export const verifyChainLocalFaucet = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.faucet;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
     endpoint: 'faucet',
-    status: 'failure',
+    status: 'failure'
   };
 
   if (!port) {
@@ -162,14 +171,16 @@ export const verifyChainLocalFaucet = async (chain: Chain): Promise<Verification
     result.error = error instanceof Error ? error.message : 'Unknown error';
     return result;
   }
-}
+};
 
-export const verifyChainLocalExposer = async (chain: Chain): Promise<VerificationResult> => {
+export const verifyChainLocalExposer = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.exposer;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
     endpoint: 'exposer',
-    status: 'failure',
+    status: 'failure'
   };
 
   if (!port) {
@@ -196,14 +207,16 @@ export const verifyChainLocalExposer = async (chain: Chain): Promise<Verificatio
     result.error = error instanceof Error ? error.message : 'Unknown error';
     return result;
   }
-}
+};
 
-export const verifyRegistryLocalRest = async (config: StarshipConfig): Promise<VerificationResult[]> => {
+export const verifyRegistryLocalRest = async (
+  config: StarshipConfig
+): Promise<VerificationResult[]> => {
   const port = config.registry?.ports?.rest;
   const result: VerificationResult = {
     service: `registry`,
     endpoint: 'rest',
-    status: 'failure',
+    status: 'failure'
   };
 
   if (!port) {
@@ -233,21 +246,23 @@ export const verifyRegistryLocalRest = async (config: StarshipConfig): Promise<V
     result.error = error instanceof Error ? error.message : 'Unknown error';
     return [result];
   }
-}
+};
 
-export const verifyExplorerLocalGrpc = async (config: StarshipConfig): Promise<VerificationResult[]> => {
+export const verifyExplorerLocalGrpc = async (
+  config: StarshipConfig
+): Promise<VerificationResult[]> => {
   const port = config.explorer?.ports?.grpc;
   const result: VerificationResult = {
     service: `explorer`,
     endpoint: 'grpc',
-    status: 'failure',
+    status: 'failure'
   };
 
   if (!port) {
     result.status = 'skipped';
     result.error = 'Port not found';
     return [result];
-  } 
+  }
 
   try {
     const response = await axios.get(`http://localhost:${port}`);
@@ -271,7 +286,7 @@ export const verifyExplorerLocalGrpc = async (config: StarshipConfig): Promise<V
     result.error = error instanceof Error ? error.message : 'Unknown error';
     return [result];
   }
-}
+};
 
 // Default verifiers
 export const createDefaultVerifiers = (registry: VerificationRegistry) => {
