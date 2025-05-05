@@ -43,6 +43,8 @@ timeouts:
   timeout_precommit_delta: 400ms
   timeout_commit: 800ms
 
+name: ""
+
 chains: []
   # Examples running chains
   # - id: osmosis-1

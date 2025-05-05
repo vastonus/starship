@@ -87,7 +87,7 @@ jobs:
 
       - name: Setup Test infra
         id: starship-action
-        uses: hyperweb-io/starship-action@c810d7760328a55474594aebaa7cb834e219f896
+        uses: hyperweb-io/starship-action@1.0.0
         with:
           config: ${{ env.CONFIG_FILE }}
           chart: ./starship/charts/devnet
