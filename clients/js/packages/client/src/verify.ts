@@ -96,7 +96,7 @@ export const verifyChainLocalRpc = async (
   const port = chain.ports?.rpc;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
-    endpoint: 'rest',
+    endpoint: 'rpc',
     status: 'failure'
   };
 
@@ -116,7 +116,7 @@ export const verifyChainLocalRpc = async (
     }
 
     const blockHeight = Number(
-      response.data.results?.sync_info?.latest_block_height
+      response.data.result?.sync_info?.latest_block_height || response.data.result?.SyncInfo?.latest_block_height
     );
 
     if (blockHeight > 0) {
@@ -248,13 +248,13 @@ export const verifyRegistryLocalRest = async (
   }
 };
 
-export const verifyExplorerLocalGrpc = async (
+export const verifyExplorerLocalRest = async (
   config: StarshipConfig
 ): Promise<VerificationResult[]> => {
-  const port = config.explorer?.ports?.grpc;
+  const port = config.explorer?.ports?.rest;
   const result: VerificationResult = {
     service: `explorer`,
-    endpoint: 'grpc',
+    endpoint: 'rest',
     status: 'failure'
   };
 
@@ -267,6 +267,9 @@ export const verifyExplorerLocalGrpc = async (
   try {
     const response = await axios.get(`http://localhost:${port}`);
     result.details = response.data;
+
+    console.log('response.data', response.data);
+
     if (response.status !== 200) {
       result.error = 'Failed to get explorer status';
       return [result];
@@ -305,8 +308,16 @@ export const createDefaultVerifiers = (registry: VerificationRegistry) => {
   });
 
   // Registry verification
-  registry.register('registry', verifyRegistryLocalRest);
+  registry.register('registry', async (config) => {
+    const results: VerificationResult[] = [];
+    results.push(...(await verifyRegistryLocalRest(config)));
+    return results;
+  });
 
   // Explorer verification
-  registry.register('explorer', verifyExplorerLocalGrpc);
+  registry.register('explorer', async (config) => {
+    const results: VerificationResult[] = [];
+    results.push(...(await verifyExplorerLocalRest(config)));
+    return results;
+  });
 };

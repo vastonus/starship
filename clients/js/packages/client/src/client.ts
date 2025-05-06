@@ -964,12 +964,18 @@ export class StarshipClient implements StarshipClientI {
 
     const results = await this.verificationRegistry.run(this.config);
 
+    console.log('results', results);
     // Display results
     this.log('\nVerification Results:');
-    results.forEach((result) => {
+    results?.forEach((result) => {
+      if (!result) return;
       if (result.status === 'success') {
         this.log(
           chalk.green(`✓ ${result.service} (${result.endpoint}): Success`)
+        );
+      } else if (result.status === 'skipped') {
+        this.log(
+          chalk.yellow(`⚠ ${result.service} (${result.endpoint}): ${result.error}`)
         );
       } else {
         this.log(
@@ -979,7 +985,7 @@ export class StarshipClient implements StarshipClientI {
     });
 
     // Check if any verifications failed
-    const hasFailures = results.some((result) => result.status === 'failure');
+    const hasFailures = results?.some((result) => result?.status === 'failure');
     if (hasFailures) {
       this.exit(1);
     }
