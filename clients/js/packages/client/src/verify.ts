@@ -1,5 +1,6 @@
 import axios from 'axios';
 
+import { handleAxiosError } from './utils';
 import { Chain, StarshipConfig } from './config';
 
 export interface VerificationResult {
@@ -85,7 +86,7 @@ export const verifyChainLocalRest = async (
     result.error = 'Chain supply not confirmed';
     return result;
   } catch (error) {
-    result.error = error instanceof Error ? error.message : 'Unknown error';
+    result.error = handleAxiosError(error);
     return result;
   }
 };
@@ -129,7 +130,7 @@ export const verifyChainLocalRpc = async (
     result.error = 'Block height is 0';
     return result;
   } catch (error) {
-    result.error = error instanceof Error ? error.message : 'Unknown error';
+    result.error = handleAxiosError(error);
     return result;
   }
 };
@@ -168,7 +169,7 @@ export const verifyChainLocalFaucet = async (
     result.error = 'Chain faucet is not working';
     return result;
   } catch (error) {
-    result.error = error instanceof Error ? error.message : 'Unknown error';
+    result.error = handleAxiosError(error);
     return result;
   }
 };
@@ -204,7 +205,7 @@ export const verifyChainLocalExposer = async (
 
     result.details = response.data;
   } catch (error) {
-    result.error = error instanceof Error ? error.message : 'Unknown error';
+    result.error = handleAxiosError(error);
     return result;
   }
 };
@@ -243,7 +244,7 @@ export const verifyRegistryLocalRest = async (
     result.error = 'Registry is not working';
     return [result];
   } catch (error) {
-    result.error = error instanceof Error ? error.message : 'Unknown error';
+    result.error = handleAxiosError(error);
     return [result];
   }
 };
@@ -286,7 +287,7 @@ export const verifyExplorerLocalRest = async (
     result.error = 'Explorer is not working';
     return [result];
   } catch (error) {
-    result.error = error instanceof Error ? error.message : 'Unknown error';
+    result.error = handleAxiosError(error);
     return [result];
   }
 };

@@ -964,7 +964,6 @@ export class StarshipClient implements StarshipClientI {
 
     const results = await this.verificationRegistry.run(this.config);
 
-    console.log('results', results);
     // Display results
     this.log('\nVerification Results:');
     results?.forEach((result) => {
@@ -987,6 +986,7 @@ export class StarshipClient implements StarshipClientI {
     // Check if any verifications failed
     const hasFailures = results?.some((result) => result?.status === 'failure');
     if (hasFailures) {
+      this.log(chalk.red('Verification failed. Exiting...'));
       this.exit(1);
     }
   }
