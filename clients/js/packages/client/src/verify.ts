@@ -267,10 +267,12 @@ export const verifyExplorerLocalRest = async (
   }
 
   try {
-    const response = await axios.get(`http://localhost:${port}`);
+    const response = await axios.get(`http://localhost:${port}`, {
+      headers: {
+        'Accept': 'text/html'
+      }
+    });
     result.details = response.data;
-
-    console.log('response.data', response.data);
 
     if (response.status !== 200) {
       result.error = 'Failed to get explorer status';
@@ -300,26 +302,21 @@ export const createDefaultVerifiers = (registry: VerificationRegistry) => {
     const results: VerificationResult[] = [];
 
     for (const chain of config.chains) {
-      results.push(await verifyChainLocalRest(chain));
-      results.push(await verifyChainLocalRpc(chain));
-      results.push(await verifyChainLocalFaucet(chain));
-      results.push(await verifyChainLocalExposer(chain));
+      const chainResults = await Promise.all([
+        verifyChainLocalRest(chain),
+        verifyChainLocalRpc(chain),
+        verifyChainLocalFaucet(chain),
+        verifyChainLocalExposer(chain)
+      ]);
+      results.push(...chainResults);
     }
 
     return results;
   });
 
   // Registry verification
-  registry.register('registry', async (config) => {
-    const results: VerificationResult[] = [];
-    results.push(...(await verifyRegistryLocalRest(config)));
-    return results;
-  });
+  registry.register('registry', verifyRegistryLocalRest);
 
   // Explorer verification
-  registry.register('explorer', async (config) => {
-    const results: VerificationResult[] = [];
-    results.push(...(await verifyExplorerLocalRest(config)));
-    return results;
-  });
+  registry.register('explorer', verifyExplorerLocalRest);
 };
