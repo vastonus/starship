@@ -974,7 +974,9 @@ export class StarshipClient implements StarshipClientI {
         );
       } else if (result.status === 'skipped') {
         this.log(
-          chalk.yellow(`⚠ ${result.service} (${result.endpoint}): ${result.error}`)
+          chalk.yellow(
+            `⚠ ${result.service} (${result.endpoint}): ${result.error}`
+          )
         );
       } else {
         this.log(

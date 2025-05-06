@@ -1,7 +1,7 @@
 import axios from 'axios';
 
-import { handleAxiosError } from './utils';
 import { Chain, StarshipConfig } from './config';
+import { handleAxiosError } from './utils';
 
 export interface VerificationResult {
   service: string;
@@ -117,7 +117,8 @@ export const verifyChainLocalRpc = async (
     }
 
     const blockHeight = Number(
-      response.data.result?.sync_info?.latest_block_height || response.data.result?.SyncInfo?.latest_block_height
+      response.data.result?.sync_info?.latest_block_height ||
+        response.data.result?.SyncInfo?.latest_block_height
     );
 
     if (blockHeight > 0) {
