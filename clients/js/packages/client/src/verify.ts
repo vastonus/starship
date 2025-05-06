@@ -269,7 +269,7 @@ export const verifyExplorerLocalRest = async (
   try {
     const response = await axios.get(`http://localhost:${port}`, {
       headers: {
-        'Accept': 'text/html'
+        Accept: 'text/html'
       }
     });
     result.details = response.data;
