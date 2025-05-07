@@ -11,7 +11,7 @@ import { Chain, Relayer, StarshipConfig } from './config';
 import { Ports } from './config';
 import { dependencies as defaultDependencies, Dependency } from './deps';
 import { readAndParsePackageJson } from './package';
-import { createDefaultVerifiers, VerificationRegistry } from './verify';
+import { verify } from './verifiers';
 
 export interface StarshipContext {
   name?: string;
@@ -134,16 +134,12 @@ export class StarshipClient implements StarshipClientI {
   config: StarshipConfig;
   podPorts: PodPorts = defaultPorts;
 
-  private verificationRegistry: VerificationRegistry =
-    new VerificationRegistry();
-
   private podStatuses = new Map<string, PodStatus>(); // To keep track of pod statuses
 
   constructor(ctx: StarshipContext) {
     this.ctx = deepmerge(defaultStarshipContext, ctx);
     // TODO add semver check against net
     this.version = readAndParsePackageJson().version;
-    createDefaultVerifiers(this.verificationRegistry);
   }
 
   private exec(
@@ -960,36 +956,27 @@ export class StarshipClient implements StarshipClientI {
   }
 
   public async verify(): Promise<void> {
-    this.log(chalk.blue('Starting verification of deployed services...'));
-
-    const results = await this.verificationRegistry.run(this.config);
-
-    // Display results
-    this.log('\nVerification Results:');
-    results?.forEach((result) => {
-      if (!result) return;
-      if (result.status === 'success') {
-        this.log(
-          chalk.green(`✓ ${result.service} (${result.endpoint}): Success`)
-        );
-      } else if (result.status === 'skipped') {
-        this.log(
-          chalk.yellow(
-            `⚠ ${result.service} (${result.endpoint}): ${result.error}`
-          )
-        );
-      } else {
-        this.log(
-          chalk.red(`✗ ${result.service} (${result.endpoint}): ${result.error}`)
-        );
+    this.log(chalk.blue('Verifying services...'));
+    const results = await verify(this.config);
+    
+    let allSuccess = true;
+    for (const result of results) {
+      const statusColor = result.status === 'success' ? 'green' : result.status === 'skipped' ? 'yellow' : 'red';
+      const status = chalk[statusColor](result.status.toUpperCase());
+      const message = result.message || result.error || '';
+      
+      this.log(`${status} ${result.service} (${result.endpoint}): ${message}`);
+      
+      if (result.status === 'failure') {
+        allSuccess = false;
       }
-    });
+    }
 
-    // Check if any verifications failed
-    const hasFailures = results?.some((result) => result?.status === 'failure');
-    if (hasFailures) {
-      this.log(chalk.red('Verification failed. Exiting...'));
+    if (!allSuccess) {
+      this.log(chalk.red('\nSome services failed verification. Please check the logs above.'));
       this.exit(1);
+    } else {
+      this.log(chalk.green('\nAll services verified successfully!'));
     }
   }
 }
