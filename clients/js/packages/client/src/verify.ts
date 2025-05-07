@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { Chain, Relayer, StarshipConfig, Ports } from './config';
+import { Chain, Ports, Relayer, StarshipConfig } from './config';
 import { handleAxiosError } from './utils';
 
 export interface VerificationResult {
@@ -133,7 +133,9 @@ const verifyChainFaucet = async (chain: Chain): Promise<VerificationResult> => {
   }
 };
 
-const verifyChainExposer = async (chain: Chain): Promise<VerificationResult> => {
+const verifyChainExposer = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.exposer;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
@@ -180,7 +182,9 @@ const verifyChainExposer = async (chain: Chain): Promise<VerificationResult> => 
 };
 
 // Ethereum specific verifiers
-const verifyEthereumRest = async (chain: Chain): Promise<VerificationResult> => {
+const verifyEthereumRest = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.rest;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
@@ -249,7 +253,10 @@ const verifyEthereumRpc = async (chain: Chain): Promise<VerificationResult> => {
       return result;
     }
 
-    if (typeof response.data.result === 'boolean' || response.data.result === false) {
+    if (
+      typeof response.data.result === 'boolean' ||
+      response.data.result === false
+    ) {
       result.status = 'success';
       result.message = 'Ethereum node is synced';
       return result;
@@ -265,7 +272,9 @@ const verifyEthereumRpc = async (chain: Chain): Promise<VerificationResult> => {
 };
 
 // Relayer verifiers
-const verifyRelayerRest = async (relayer: Relayer): Promise<VerificationResult> => {
+const verifyRelayerRest = async (
+  relayer: Relayer
+): Promise<VerificationResult> => {
   const result: VerificationResult = {
     service: `relayer-${relayer.name}`,
     endpoint: 'rest',
@@ -302,7 +311,9 @@ const verifyRelayerRest = async (relayer: Relayer): Promise<VerificationResult> 
   }
 };
 
-const verifyRelayerExposer = async (relayer: Relayer): Promise<VerificationResult> => {
+const verifyRelayerExposer = async (
+  relayer: Relayer
+): Promise<VerificationResult> => {
   const result: VerificationResult = {
     service: `relayer-${relayer.name}`,
     endpoint: 'exposer',
@@ -353,7 +364,9 @@ const verifyRelayerExposer = async (relayer: Relayer): Promise<VerificationResul
 };
 
 // Registry verifiers
-const verifyRegistryRest = async (config: StarshipConfig): Promise<VerificationResult[]> => {
+const verifyRegistryRest = async (
+  config: StarshipConfig
+): Promise<VerificationResult[]> => {
   const port = config.registry?.ports?.rest;
   const result: VerificationResult = {
     service: `registry`,
@@ -391,7 +404,9 @@ const verifyRegistryRest = async (config: StarshipConfig): Promise<VerificationR
 };
 
 // Explorer verifiers
-const verifyExplorerRest = async (config: StarshipConfig): Promise<VerificationResult[]> => {
+const verifyExplorerRest = async (
+  config: StarshipConfig
+): Promise<VerificationResult[]> => {
   const port = config.explorer?.ports?.rest;
   const result: VerificationResult = {
     service: `explorer`,
@@ -465,7 +480,7 @@ const chainVerifiers: {
   },
   ethereum: {
     rest: verifyEthereumRest,
-    rpc: verifyEthereumRpc,
+    rpc: verifyEthereumRpc
   }
 };
 
@@ -511,22 +526,24 @@ export const createDefaultVerifiers = (registry: VerificationRegistry) => {
     for (const chain of config.chains) {
       const verifier = chainVerifiers[chain.name] || chainVerifiers.default;
 
-      const chainResults = await Promise.all([
-        verifier.rest?.(chain),
-        verifier.rpc?.(chain),
-        verifier.faucet?.(chain),
-        verifier.exposer?.(chain)
-      ].filter(Boolean));
+      const chainResults = await Promise.all(
+        [
+          verifier.rest?.(chain),
+          verifier.rpc?.(chain),
+          verifier.faucet?.(chain),
+          verifier.exposer?.(chain)
+        ].filter(Boolean)
+      );
       results.push(...chainResults);
     }
 
     for (const relayer of config.relayers || []) {
-      const verifier = relayerVerifiers[relayer.type] || relayerVerifiers.default;
+      const verifier =
+        relayerVerifiers[relayer.type] || relayerVerifiers.default;
 
-      const relayerResults = await Promise.all([
-        verifier.rest?.(relayer),
-        verifier.exposer?.(relayer)
-      ].filter(Boolean));
+      const relayerResults = await Promise.all(
+        [verifier.rest?.(relayer), verifier.exposer?.(relayer)].filter(Boolean)
+      );
       results.push(...relayerResults);
     }
     return results;
