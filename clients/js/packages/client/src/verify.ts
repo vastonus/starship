@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { Chain, StarshipConfig } from './config';
+import { Chain, Relayer, StarshipConfig } from './config';
 import { handleAxiosError } from './utils';
 
 export interface VerificationResult {
@@ -295,6 +295,99 @@ export const verifyExplorerLocalRest = async (
   }
 };
 
+export const verifyRelayerLocalRest = async (
+  relayer: Relayer
+): Promise<VerificationResult> => {
+  const result: VerificationResult = {
+    service: `relayer-${relayer.name}`,
+    endpoint: 'rest',
+    status: 'failure'
+  };
+
+  const port = relayer.ports?.rest;
+  if (!port) {
+    result.status = 'skipped';
+    result.error = 'Port not found';
+    return result;
+  }
+
+  try {
+    const response = await axios.get(`http://localhost:${port}/version`);
+    result.details = response.data;
+    if (response.status !== 200) {
+      result.error = 'Failed to get relayer version';
+      return result;
+    }
+
+    // Check if relayer is running and has active connections
+    if (response.data.status === 'success') {
+      result.status = 'success';
+      result.message = 'Relayer is running';
+      return result;
+    }
+
+    result.status = 'failure';
+    result.error = 'Relayer is not in success state';
+    return result;
+  } catch (error) {
+    result.error = handleAxiosError(error);
+    return result;
+  }
+};
+
+export const verifyRelayerLocalExposer = async (
+  relayer: Relayer
+): Promise<VerificationResult> => {
+  const result: VerificationResult = {
+    service: `relayer-${relayer.name}`,
+    endpoint: 'exposer',
+    status: 'failure'
+  };
+
+  const port = relayer.ports?.exposer;
+  if (!port) {
+    result.status = 'skipped';
+    result.error = 'Port not found';
+    return result;
+  }
+
+  try {
+    const response = await axios.get(`http://localhost:${port}/config`);
+    result.details = response.data;
+    if (response.status !== 200) {
+      result.error = 'Failed to get relayer config';
+      return result;
+    }
+
+    // Check if config contains required fields
+    if (response.data.chains && response.data.chains.length > 0) {
+      result.status = 'success';
+      result.message = 'Relayer exposer is working with valid config';
+      return result;
+    }
+
+    result.status = 'failure';
+    result.error = 'Relayer config is invalid or empty';
+    return result;
+  } catch (error) {
+    if (axios.isAxiosError(error) && error.response?.status === 500) {
+      const errorBody = error.response.data;
+      if (
+        errorBody.code === 2 &&
+        errorBody.message === 'open : no such file or directory' &&
+        Array.isArray(errorBody.details) &&
+        errorBody.details.length === 0
+      ) {
+        result.status = 'success';
+        result.message = 'Relayer exposer is working with empty config';
+        return result;
+      }
+    }
+    result.error = handleAxiosError(error);
+    return result;
+  }
+};
+
 // Default verifiers
 export const createDefaultVerifiers = (registry: VerificationRegistry) => {
   // Chain REST endpoint verification
@@ -311,6 +404,13 @@ export const createDefaultVerifiers = (registry: VerificationRegistry) => {
       results.push(...chainResults);
     }
 
+    for (const relayer of config.relayers || []) {
+      const relayerResults = await Promise.all([
+        verifyRelayerLocalRest(relayer),
+        verifyRelayerLocalExposer(relayer)
+      ]);
+      results.push(...relayerResults);
+    }
     return results;
   });
 
