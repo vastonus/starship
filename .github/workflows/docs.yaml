@@ -6,11 +6,19 @@ on:
       - main
     paths:
       - "docs/**"
+      - "learn/**"
       - ".github/workflows/docs.yaml"
 
+env:
+  # Repository specific variables
+  REPO_NAME: starship
+  DOCS_DEST_PATH: pages/starship
+  LEARN_DEST_PATH: src/data/learn/starship
+
 jobs:
-  deploy:
+  docs-deploy:
     runs-on: ubuntu-latest
+    if: contains(github.event.head_commit.modified, 'docs/') || contains(github.event.head_commit.added, 'docs/')
 
     steps:
       - name: Checkout
@@ -21,7 +29,7 @@ jobs:
 
       - name: Sync the docs
         run: |
-          rsync -av --delete ./docs/pages/ ./external-docs/pages/starship/
+          rsync -av --delete ./docs/ ./external-docs/${{ env.DOCS_DEST_PATH }}/
           cd external-docs
           git config user.name 'GitHub Action'
           git config user.email 'action@github.com'
@@ -29,6 +37,6 @@ jobs:
           if git diff --cached --quiet; then
               echo "No changes to commit."
           else
-              git commit -m "Aotumated: Update starship documentation from starship repo"
+              git commit -m "Automated: Update ${{ env.REPO_NAME }} documentation"
               git push
           fi
