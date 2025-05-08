@@ -40,32 +40,3 @@ jobs:
               git commit -m "Automated: Update ${{ env.REPO_NAME }} documentation"
               git push
           fi
-
-  learn-deploy:
-    runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'learn/') || contains(github.event.head_commit.added, 'learn/')
-
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Clone learn repository
-        run: git clone https://x-access-token:${{ secrets.GH_HYPERWEB_PAT }}@github.com/hyperweb-io/hyperweb.io.git learn-site
-
-      - name: Create destination directory
-        run: |
-          mkdir -p ./learn-site/${{ env.LEARN_DEST_PATH }}
-
-      - name: Sync the learn content
-        run: |
-          rsync -av --delete ./learn/ ./learn-site/${{ env.LEARN_DEST_PATH }}/
-          cd learn-site
-          git config user.name 'GitHub Action'
-          git config user.email 'action@github.com'
-          git add .
-          if git diff --cached --quiet; then
-              echo "No changes to commit."
-          else
-              git commit -m "Automated: Update ${{ env.REPO_NAME }} learn content"
-              git push
-          fi
