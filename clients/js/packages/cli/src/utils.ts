@@ -79,6 +79,16 @@ Commands:
   get-pods           Get the list of pods for the Helm release.
   clean              Perform a clean operation to tidy up resources.
   verify             Verify the status of deployed services and endpoints.
+                     Checks:
+                     - Chain REST endpoints (supply)
+                     - Chain RPC endpoints (block height)
+                     - Chain Faucet endpoints (chain ID)
+                     - Chain Exposer endpoints (node ID)
+                     - Ethereum REST endpoints (sync status)
+                     - Ethereum RPC endpoints (sync status)
+                     - Registry service (chain list)
+                     - Explorer service (dashboard)
+                     - Relayer service (version)
   version, -v        Display the version of the Starship Client.
 
 Configuration File:
@@ -97,6 +107,7 @@ Examples:
   $ starship start --config ./config/two-chain.yaml
   $ starship stop --config ./config/two-chain.yaml
   $ starship verify --config ./config/two-chain.yaml
+  $ starship verify --config ./config/two-chain.yaml --name my-starship
 
 If you want to setup starship for the first time
   $ starship setup
