@@ -18,7 +18,6 @@ env:
 jobs:
   docs-deploy:
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.modified, 'docs/') || contains(github.event.head_commit.added, 'docs/')
 
     steps:
       - name: Checkout
