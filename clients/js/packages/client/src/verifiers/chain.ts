@@ -178,7 +178,6 @@ export const verifyChainExposer = async (
       }
     } else {
       result.error = 'Unknown error occurred';
-      
     }
     return result;
   }

@@ -21,51 +21,57 @@ describe('StarshipClient verify', () => {
     mockedAxios.get.mockImplementation((url) => {
       // Chain REST check (port 1317, 1313)
       if (url.includes('/cosmos/bank/v1beta1/supply')) {
-        return Promise.resolve({ 
-          status: 200, 
-          data: { 
-            supply: [{ amount: '1000000' }] 
-          } 
+        return Promise.resolve({
+          status: 200,
+          data: {
+            supply: [{ amount: '1000000' }]
+          }
         });
       }
 
       // Chain RPC check (port 26657, 26653)
-      if (url.includes('/status') && (url.includes('26657') || url.includes('26653'))) {
-        return Promise.resolve({ 
-          status: 200, 
-          data: { 
-            result: { 
-              sync_info: { 
-                latest_block_height: '100' 
-              } 
-            } 
-          } 
+      if (
+        url.includes('/status') &&
+        (url.includes('26657') || url.includes('26653'))
+      ) {
+        return Promise.resolve({
+          status: 200,
+          data: {
+            result: {
+              sync_info: {
+                latest_block_height: '100'
+              }
+            }
+          }
         });
       }
 
       // Chain faucet check (port 8007, 8003)
-      if (url.includes('/status') && (url.includes('8007') || url.includes('8003'))) {
+      if (
+        url.includes('/status') &&
+        (url.includes('8007') || url.includes('8003'))
+      ) {
         // Extract port from URL
         const port = url.includes('8007') ? 8007 : 8003;
         // Find the chain ID based on the port
-        const chain = config.config.chains?.find(chain => 
-          chain.ports?.faucet === port
+        const chain = config.config.chains?.find(
+          (chain) => chain.ports?.faucet === port
         );
-        return Promise.resolve({ 
-          status: 200, 
-          data: { 
-            chainId: chain?.id || 'unknown' 
-          } 
+        return Promise.resolve({
+          status: 200,
+          data: {
+            chainId: chain?.id || 'unknown'
+          }
         });
       }
 
       // Registry check (port 8081)
       if (url.includes('/chains')) {
-        return Promise.resolve({ 
-          status: 200, 
-          data: { 
-            chains: config.config.chains?.map(chain => chain.id) || [] 
-          } 
+        return Promise.resolve({
+          status: 200,
+          data: {
+            chains: config.config.chains?.map((chain) => chain.id) || []
+          }
         });
       }
 
@@ -133,7 +139,7 @@ describe('StarshipClient verify', () => {
       if (url.includes('/version')) {
         return Promise.reject(new Error('Relayer not available'));
       }
-      
+
       // Throw error for unhandled URLs
       throw new Error(`Unhandled URL in mock: ${url}`);
     });
@@ -164,41 +170,47 @@ describe('StarshipClient verify', () => {
     mockedAxios.get.mockImplementation((url) => {
       // Chain REST check (port 1317, 1313)
       if (url.includes('/cosmos/bank/v1beta1/supply')) {
-        return Promise.resolve({ 
-          status: 200, 
-          data: { 
-            supply: [{ amount: '1000000' }] 
-          } 
+        return Promise.resolve({
+          status: 200,
+          data: {
+            supply: [{ amount: '1000000' }]
+          }
         });
       }
 
       // Chain RPC check (port 26657, 26653)
-      if (url.includes('/status') && (url.includes('26657') || url.includes('26653'))) {
-        return Promise.resolve({ 
-          status: 200, 
-          data: { 
-            result: { 
-              sync_info: { 
-                latest_block_height: '100' 
-              } 
-            } 
-          } 
+      if (
+        url.includes('/status') &&
+        (url.includes('26657') || url.includes('26653'))
+      ) {
+        return Promise.resolve({
+          status: 200,
+          data: {
+            result: {
+              sync_info: {
+                latest_block_height: '100'
+              }
+            }
+          }
         });
       }
 
       // Chain faucet check (port 8007, 8003)
-      if (url.includes('/status') && (url.includes('8007') || url.includes('8003'))) {
+      if (
+        url.includes('/status') &&
+        (url.includes('8007') || url.includes('8003'))
+      ) {
         // Extract port from URL
         const port = url.includes('8007') ? 8007 : 8003;
         // Find the chain ID based on the port
-        const chain = disabledConfig.chains?.find(chain => 
-          chain.ports?.faucet === port
+        const chain = disabledConfig.chains?.find(
+          (chain) => chain.ports?.faucet === port
         );
-        return Promise.resolve({ 
-          status: 200, 
+        return Promise.resolve({
+          status: 200,
           data: {
             chainId: chain?.id || 'unknown'
-          } 
+          }
         });
       }
 

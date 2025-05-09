@@ -969,7 +969,9 @@ export class StarshipClient implements StarshipClientI {
             : 'red';
       const status = chalk[statusColor](result.status.toUpperCase());
       const message = result.message || result.error || '';
-      const details = result.details ? JSON.stringify(result.details, null, 2) : '';
+      const details = result.details
+        ? JSON.stringify(result.details, null, 2)
+        : '';
 
       this.log(`${status} ${result.service} (${result.endpoint}): ${message}`);
       if (details && result.status === 'failure') {
