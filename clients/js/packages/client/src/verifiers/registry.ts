@@ -1,9 +1,12 @@
 import axios from 'axios';
+
 import { Registry } from '../config';
 import { handleAxiosError } from '../utils';
 import { VerificationResult } from './types';
 
-export const verifyRegistryRest = async (registry: Registry): Promise<VerificationResult> => {
+export const verifyRegistryRest = async (
+  registry: Registry
+): Promise<VerificationResult> => {
   const port = registry.ports?.rest;
   const result: VerificationResult = {
     service: 'registry',

@@ -958,22 +958,31 @@ export class StarshipClient implements StarshipClientI {
   public async verify(): Promise<void> {
     this.log(chalk.blue('Verifying services...'));
     const results = await verify(this.config);
-    
+
     let allSuccess = true;
     for (const result of results) {
-      const statusColor = result.status === 'success' ? 'green' : result.status === 'skipped' ? 'yellow' : 'red';
+      const statusColor =
+        result.status === 'success'
+          ? 'green'
+          : result.status === 'skipped'
+            ? 'yellow'
+            : 'red';
       const status = chalk[statusColor](result.status.toUpperCase());
       const message = result.message || result.error || '';
-      
+
       this.log(`${status} ${result.service} (${result.endpoint}): ${message}`);
-      
+
       if (result.status === 'failure') {
         allSuccess = false;
       }
     }
 
     if (!allSuccess) {
-      this.log(chalk.red('\nSome services failed verification. Please check the logs above.'));
+      this.log(
+        chalk.red(
+          '\nSome services failed verification. Please check the logs above.'
+        )
+      );
       this.exit(1);
     } else {
       this.log(chalk.green('\nAll services verified successfully!'));

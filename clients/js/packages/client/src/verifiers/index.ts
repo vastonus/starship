@@ -1,8 +1,7 @@
-import { StarshipConfig } from '../config';
 import { chainVerifiers } from './chain';
-import { relayerVerifiers } from './relayer';
 import { verifyExplorerRest } from './explorer';
 import { verifyRegistryRest } from './registry';
+import { relayerVerifiers } from './relayer';
 import { VerificationFunction, VerificationResult } from './types';
 
 export const verifyChains: VerificationFunction = async (config) => {
@@ -14,7 +13,7 @@ export const verifyChains: VerificationFunction = async (config) => {
 
   for (const chain of config.chains) {
     const verifierSet = chainVerifiers[chain.name] || chainVerifiers.default;
-    for (const [endpoint, verifier] of Object.entries(verifierSet)) {
+    for (const [, verifier] of Object.entries(verifierSet)) {
       const result = await verifier(chain);
       results.push(result);
     }
@@ -31,7 +30,7 @@ export const verifyRelayers: VerificationFunction = async (config) => {
   }
 
   for (const relayer of config.relayers) {
-    for (const [endpoint, verifier] of Object.entries(relayerVerifiers)) {
+    for (const [, verifier] of Object.entries(relayerVerifiers)) {
       const result = await verifier(relayer);
       results.push(result);
     }
@@ -48,7 +47,7 @@ export const verifyRegistry: VerificationFunction = async (config) => {
   }
 
   const registryResults = await Promise.all([
-    verifyRegistryRest(config.registry),
+    verifyRegistryRest(config.registry)
   ]);
 
   results.push(...registryResults);
@@ -72,7 +71,7 @@ export const verify: VerificationFunction = async (config) => {
   const relayerResults = await verifyRelayers(config);
   const registryResults = await verifyRegistry(config);
   const explorerResults = await verifyExplorer(config);
-  
+
   return [
     ...chainResults,
     ...relayerResults,
@@ -81,8 +80,8 @@ export const verify: VerificationFunction = async (config) => {
   ];
 };
 
-export * from './types';
 export * from './chain';
-export * from './relayer';
+export * from './explorer';
 export * from './registry';
-export * from './explorer'; 
+export * from './relayer';
+export * from './types';

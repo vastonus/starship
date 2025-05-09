@@ -1,9 +1,12 @@
 import axios from 'axios';
+
 import { Explorer } from '../config';
 import { handleAxiosError } from '../utils';
 import { VerificationResult } from './types';
 
-export const verifyExplorerRest = async (explorer: Explorer): Promise<VerificationResult> => {
+export const verifyExplorerRest = async (
+  explorer: Explorer
+): Promise<VerificationResult> => {
   const port = explorer.ports?.rest;
   const result: VerificationResult = {
     service: 'explorer',
@@ -43,4 +46,4 @@ export const verifyExplorerRest = async (explorer: Explorer): Promise<Verificati
     result.error = handleAxiosError(error);
     return result;
   }
-}; 
+};

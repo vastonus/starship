@@ -1,9 +1,12 @@
 import axios from 'axios';
+
 import { Relayer } from '../config';
 import { handleAxiosError } from '../utils';
 import { RelayerVerifierSet, VerificationResult } from './types';
 
-export const verifyRelayerRest = async (relayer: Relayer): Promise<VerificationResult> => {
+export const verifyRelayerRest = async (
+  relayer: Relayer
+): Promise<VerificationResult> => {
   const port = relayer.ports?.rest;
   const result: VerificationResult = {
     service: `relayer-${relayer.name}`,
@@ -50,7 +53,9 @@ export const verifyRelayerRest = async (relayer: Relayer): Promise<VerificationR
   }
 };
 
-export const verifyRelayerExposer = async (relayer: Relayer): Promise<VerificationResult> => {
+export const verifyRelayerExposer = async (
+  relayer: Relayer
+): Promise<VerificationResult> => {
   const port = relayer.ports?.exposer;
   const result: VerificationResult = {
     service: `relayer-${relayer.name}`,
@@ -102,4 +107,4 @@ export const verifyRelayerExposer = async (relayer: Relayer): Promise<Verificati
 export const relayerVerifiers: RelayerVerifierSet = {
   rest: verifyRelayerRest,
   exposer: verifyRelayerExposer
-}; 
+};

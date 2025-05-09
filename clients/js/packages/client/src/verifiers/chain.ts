@@ -1,9 +1,12 @@
 import axios from 'axios';
+
 import { Chain } from '../config';
 import { handleAxiosError } from '../utils';
 import { ChainVerifierSet, VerificationResult } from './types';
 
-export const verifyChainRest = async (chain: Chain): Promise<VerificationResult> => {
+export const verifyChainRest = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.rest;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
@@ -41,7 +44,9 @@ export const verifyChainRest = async (chain: Chain): Promise<VerificationResult>
   }
 };
 
-export const verifyChainRpc = async (chain: Chain): Promise<VerificationResult> => {
+export const verifyChainRpc = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.rpc;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
@@ -83,7 +88,9 @@ export const verifyChainRpc = async (chain: Chain): Promise<VerificationResult> 
   }
 };
 
-export const verifyChainFaucet = async (chain: Chain): Promise<VerificationResult> => {
+export const verifyChainFaucet = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.faucet;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
@@ -119,7 +126,9 @@ export const verifyChainFaucet = async (chain: Chain): Promise<VerificationResul
   }
 };
 
-export const verifyChainExposer = async (chain: Chain): Promise<VerificationResult> => {
+export const verifyChainExposer = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.exposer;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
@@ -165,7 +174,9 @@ export const verifyChainExposer = async (chain: Chain): Promise<VerificationResu
 };
 
 // Ethereum specific verifiers
-export const verifyEthereumRest = async (chain: Chain): Promise<VerificationResult> => {
+export const verifyEthereumRest = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.rest;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
@@ -207,7 +218,9 @@ export const verifyEthereumRest = async (chain: Chain): Promise<VerificationResu
   }
 };
 
-export const verifyEthereumRpc = async (chain: Chain): Promise<VerificationResult> => {
+export const verifyEthereumRpc = async (
+  chain: Chain
+): Promise<VerificationResult> => {
   const port = chain.ports?.rpc;
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
@@ -266,4 +279,4 @@ export const chainVerifiers: {
     rest: verifyEthereumRest,
     rpc: verifyEthereumRpc
   }
-}; 
+};
