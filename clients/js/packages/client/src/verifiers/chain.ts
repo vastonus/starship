@@ -37,6 +37,7 @@ export const verifyChainRest = async (
 
     result.status = 'failure';
     result.error = 'Chain supply not confirmed';
+    result.details = response.data;
     return result;
   } catch (error) {
     result.error = handleAxiosError(error);
@@ -81,6 +82,7 @@ export const verifyChainRpc = async (
 
     result.status = 'failure';
     result.error = 'Block height is 0';
+    result.details = response.data;
     return result;
   } catch (error) {
     result.error = handleAxiosError(error);
@@ -111,6 +113,12 @@ export const verifyChainFaucet = async (
       return result;
     }
 
+    if (!response.data.chainId) {
+      result.error = 'Invalid response: chainId not found';
+      result.details = response.data;
+      return result;
+    }
+
     if (response.data.chainId === chain.id) {
       result.status = 'success';
       result.message = 'Chain faucet is working';
@@ -118,7 +126,8 @@ export const verifyChainFaucet = async (
     }
 
     result.status = 'failure';
-    result.error = 'Chain faucet is not working';
+    result.error = `Chain ID mismatch: expected ${chain.id}, got ${response.data.chainId}`;
+    result.details = response.data;
     return result;
   } catch (error) {
     result.error = handleAxiosError(error);
@@ -158,6 +167,7 @@ export const verifyChainExposer = async (
 
     result.status = 'failure';
     result.error = 'Invalid node_id response';
+    result.details = response.data;
     return result;
   } catch (error) {
     if (axios.isAxiosError(error)) {
@@ -168,6 +178,7 @@ export const verifyChainExposer = async (
       }
     } else {
       result.error = 'Unknown error occurred';
+      
     }
     return result;
   }
@@ -211,6 +222,7 @@ export const verifyEthereumRest = async (
 
     result.status = 'failure';
     result.error = 'Invalid response from Ethereum node';
+    result.details = response.data;
     return result;
   } catch (error) {
     result.error = handleAxiosError(error);
@@ -258,6 +270,7 @@ export const verifyEthereumRpc = async (
 
     result.status = 'failure';
     result.error = 'Ethereum node is still syncing';
+    result.details = response.data;
     return result;
   } catch (error) {
     result.error = handleAxiosError(error);

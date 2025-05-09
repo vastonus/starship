@@ -969,8 +969,12 @@ export class StarshipClient implements StarshipClientI {
             : 'red';
       const status = chalk[statusColor](result.status.toUpperCase());
       const message = result.message || result.error || '';
+      const details = result.details ? JSON.stringify(result.details, null, 2) : '';
 
       this.log(`${status} ${result.service} (${result.endpoint}): ${message}`);
+      if (details && result.status === 'failure') {
+        this.log(chalk.gray(`Details: ${details}`));
+      }
 
       if (result.status === 'failure') {
         allSuccess = false;
@@ -986,6 +990,7 @@ export class StarshipClient implements StarshipClientI {
       this.exit(1);
     } else {
       this.log(chalk.green('\nAll services verified successfully!'));
+      this.exit(0);
     }
   }
 }

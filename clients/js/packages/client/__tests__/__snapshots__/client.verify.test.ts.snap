@@ -5,17 +5,17 @@ exports[`StarshipClient verify should handle explorer verification failure 1`] =
 Log: config again: [object Object]
 Call: verify()
 Log: Verifying services...
-Log: FAILURE chain-osmosis-1 (rest): Explorer not available
-Log: FAILURE chain-osmosis-1 (rpc): Block height is 0
-Log: FAILURE chain-osmosis-1 (faucet): Chain faucet is not working
+Log: FAILURE chain-osmosis-1 (rest): Unhandled URL in mock: http://localhost:1317/cosmos/bank/v1beta1/supply
+Log: FAILURE chain-osmosis-1 (rpc): Unhandled URL in mock: http://localhost:26657/status
+Log: FAILURE chain-osmosis-1 (faucet): Unhandled URL in mock: http://localhost:8007/status
 Log: SKIPPED chain-osmosis-1 (exposer): Port not found
-Log: FAILURE chain-cosmos-2 (rest): Explorer not available
-Log: FAILURE chain-cosmos-2 (rpc): Block height is 0
-Log: FAILURE chain-cosmos-2 (faucet): Chain faucet is not working
+Log: FAILURE chain-cosmos-2 (rest): Unhandled URL in mock: http://localhost:1313/cosmos/bank/v1beta1/supply
+Log: FAILURE chain-cosmos-2 (rpc): Unhandled URL in mock: http://localhost:26653/status
+Log: FAILURE chain-cosmos-2 (faucet): Unhandled URL in mock: http://localhost:8003/status
 Log: SKIPPED chain-cosmos-2 (exposer): Port not found
 Log: SKIPPED relayer-osmos-cosmos (rest): Port not found
 Log: SKIPPED relayer-osmos-cosmos (exposer): Port not found
-Log: FAILURE registry (rest): Registry is not working
+Log: FAILURE registry (rest): Unhandled URL in mock: http://localhost:8081/chains
 Log⬇
 
 Some services failed verification. Please check the logs above.
@@ -29,13 +29,13 @@ exports[`StarshipClient verify should handle registry verification failure 1`] =
 Log: config again: [object Object]
 Call: verify()
 Log: Verifying services...
-Log: FAILURE chain-osmosis-1 (rest): Cannot read properties of undefined (reading '0')
-Log: FAILURE chain-osmosis-1 (rpc): Block height is 0
-Log: FAILURE chain-osmosis-1 (faucet): Chain faucet is not working
+Log: FAILURE chain-osmosis-1 (rest): Unhandled URL in mock: http://localhost:1317/cosmos/bank/v1beta1/supply
+Log: FAILURE chain-osmosis-1 (rpc): Unhandled URL in mock: http://localhost:26657/status
+Log: FAILURE chain-osmosis-1 (faucet): Unhandled URL in mock: http://localhost:8007/status
 Log: SKIPPED chain-osmosis-1 (exposer): Port not found
-Log: FAILURE chain-cosmos-2 (rest): Cannot read properties of undefined (reading '0')
-Log: FAILURE chain-cosmos-2 (rpc): Block height is 0
-Log: FAILURE chain-cosmos-2 (faucet): Chain faucet is not working
+Log: FAILURE chain-cosmos-2 (rest): Unhandled URL in mock: http://localhost:1313/cosmos/bank/v1beta1/supply
+Log: FAILURE chain-cosmos-2 (rpc): Unhandled URL in mock: http://localhost:26653/status
+Log: FAILURE chain-cosmos-2 (faucet): Unhandled URL in mock: http://localhost:8003/status
 Log: SKIPPED chain-cosmos-2 (exposer): Port not found
 Log: SKIPPED relayer-osmos-cosmos (rest): Port not found
 Log: SKIPPED relayer-osmos-cosmos (exposer): Port not found
@@ -53,17 +53,17 @@ exports[`StarshipClient verify should handle relayer verification failure 1`] = 
 Log: config again: [object Object]
 Call: verify()
 Log: Verifying services...
-Log: FAILURE chain-osmosis-1 (rest): Cannot read properties of undefined (reading '0')
-Log: FAILURE chain-osmosis-1 (rpc): Block height is 0
-Log: FAILURE chain-osmosis-1 (faucet): Chain faucet is not working
+Log: FAILURE chain-osmosis-1 (rest): Unhandled URL in mock: http://localhost:1317/cosmos/bank/v1beta1/supply
+Log: FAILURE chain-osmosis-1 (rpc): Unhandled URL in mock: http://localhost:26657/status
+Log: FAILURE chain-osmosis-1 (faucet): Unhandled URL in mock: http://localhost:8007/status
 Log: SKIPPED chain-osmosis-1 (exposer): Port not found
-Log: FAILURE chain-cosmos-2 (rest): Cannot read properties of undefined (reading '0')
-Log: FAILURE chain-cosmos-2 (rpc): Block height is 0
-Log: FAILURE chain-cosmos-2 (faucet): Chain faucet is not working
+Log: FAILURE chain-cosmos-2 (rest): Unhandled URL in mock: http://localhost:1313/cosmos/bank/v1beta1/supply
+Log: FAILURE chain-cosmos-2 (rpc): Unhandled URL in mock: http://localhost:26653/status
+Log: FAILURE chain-cosmos-2 (faucet): Unhandled URL in mock: http://localhost:8003/status
 Log: SKIPPED chain-cosmos-2 (exposer): Port not found
 Log: SKIPPED relayer-osmos-cosmos (rest): Port not found
 Log: SKIPPED relayer-osmos-cosmos (exposer): Port not found
-Log: FAILURE registry (rest): Registry is not working
+Log: FAILURE registry (rest): Unhandled URL in mock: http://localhost:8081/chains
 Log⬇
 
 Some services failed verification. Please check the logs above.
@@ -77,19 +77,19 @@ exports[`StarshipClient verify should skip disabled services 1`] = `
 Log: config again: [object Object]
 Call: verify()
 Log: Verifying services...
-Log: FAILURE chain-osmosis-1 (rest): Cannot read properties of undefined (reading '0')
-Log: FAILURE chain-osmosis-1 (rpc): Block height is 0
-Log: FAILURE chain-osmosis-1 (faucet): Chain faucet is not working
+Log: SUCCESS chain-osmosis-1 (rest): Chain supply is greater than 0
+Log: SUCCESS chain-osmosis-1 (rpc): Chain is synced
+Log: SUCCESS chain-osmosis-1 (faucet): Chain faucet is working
 Log: SKIPPED chain-osmosis-1 (exposer): Port not found
-Log: FAILURE chain-cosmos-2 (rest): Cannot read properties of undefined (reading '0')
-Log: FAILURE chain-cosmos-2 (rpc): Block height is 0
-Log: FAILURE chain-cosmos-2 (faucet): Chain faucet is not working
+Log: SUCCESS chain-cosmos-2 (rest): Chain supply is greater than 0
+Log: SUCCESS chain-cosmos-2 (rpc): Chain is synced
+Log: SUCCESS chain-cosmos-2 (faucet): Chain faucet is working
 Log: SKIPPED chain-cosmos-2 (exposer): Port not found
 Log: SKIPPED relayer-osmos-cosmos (rest): Port not found
 Log: SKIPPED relayer-osmos-cosmos (exposer): Port not found
 Log⬇
 
-Some services failed verification. Please check the logs above.
+All services verified successfully!
 EndLog⬆"
 `;
 
@@ -100,20 +100,20 @@ exports[`StarshipClient verify should verify all services successfully 1`] = `
 Log: config again: [object Object]
 Call: verify()
 Log: Verifying services...
-Log: FAILURE chain-osmosis-1 (rest): Cannot read properties of undefined (reading '0')
-Log: FAILURE chain-osmosis-1 (rpc): Block height is 0
-Log: FAILURE chain-osmosis-1 (faucet): Chain faucet is not working
+Log: SUCCESS chain-osmosis-1 (rest): Chain supply is greater than 0
+Log: SUCCESS chain-osmosis-1 (rpc): Chain is synced
+Log: SUCCESS chain-osmosis-1 (faucet): Chain faucet is working
 Log: SKIPPED chain-osmosis-1 (exposer): Port not found
-Log: FAILURE chain-cosmos-2 (rest): Cannot read properties of undefined (reading '0')
-Log: FAILURE chain-cosmos-2 (rpc): Block height is 0
-Log: FAILURE chain-cosmos-2 (faucet): Chain faucet is not working
+Log: SUCCESS chain-cosmos-2 (rest): Chain supply is greater than 0
+Log: SUCCESS chain-cosmos-2 (rpc): Chain is synced
+Log: SUCCESS chain-cosmos-2 (faucet): Chain faucet is working
 Log: SKIPPED chain-cosmos-2 (exposer): Port not found
 Log: SKIPPED relayer-osmos-cosmos (rest): Port not found
 Log: SKIPPED relayer-osmos-cosmos (exposer): Port not found
 Log: SUCCESS registry (rest): Registry is working
 Log⬇
 
-Some services failed verification. Please check the logs above.
+All services verified successfully!
 EndLog⬆"
 `;
 
