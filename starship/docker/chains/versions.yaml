@@ -18,6 +18,10 @@ chains:
   - name: stride
     base: ghcr.io/strangelove-ventures/heighliner/stride
     tags:
+      - v26.0.3
+      - v26.0.2
+      - v26.0.1
+      - v26.0.0
       - v25.1.0
       - v16.0.0
       - v15.0.0
