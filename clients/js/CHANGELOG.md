@@ -3,6 +3,20 @@
 All notable changes to this project will be documented in this file.
 See [Conventional Commits](https://conventionalcommits.org) for commit guidelines.
 
+# [3.11.0](https://github.com/hyperweb-io/starship/compare/v3.10.0...v3.11.0) (2025-06-09)
+
+### Bug Fixes
+
+- consensus params path ([e963fc5](https://github.com/hyperweb-io/starship/commit/e963fc58e94cc552cdc1f621af9c12a46595779f))
+- non-consecutive config scripts ([6d7b6ae](https://github.com/hyperweb-io/starship/commit/6d7b6ae1db49f82b1d0875581fd15af3fc045ebe))
+- typo & port-forward timing ([b8bcce5](https://github.com/hyperweb-io/starship/commit/b8bcce5220e756236f8afc701d3db141468cd6e2))
+- XPLA Chain ([#685](https://github.com/hyperweb-io/starship/issues/685)) ([7357cda](https://github.com/hyperweb-io/starship/commit/7357cdafa75e9ad9c2ac23dcce2e30964991d755))
+
+### Features
+
+- add and use `chain.scripts.chainRpcReady` ([e81ffac](https://github.com/hyperweb-io/starship/commit/e81ffac9327b80c856f40fa0109ede9821569452))
+- add support for emv rest port forwarding in port-forward script ([2d0efa5](https://github.com/hyperweb-io/starship/commit/2d0efa5be126add57bd94313965d5b76c7486ac5))
+
 # [3.10.0](https://github.com/hyperweb-io/starship/compare/v3.9.0...v3.10.0) (2025-04-12)
 
 **Note:** Version bump only for package starship-js
