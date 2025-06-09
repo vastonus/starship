@@ -13,7 +13,7 @@
    <a href="https://github.com/hyperweb-io/starship/actions/workflows/starship-docker.yaml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/starship-docker.yaml/badge.svg" alt="Docker" /></a>
    <a href="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml/badge.svg" alt="Client Tests" /></a>
    <a href="https://www.npmjs.com/package/@starship-ci/cli"><img height="20" src="https://img.shields.io/npm/v/@starship-ci/cli.svg" alt="NPM Version" /></a>
-   <a href="https://github.com/hyperweb-io/starship/tree/main/charts/devnet"><img height="20" src="https://img.shields.io/badge/devnet-1.7.0-blue" alt="Devnet Version" /></a>
+   <a href="https://github.com/hyperweb-io/starship/tree/main/charts/devnet"><img height="20" src="https://img.shields.io/badge/devnet-1.8.0-blue" alt="Devnet Version" /></a>
 </p>
 
 Universal interchain development environment in k8s. The vision of this project
@@ -45,7 +45,7 @@ Here's a sample configuration:
 
 ```yaml
 name: starship-localnet
-version: 1.7.0
+version: 1.8.0
 
 chains:
 - id: osmosis-1
@@ -89,15 +89,16 @@ For more details on the configuration options and directives available, refer to
 ### Current Versions
 | Component	           | Version | Link                                                                                |
 |------------------------|---------|-------------------------------------------------------------------------------------|
-| Helm Chart             | 	1.7.0  | 	-                                                                                  |
-| Starship NPM CLI       | 	3.10.0  | [NPM](https://www.npmjs.com/package/@starship-ci/client/v/3.10.0)                    |
-| NPM Client             |  3.10.0  | [NPM](https://www.npmjs.com/package/@starship-ci/cli/v/3.10.0)                       |
+| Helm Chart             | 	1.8.0  | 	-                                                                                  |
+| Starship NPM CLI       | 	3.11.0  | [NPM](https://www.npmjs.com/package/@starship-ci/client/v/3.11.0)                    |
+| NPM Client             |  3.11.0  | [NPM](https://www.npmjs.com/package/@starship-ci/cli/v/3.11.0)                       |
 | NPM StarshipJS         | 	3.3.0  | 	[NPM](https://www.npmjs.com/package/starshipjs/v/3.3.0)                            |
 | Starship GitHub Action | 	1.0.0  | 	[Github Action](https://github.com/hyperweb-io/starship-action/releases/tag/1.0.0) |
 
 ### Compatibility Matrix
 | Starship Version | 	Helm Chart | 	NPM CLI | 	NPM Client | 	StarshipJS | 	GitHub Action |
 |------------------|-------------|----------|-------------|-------------|----------------|
+| 1.8.0            | 	✅ 1.8.0    | 	✅ 3.11.0 | 	✅ 3.11.0    | 	✅ 3.3.0    | 	✅ 1.0.0       |
 | 1.7.0            | 	✅ 1.7.0    | 	✅ 3.10.0 | 	✅ 3.10.0    | 	✅ 3.3.0    | 	✅ 1.0.0       |
 | 1.6.0            | 	✅ 1.6.0    | 	✅ 3.6.0 | 	✅ 3.6.0    | 	✅ 3.3.0    | 	✅ 0.5.9       |
 | 1.5.0            | 	✅ 1.5.0    | 	✅ 3.5.0 | 	✅ 3.5.0    | 	✅ 3.3.0    | 	✅ 0.5.9       |
