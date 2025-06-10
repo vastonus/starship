@@ -1,3 +1,5 @@
+import { Asset } from '@chain-registry/types';
+
 // Base types
 export interface Ports {
   rest?: number;
@@ -95,7 +97,7 @@ export interface Chain {
   coinType?: number;
   metrics?: boolean;
   repo?: string;
-  assets?: any[]; // TODO: Define asset structure
+  assets?: Asset[];
   storage?: string;
   storageClassName?: string;
   external?: boolean;
@@ -131,6 +133,7 @@ export interface Chain {
     buildChain?: Script;
     chainRpcReady?: Script;
     ibcConnection?: Script;
+    createICS?: Script;
   };
   env?: Array<{
     name: string;
@@ -155,6 +158,7 @@ export interface Chain {
 }
 
 export interface Script {
+  name?: string;
   file?: string;
   data?: string;
 }
@@ -190,7 +194,7 @@ export interface Relayer {
 
 export interface Explorer {
   enabled: boolean;
-  type: string;
+  type: 'ping-pub';
   image?: string;
   localhost?: boolean;
   ports?: Ports;
@@ -216,7 +220,7 @@ export interface Monitoring {
 
 export interface Ingress {
   enabled: boolean;
-  type: string;
+  type: 'nginx';
   host?: string;
   certManager?: {
     issuer?: string;
@@ -225,12 +229,12 @@ export interface Ingress {
 }
 
 export interface Images {
-  imagePullPolicy: string;
+  imagePullPolicy: 'Always' | 'IfNotPresent' | 'Never';
 }
 
 export interface Frontend {
   name: string;
-  type: string;
+  type: 'custom';
   image: string;
   replicas?: number;
   ports?: Ports;
