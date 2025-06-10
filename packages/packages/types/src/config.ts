@@ -245,7 +245,7 @@ export interface Frontend {
 // Main config interface
 export interface StarshipConfig {
   name: string;
-  version: string;
+  version?: string;
   resources?: {
     node?: Resources;
     wait?: Resources;
