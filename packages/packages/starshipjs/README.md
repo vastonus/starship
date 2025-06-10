@@ -43,7 +43,7 @@ npm install starshipjs
 
 ## Using with CI/CD
 
-NOTE: Before you code! You'll want to use the CLI tool ([`@starship-ci/cli`](https://github.com/hyperweb-io/starship/tree/main/clients/js/packages/cli)) in a package.json to get starship working.
+NOTE: Before you code! You'll want to use the CLI tool ([`@starship-ci/cli`](https://github.com/hyperweb-io/starship/tree/main/packages/packages/cli)) in a package.json to get starship working.
 
 ### Install the packages
 

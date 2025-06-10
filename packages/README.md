@@ -8,7 +8,7 @@
 <p align="center" width="100%">
   <a href="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml">
     <img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml/badge.svg" />
-  </a><a href="https://github.com/hyperweb-io/starship/blob/main/clients/js/LICENSE"><img height="20" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+  </a><a href="https://github.com/hyperweb-io/starship/blob/main/packages/LICENSE"><img height="20" src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
 </p>
 
 **StarshipJS** is the JS companion to deploy and manage [Starship](https://cosmology.zone/products/starship), tailored specifically for Node.js and TypeScript developers. This toolkit provides a seamless, easy-to-use interface that dramatically simplifies the development, testing, and deployment of interchain applications, whether on your local machine or CI/CD environments.
@@ -25,9 +25,9 @@ Designed with simplicity and speed in mind, **StarshipJS** enables developers to
 
 ## Packages
 
-- [`StarshipJS`](https://github.com/hyperweb-io/starship/tree/main/clients/js/packages/starshipjs): A JavaScript library providing the foundational tools and utilities for starship development, designed to work seamlessly with Node.js and TypeScript.
-- [`StarshipJS CLI`](https://github.com/hyperweb-io/starship/tree/main/clients/js/packages/cli): The command-line interface that allows developers to easily deploy, manage, and interact with starship directly from the terminal.
-- [`StarshipJS Client`](https://github.com/hyperweb-io/starship/tree/main/clients/js/packages/client): A client library that encapsulates interaction with starship, simplifying command executions and state management through an intuitive API.
+- [`StarshipJS`](https://github.com/hyperweb-io/starship/tree/main/packages/packages/starshipjs): A JavaScript library providing the foundational tools and utilities for starship development, designed to work seamlessly with Node.js and TypeScript.
+- [`StarshipJS CLI`](https://github.com/hyperweb-io/starship/tree/main/packages/packages/cli): The command-line interface that allows developers to easily deploy, manage, and interact with starship directly from the terminal.
+- [`StarshipJS Client`](https://github.com/hyperweb-io/starship/tree/main/packages/packages/client): A client library that encapsulates interaction with starship, simplifying command executions and state management through an intuitive API.
 
 ## Table of contents
 
@@ -99,7 +99,7 @@ yarn starship stop
 
 ## CLI Usage
 
-See more usage in the [`StarshipJS CLI`](https://github.com/hyperweb-io/starship/tree/main/clients/js/packages/cli) documentation.
+See more usage in the [`StarshipJS CLI`](https://github.com/hyperweb-io/starship/tree/main/packages/packages/cli) documentation.
 
 ### Install the CLI
 
@@ -131,7 +131,7 @@ starship teardown --config ./config/settings.json
 
 ## StarshipClient Usage
 
-See more info in the [`StarshipJS Client`](https://github.com/hyperweb-io/starship/tree/main/clients/js/packages/client) documentation.
+See more info in the [`StarshipJS Client`](https://github.com/hyperweb-io/starship/tree/main/packages/packages/client) documentation.
 
 ### Install the StarshipClient
 
@@ -207,7 +207,7 @@ client.teardown();
 
 ## StarshipJS Usage
 
-[`StarshipJS`](https://github.com/hyperweb-io/starship/tree/main/clients/js/packages/starshipjs) is a utility library that provides helpers to leverage [Starship](https://github.com/hyperweb-io/starship)'s internal chain registry, emulating the style of code used in projects like [cosmos-kit](https://github.com/hyperweb-io/cosmos-kit).
+[`StarshipJS`](https://github.com/hyperweb-io/starship/tree/main/packages/packages/starshipjs) is a utility library that provides helpers to leverage [Starship](https://github.com/hyperweb-io/starship)'s internal chain registry, emulating the style of code used in projects like [cosmos-kit](https://github.com/hyperweb-io/cosmos-kit).
 
 ### StarshipJS Configuration
 
