@@ -328,6 +328,11 @@
   resolved "https://registry.yarnpkg.com/@chain-registry/types/-/types-0.25.6.tgz#8e79979a729a7c75846b282c4b1a307f61046d4b"
   integrity sha512-GtLJ0XDqEp8rIqHSj83j27nhzaZYs+vQKy+qCNe0FyBgBanrmA99ilzSy2RDg2KIlsGTt4fe6zGVN9Yc6BMhfA==
 
+"@chain-registry/types@^2.0.1":
+  version "2.0.1"
+  resolved "https://registry.yarnpkg.com/@chain-registry/types/-/types-2.0.1.tgz#f563747d9a8b619cba4ad7b04ca96c5bd9e7998c"
+  integrity sha512-acza5f9AfnEE0NA1LVOqp5R0U7L0pZBWonSXSNYn3NVTS8Y4XFAl/mkOxUcx9AsY4Em98R8hkORMdra2wIVpyA==
+
 "@chain-registry/utils@^1.17.0":
   version "1.26.6"
   resolved "https://registry.yarnpkg.com/@chain-registry/utils/-/utils-1.26.6.tgz#01e098935f5a6043e6f15b8c77b5a4c78b7ffeb5"
