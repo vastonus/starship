@@ -1,6 +1,6 @@
 {
   "name": "@starship-ci/types",
-  "version": "3.11.0",
+  "version": "3.12.0",
   "author": "Anmol1696 <anmol1696@gmail.com>",
   "description": "Starship Types",
   "main": "index.js",
