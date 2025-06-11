@@ -5,6 +5,16 @@ import fetch from 'node-fetch';
 
 import { type ChainConfig, ConfigContext } from './config';
 
+interface ChainHook {
+  chain: any;
+  chainInfo: any;
+  getCoin: () => Promise<any>;
+  getRpcEndpoint: () => Promise<string>;
+  getRestEndpoint: () => Promise<string>;
+  getGenesisMnemonic: () => Promise<string>;
+  creditFromFaucet: (address: string, denom?: string | null) => Promise<void>;
+}
+
 export const useRegistry = async (
   configFile: string
 ): Promise<ChainRegistryFetcher> => {
@@ -34,7 +44,7 @@ export const useRegistry = async (
   return registry;
 };
 
-export const useChain = (chainName: string) => {
+export const useChain = (chainName: string): ChainHook | undefined => {
   const registry = ConfigContext.registry;
   const configFile = ConfigContext.configFile;
   const config = yaml.load(fs.readFileSync(configFile, 'utf8')) as ChainConfig;
