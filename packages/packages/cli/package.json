@@ -56,6 +56,7 @@
   },
   "dependencies": {
     "@starship-ci/client": "^3.14.1",
+    "@starship-ci/types": "^3.14.0",
     "chalk": "^4.1.0",
     "deepmerge": "^4.3.1",
     "inquirerer": "^1.9.0",

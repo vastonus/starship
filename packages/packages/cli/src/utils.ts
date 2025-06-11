@@ -52,8 +52,8 @@ export const loadConfig = (argv: any): Config => {
   params.forEach((key) => {
     if (argv[key] !== undefined) {
       console.log('argv:', key, ':', argv[key]);
-      // @ts-expect-error - dynamic assignment
-      context[key] = argv[key];
+      // Dynamic assignment of context properties
+      (context as any)[key] = argv[key];
     }
   });
 
