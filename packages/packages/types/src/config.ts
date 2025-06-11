@@ -15,8 +15,8 @@ export interface Ports {
 }
 
 export interface Resources {
-  cpu: string | number;
-  memory: string | number;
+  cpu?: string | number;
+  memory?: string | number;
   limits?: {
     cpu: string | number;
     memory: string | number;
@@ -98,16 +98,6 @@ export interface Chain {
   metrics?: boolean;
   repo?: string;
   assets?: Asset[];
-  storage?: string;
-  storageClassName?: string;
-  external?: boolean;
-  joinNetwork?: boolean;
-  geth?: Record<string, any>;
-  beaconChain?: Record<string, any>;
-  prysmCtl?: Record<string, any>;
-  validator?: Record<string, any>;
-  genesisStateUrl?: string;
-  subtype?: string;
   upgrade?: {
     enabled: boolean;
     type?: 'build';
@@ -186,10 +176,7 @@ export interface Relayer {
     consumer: string;
   };
   resources?: Resources;
-  ports?: {
-    rest?: number;
-    exposer?: number;
-  };
+  ports?: Ports;
 }
 
 export interface Explorer {
@@ -211,10 +198,7 @@ export interface Registry {
 
 export interface Monitoring {
   enabled: boolean;
-  ports?: {
-    prometheus?: number;
-    grafana?: number;
-  };
+  ports?: Ports;
   resources?: Resources;
 }
 
@@ -251,11 +235,9 @@ export interface StarshipConfig {
     wait?: Resources;
   };
   exposer?: {
-    image: string;
-    ports: {
-      rest: number;
-    };
-    resources: Resources;
+    image?: string;
+    ports?: Ports;
+    resources?: Resources;
   };
   faucet?: FaucetConfig;
   timeouts?: TimeoutConfig;
