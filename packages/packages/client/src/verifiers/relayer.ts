@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { Relayer } from '@starship-ci/types/src';
+import { Relayer } from '@starship-ci/types';
 import { handleAxiosError } from '../utils';
 import { RelayerVerifierSet, VerificationResult } from './types';
 

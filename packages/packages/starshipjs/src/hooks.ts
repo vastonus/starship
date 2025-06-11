@@ -3,7 +3,7 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 import fetch from 'node-fetch';
 
-import { Chain, Relayer, StarshipConfig } from '@starship-ci/types/src';
+import { Chain, Relayer, StarshipConfig } from '@starship-ci/types';
 
 import { ConfigContext } from './config';
 

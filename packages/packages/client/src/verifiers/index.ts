@@ -1,4 +1,4 @@
-import { StarshipConfig } from '@starship-ci/types/src';
+import { StarshipConfig } from '@starship-ci/types';
 import { chainVerifiers } from './chain';
 import { verifyExplorerRest } from './explorer';
 import { verifyRegistryRest } from './registry';
