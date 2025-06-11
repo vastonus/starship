@@ -1,7 +1,7 @@
 {
   "name": "starshipjs",
   "version": "3.14.1",
-  "author": "Dan Lynch <pyramation@gmail.com>",
+  "author": "Anmol1696 <anmol1696@gmail.com>",
   "description": "JS utilities for Starship",
   "main": "index.js",
   "module": "esm/index.js",
