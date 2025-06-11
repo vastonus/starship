@@ -1,8 +1,8 @@
 import {
   defaultStarshipContext,
-  StarshipConfig,
   StarshipContext
-} from '@starship-ci/client'; // Adjust the import path as necessary
+} from '@starship-ci/client/src';
+import { StarshipConfig } from '@starship-ci/types/src';
 import chalk from 'chalk';
 import { readFileSync } from 'fs';
 import * as yaml from 'js-yaml';

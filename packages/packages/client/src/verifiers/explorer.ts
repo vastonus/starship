@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-import { Explorer } from '../config';
+import { Explorer } from '@starship-ci/types/src';
 import { handleAxiosError } from '../utils';
 import { VerificationResult } from './types';
 

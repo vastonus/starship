@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { StarshipClient, StarshipInstaller } from '@starship-ci/client'; // Adjust the import path as necessary
+import { StarshipClient, StarshipInstaller } from '@starship-ci/client/src';
 import { Inquirerer, type Question } from 'inquirerer';
 import minimist from 'minimist';
 

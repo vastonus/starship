@@ -1,4 +1,4 @@
-import { Chain, Ports, Relayer, StarshipConfig } from '../config';
+import { Chain, Ports, Relayer, StarshipConfig } from '@starship-ci/types/src';
 
 export interface VerificationResult {
   service: string;

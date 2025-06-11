@@ -7,8 +7,7 @@ import * as os from 'os';
 import { dirname, resolve } from 'path';
 import * as shell from 'shelljs';
 
-import { Chain, Relayer, StarshipConfig } from './config';
-import { Ports } from './config';
+import { Chain, Relayer, StarshipConfig, Ports } from '@starship-ci/types/src';
 import { dependencies as defaultDependencies, Dependency } from './deps';
 import { readAndParsePackageJson } from './package';
 import { verify } from './verifiers';

@@ -1,10 +1,11 @@
+import { StarshipConfig } from '@starship-ci/types/src';
 import { chainVerifiers } from './chain';
 import { verifyExplorerRest } from './explorer';
 import { verifyRegistryRest } from './registry';
 import { relayerVerifiers } from './relayer';
 import { VerificationFunction, VerificationResult } from './types';
 
-export const verifyChains: VerificationFunction = async (config) => {
+export const verifyChains: VerificationFunction = async (config: StarshipConfig) => {
   const results: VerificationResult[] = [];
 
   if (!config.chains) {
@@ -22,7 +23,7 @@ export const verifyChains: VerificationFunction = async (config) => {
   return results;
 };
 
-export const verifyRelayers: VerificationFunction = async (config) => {
+export const verifyRelayers: VerificationFunction = async (config: StarshipConfig) => {
   const results: VerificationResult[] = [];
 
   if (!config.relayers) {
@@ -39,7 +40,7 @@ export const verifyRelayers: VerificationFunction = async (config) => {
   return results;
 };
 
-export const verifyRegistry: VerificationFunction = async (config) => {
+export const verifyRegistry: VerificationFunction = async (config: StarshipConfig) => {
   const results: VerificationResult[] = [];
 
   if (!config.registry?.enabled) {
@@ -54,7 +55,7 @@ export const verifyRegistry: VerificationFunction = async (config) => {
   return results;
 };
 
-export const verifyExplorer: VerificationFunction = async (config) => {
+export const verifyExplorer: VerificationFunction = async (config: StarshipConfig) => {
   const results: VerificationResult[] = [];
 
   if (!config.explorer?.enabled) {
@@ -66,7 +67,7 @@ export const verifyExplorer: VerificationFunction = async (config) => {
   return results;
 };
 
-export const verify: VerificationFunction = async (config) => {
+export const verify: VerificationFunction = async (config: StarshipConfig) => {
   const chainResults = await verifyChains(config);
   const relayerResults = await verifyRelayers(config);
   const registryResults = await verifyRegistry(config);

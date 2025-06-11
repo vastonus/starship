@@ -89,24 +89,4 @@ export class Config {
   }
 }
 
-export interface ChainConfig {
-  registry: {
-    ports: {
-      rest: number;
-    };
-  };
-  chains: Array<{
-    id: string | number;
-    name: string;
-    ports: {
-      rpc: number;
-      rest: number;
-      faucet: number;
-    };
-  }>;
-  relayers: Array<{
-    chains: [string, string];
-  }>;
-}
-
 export const ConfigContext = Config;

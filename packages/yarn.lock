@@ -259,13 +259,6 @@
   dependencies:
     "@babel/helper-plugin-utils" "^7.24.0"
 
-"@babel/runtime@^7.21.0":
-  version "7.24.4"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.24.4.tgz#de795accd698007a66ba44add6cc86542aff1edd"
-  integrity sha512-dkxf7+hn8mFBwKjs9bvBlArzLVxVbS8usaPUDd5p2a9JCL9tB8OaOVN1isD4+Xyk4ns89/xeOmbQvgdK7IIVdA==
-  dependencies:
-    regenerator-runtime "^0.14.0"
-
 "@babel/template@^7.22.15", "@babel/template@^7.24.0", "@babel/template@^7.3.3":
   version "7.24.0"
   resolved "https://registry.yarnpkg.com/@babel/template/-/template-7.24.0.tgz#c6a524aa93a4a05d66aaf31654258fae69d87d50"
@@ -305,41 +298,34 @@
   resolved "https://registry.yarnpkg.com/@bcoe/v8-coverage/-/v8-coverage-0.2.3.tgz#75a2e8b51cb758a7553d6804a5932d7aace75c39"
   integrity sha512-0hYQ8SB4Db5zvZB4axdMHGwEaQjkZzFjQiN9LVYvIFB2nSUHW9tYpxWriPrWDASIxiaXax83REcLxuSdnGPZtw==
 
-"@chain-registry/client@1.18.1":
-  version "1.18.1"
-  resolved "https://registry.yarnpkg.com/@chain-registry/client/-/client-1.18.1.tgz#6cfb52d28e924517f1bf9ec51450254090ad3fd3"
-  integrity sha512-8FG/RQ+hxM8XnN6xpAW2QzqMMFHky0/2BjjWteuvHtCJuEigw4JpVxScKZj7u8qWRd4jBuVNx4P+9FcMbgH9iw==
+"@chain-registry/client@^2.0.0":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@chain-registry/client/-/client-2.0.2.tgz#b543fb90b501b5bc458f9ece96e90f5355ba1c92"
+  integrity sha512-hQjI7IPCr6G+s2FE014XgdLqV5EPDrk/M21tOcDBQ9SS3oseCaZY+fIlusIdVXD8E/FxcW/PSlEjf8QbS2zJ2Q==
   dependencies:
-    "@babel/runtime" "^7.21.0"
-    "@chain-registry/types" "^0.17.1"
-    "@chain-registry/utils" "^1.17.0"
+    "@chain-registry/types" "^2.0.2"
+    "@chain-registry/utils" "^2.0.2"
     bfs-path "^1.0.2"
     cross-fetch "^3.1.5"
-
-"@chain-registry/types@^0.17.1":
-  version "0.17.1"
-  resolved "https://registry.yarnpkg.com/@chain-registry/types/-/types-0.17.1.tgz#0ac7bda6178d3917834578627f232a247fe5def8"
-  integrity sha512-O0CgrtJgIlqXvZm1CqDZe/7jZz068O/uuCIoyDXCegFHK03rdHacKcDGwEIUuI0MNUf8YV3jdE4xHQMSAX+79w==
-  dependencies:
-    "@babel/runtime" "^7.21.0"
-
-"@chain-registry/types@^0.25.6":
-  version "0.25.6"
-  resolved "https://registry.yarnpkg.com/@chain-registry/types/-/types-0.25.6.tgz#8e79979a729a7c75846b282c4b1a307f61046d4b"
-  integrity sha512-GtLJ0XDqEp8rIqHSj83j27nhzaZYs+vQKy+qCNe0FyBgBanrmA99ilzSy2RDg2KIlsGTt4fe6zGVN9Yc6BMhfA==
 
 "@chain-registry/types@^2.0.1":
   version "2.0.1"
   resolved "https://registry.yarnpkg.com/@chain-registry/types/-/types-2.0.1.tgz#f563747d9a8b619cba4ad7b04ca96c5bd9e7998c"
   integrity sha512-acza5f9AfnEE0NA1LVOqp5R0U7L0pZBWonSXSNYn3NVTS8Y4XFAl/mkOxUcx9AsY4Em98R8hkORMdra2wIVpyA==
 
-"@chain-registry/utils@^1.17.0":
-  version "1.26.6"
-  resolved "https://registry.yarnpkg.com/@chain-registry/utils/-/utils-1.26.6.tgz#01e098935f5a6043e6f15b8c77b5a4c78b7ffeb5"
-  integrity sha512-fhHUkm8Zi7wUaMmkhnN2CY7r1NcjiKNFAHmMjw5Hwbg/0iKAvM2R9EGHAlFnkDcCqokG0mzF1hXBbjW/OPGG1w==
+"@chain-registry/types@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@chain-registry/types/-/types-2.0.2.tgz#cab1922adba3834f5685306c25b0bde790b317ea"
+  integrity sha512-LsFb3NE8OUZy4BGC3PHSXK1ezmaUtaXaQ2pC1+nXCGdXdw38RMlObDG1bMg9mBjtm1pniG8wmW0U9knqw6ul8Q==
+
+"@chain-registry/utils@^2.0.2":
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/@chain-registry/utils/-/utils-2.0.2.tgz#cbeaa820f4d9477559d7dba663dc9c38d56b75a9"
+  integrity sha512-ry9uzWwCYO6j0O4YXF6dT8rvAbOuAeMagYOF0aXa7haqAhPN6eJxnOGSHz1M/ESZRtht3dvluVTQyx7amnr48w==
   dependencies:
-    "@chain-registry/types" "^0.25.6"
-    bignumber.js "9.1.1"
+    "@chain-registry/types" "^2.0.2"
+    bignumber.js "9.1.2"
+    chain-registry "^2.0.2"
     sha.js "^2.4.11"
 
 "@cspotcode/source-map-support@^0.8.0":
@@ -1757,10 +1743,10 @@ bfs-path@^1.0.2:
   resolved "https://registry.yarnpkg.com/bfs-path/-/bfs-path-1.0.2.tgz#9b5fa4b8c4ad226597fc4d2ee15398bdcc644a07"
   integrity sha512-KTKx2JJtAAAT7C/rJYDXXWA2VLPycAS4kwFktKsxUo0hj4UTtw/Gm5PJuY7Uf3xSlIQNo7HRCSWei2ivncVwbQ==
 
-bignumber.js@9.1.1:
-  version "9.1.1"
-  resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.1.1.tgz#c4df7dc496bd849d4c9464344c1aa74228b4dac6"
-  integrity sha512-pHm4LsMJ6lzgNGVfZHjMoO8sdoRhOzOH4MLmY65Jg70bpxCKu5iOHNJyfF6OyvYw7t8Fpf35RuzUyqnQsj8Vig==
+bignumber.js@9.1.2:
+  version "9.1.2"
+  resolved "https://registry.yarnpkg.com/bignumber.js/-/bignumber.js-9.1.2.tgz#b7c4242259c008903b13707983b5f4bbd31eda0c"
+  integrity sha512-2/mKyZH9K85bzOEfhXDBFZTGd1CTs+5IHpeFQo9luiBG7hghdC851Pj2WAhb6E3R6b9tZj/XKhbg4fum+Kepug==
 
 bip39@^3.1.0:
   version "3.1.0"
@@ -1928,6 +1914,13 @@ caniuse-lite@^1.0.30001587:
   version "1.0.30001611"
   resolved "https://registry.yarnpkg.com/caniuse-lite/-/caniuse-lite-1.0.30001611.tgz#4dbe78935b65851c2d2df1868af39f709a93a96e"
   integrity sha512-19NuN1/3PjA3QI8Eki55N8my4LzfkMCRLgCVfrl/slbSAchQfV0+GwjPrK3rq37As4UCLlM/DHajbKkAqbv92Q==
+
+chain-registry@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.yarnpkg.com/chain-registry/-/chain-registry-2.0.2.tgz#aa8de44a37331c60c4516ec2e1cb34b7e68951f8"
+  integrity sha512-bHn/8TSqv5uWxXYPOQcI76YXLpJ6oVn8qZSzXwTttkPVHgqOiVx+t16EJ4LdckZ+uR+H65D7GnHaCBHCXgFLDw==
+  dependencies:
+    "@chain-registry/types" "^2.0.2"
 
 chalk@4.1.0:
   version "4.1.0"
@@ -4704,7 +4697,7 @@ node-fetch@2.6.7:
   dependencies:
     whatwg-url "^5.0.0"
 
-node-fetch@^2.6.12, node-fetch@^2.6.7, node-fetch@^2.6.9:
+node-fetch@^2.6.1, node-fetch@^2.6.12, node-fetch@^2.6.7:
   version "2.7.0"
   resolved "https://registry.yarnpkg.com/node-fetch/-/node-fetch-2.7.0.tgz#d0f0fa6e3e2dc1d27efcd8ad99d550bda94d187d"
   integrity sha512-c4FRfUm/dbcWZ7U+1Wq0AwCyFL+3nt2bEw05wfxSz+DWpWsitgmSgYmy2dQdWyKC1694ELPqMs/YzUSNozLt8A==
@@ -5584,11 +5577,6 @@ redent@^4.0.0:
   dependencies:
     indent-string "^5.0.0"
     strip-indent "^4.0.0"
-
-regenerator-runtime@^0.14.0:
-  version "0.14.1"
-  resolved "https://registry.yarnpkg.com/regenerator-runtime/-/regenerator-runtime-0.14.1.tgz#356ade10263f685dda125100cd862c1db895327f"
-  integrity sha512-dYnhHh0nJoMfnkZs6GmmhFknAGRrLznOu5nc9ML+EJxGvrx6H7teuevqVqCuPcPK//3eDrrjQhehXVx9cnkGdw==
 
 require-directory@^2.1.1:
   version "2.1.1"

@@ -3,7 +3,9 @@ import fs from 'fs';
 import yaml from 'js-yaml';
 import fetch from 'node-fetch';
 
-import { type ChainConfig, ConfigContext } from './config';
+import { Chain, Relayer, StarshipConfig } from '@starship-ci/types/src';
+
+import { ConfigContext } from './config';
 
 interface ChainHook {
   chain: any;
@@ -18,17 +20,17 @@ interface ChainHook {
 export const useRegistry = async (
   configFile: string
 ): Promise<ChainRegistryFetcher> => {
-  const config = yaml.load(fs.readFileSync(configFile, 'utf8')) as ChainConfig;
+  const config = yaml.load(fs.readFileSync(configFile, 'utf8')) as StarshipConfig;
   const registryUrl = `http://localhost:${config.registry.ports.rest}`;
 
   const urls: string[] = [];
-  config.chains?.forEach((chain) => {
+  config.chains?.forEach((chain: Chain) => {
     urls.push(
       `${registryUrl}/chains/${chain.id}`,
       `${registryUrl}/chains/${chain.id}/assets`
     );
   });
-  config.relayers?.forEach((relayer) => {
+  config.relayers?.forEach((relayer: Relayer) => {
     urls.push(
       `${registryUrl}/ibc/${relayer.chains[0]}/${relayer.chains[1]}`,
       `${registryUrl}/ibc/${relayer.chains[1]}/${relayer.chains[0]}`
@@ -47,20 +49,20 @@ export const useRegistry = async (
 export const useChain = (chainName: string): ChainHook | undefined => {
   const registry = ConfigContext.registry;
   const configFile = ConfigContext.configFile;
-  const config = yaml.load(fs.readFileSync(configFile, 'utf8')) as ChainConfig;
+  const config = yaml.load(fs.readFileSync(configFile, 'utf8')) as StarshipConfig;
 
   const chain = registry!.getChain(chainName);
   const chainInfo = registry!.getChainInfo(chainName);
-  const chainID = chainInfo.chain.chain_id;
+  const chainID = chainInfo.chain.chainId;
 
   const getRpcEndpoint = async () => {
     return `http://localhost:${
-      config.chains.find((chain) => chain.id === chainID)!.ports.rpc
+      config.chains.find((chain: Chain) => chain.id === chainID)!.ports.rpc
     }`;
   };
   const getRestEndpoint = async () => {
     return `http://localhost:${
-      config.chains.find((chain) => chain.id === chainID)!.ports.rest
+      config.chains.find((chain: Chain) => chain.id === chainID)!.ports.rest
     }`;
   };
 
@@ -80,7 +82,7 @@ export const useChain = (chainName: string): ChainHook | undefined => {
     denom: string | null = null
   ) => {
     const faucetEndpoint = `http://localhost:${
-      config.chains.find((chain) => chain.id === chainID)!.ports.faucet
+      config.chains.find((chain: Chain) => chain.id === chainID)!.ports.faucet
     }/credit`;
     if (!denom) {
       denom = (await getCoin()).base;
