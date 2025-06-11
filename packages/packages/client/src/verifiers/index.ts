@@ -1,11 +1,14 @@
 import { StarshipConfig } from '@starship-ci/types';
+
 import { chainVerifiers } from './chain';
 import { verifyExplorerRest } from './explorer';
 import { verifyRegistryRest } from './registry';
 import { relayerVerifiers } from './relayer';
 import { VerificationFunction, VerificationResult } from './types';
 
-export const verifyChains: VerificationFunction = async (config: StarshipConfig) => {
+export const verifyChains: VerificationFunction = async (
+  config: StarshipConfig
+) => {
   const results: VerificationResult[] = [];
 
   if (!config.chains) {
@@ -23,7 +26,9 @@ export const verifyChains: VerificationFunction = async (config: StarshipConfig)
   return results;
 };
 
-export const verifyRelayers: VerificationFunction = async (config: StarshipConfig) => {
+export const verifyRelayers: VerificationFunction = async (
+  config: StarshipConfig
+) => {
   const results: VerificationResult[] = [];
 
   if (!config.relayers) {
@@ -40,7 +45,9 @@ export const verifyRelayers: VerificationFunction = async (config: StarshipConfi
   return results;
 };
 
-export const verifyRegistry: VerificationFunction = async (config: StarshipConfig) => {
+export const verifyRegistry: VerificationFunction = async (
+  config: StarshipConfig
+) => {
   const results: VerificationResult[] = [];
 
   if (!config.registry?.enabled) {
@@ -55,7 +62,9 @@ export const verifyRegistry: VerificationFunction = async (config: StarshipConfi
   return results;
 };
 
-export const verifyExplorer: VerificationFunction = async (config: StarshipConfig) => {
+export const verifyExplorer: VerificationFunction = async (
+  config: StarshipConfig
+) => {
   const results: VerificationResult[] = [];
 
   if (!config.explorer?.enabled) {

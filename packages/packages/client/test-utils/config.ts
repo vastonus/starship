@@ -1,8 +1,7 @@
+import { StarshipConfig } from '@starship-ci/types';
 import { readFileSync } from 'fs';
 import * as yaml from 'js-yaml';
 import { join, resolve } from 'path';
-
-import { StarshipConfig } from '@starship-ci/types';
 
 export const fixtureDir = resolve(join(__dirname, '/../../../__fixtures__'));
 export const outputDir = resolve(join(__dirname, '/../../../__output__'));

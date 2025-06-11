@@ -1,9 +1,8 @@
 import { ChainRegistryFetcher } from '@chain-registry/client';
+import { Chain, Relayer, StarshipConfig } from '@starship-ci/types';
 import fs from 'fs';
 import yaml from 'js-yaml';
 import fetch from 'node-fetch';
-
-import { Chain, Relayer, StarshipConfig } from '@starship-ci/types';
 
 import { ConfigContext } from './config';
 
@@ -20,7 +19,9 @@ interface ChainHook {
 export const useRegistry = async (
   configFile: string
 ): Promise<ChainRegistryFetcher> => {
-  const config = yaml.load(fs.readFileSync(configFile, 'utf8')) as StarshipConfig;
+  const config = yaml.load(
+    fs.readFileSync(configFile, 'utf8')
+  ) as StarshipConfig;
   const registryUrl = `http://localhost:${config.registry.ports.rest}`;
 
   const urls: string[] = [];
@@ -49,7 +50,9 @@ export const useRegistry = async (
 export const useChain = (chainName: string): ChainHook | undefined => {
   const registry = ConfigContext.registry;
   const configFile = ConfigContext.configFile;
-  const config = yaml.load(fs.readFileSync(configFile, 'utf8')) as StarshipConfig;
+  const config = yaml.load(
+    fs.readFileSync(configFile, 'utf8')
+  ) as StarshipConfig;
 
   const chain = registry!.getChain(chainName);
   const chainInfo = registry!.getChainInfo(chainName);

@@ -1,3 +1,10 @@
+import {
+  Chain,
+  Frontend,
+  Ports,
+  Relayer,
+  StarshipConfig
+} from '@starship-ci/types';
 import chalk from 'chalk';
 import deepmerge from 'deepmerge';
 import { existsSync, readFileSync, writeFileSync } from 'fs';
@@ -7,7 +14,6 @@ import * as os from 'os';
 import { dirname, resolve } from 'path';
 import * as shell from 'shelljs';
 
-import { Chain, Relayer, StarshipConfig, Ports, Frontend } from '@starship-ci/types';
 import { dependencies as defaultDependencies, Dependency } from './deps';
 import { readAndParsePackageJson } from './package';
 import { verify } from './verifiers';

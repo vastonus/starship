@@ -1,6 +1,6 @@
+import { Chain } from '@starship-ci/types';
 import axios from 'axios';
 
-import { Chain } from '@starship-ci/types';
 import { handleAxiosError } from '../utils';
 import { ChainVerifierSet, VerificationResult } from './types';
 

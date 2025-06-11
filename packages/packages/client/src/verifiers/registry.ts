@@ -1,6 +1,6 @@
+import { Registry } from '@starship-ci/types';
 import axios from 'axios';
 
-import { Registry } from '@starship-ci/types';
 import { handleAxiosError } from '../utils';
 import { VerificationResult } from './types';
 

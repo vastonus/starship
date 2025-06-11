@@ -1,7 +1,4 @@
-import {
-  defaultStarshipContext,
-  StarshipContext
-} from '@starship-ci/client';
+import { defaultStarshipContext, StarshipContext } from '@starship-ci/client';
 import { StarshipConfig } from '@starship-ci/types';
 import chalk from 'chalk';
 import { readFileSync } from 'fs';
