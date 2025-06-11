@@ -1,6 +1,6 @@
+import { StarshipConfig } from '@starship-ci/types';
 import axios from 'axios';
 
-import { StarshipConfig } from '../src/config';
 import { createClient, expectClient } from '../test-utils/client';
 import { config } from '../test-utils/config';
 
