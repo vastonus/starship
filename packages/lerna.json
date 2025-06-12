@@ -1,0 +1,20 @@
+{
+  "lerna": "6",
+  "conventionalCommits": true,
+  "npmClient": "yarn",
+  "npmClientArgs": ["--no-lockfile"],
+  "packages": ["packages/*"],
+  "version": "3.14.1",
+  "registry": "https://registry.npmjs.org",
+  "command": {
+    "create": {
+      "homepage": "https://github.com/hyperweb-io/starship",
+      "license": "SEE LICENSE IN LICENSE",
+      "access": "restricted"
+    },
+    "publish": {
+      "allowBranch": ["main", "v2"],
+      "message": "chore(release): publish"
+    }
+  }
+}

@@ -6,13 +6,13 @@ on:
       - main
       - release/*
     paths:
-      - "clients/js/**"
+      - "packages/**"
       - ".github/workflows/run-client-tests.yml"
   pull_request:
     branches:
       - main
     paths:
-      - "clients/js/**"
+      - "packages/**"
       - ".github/workflows/run-client-tests.yml"
   workflow_dispatch:
 
@@ -22,7 +22,7 @@ jobs:
 
     defaults:
       run:
-        working-directory: clients/js
+        working-directory: packages
 
     steps:
       - name: Checkout Repository 🛎️

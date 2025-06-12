@@ -1,0 +1,43 @@
+{
+  "name": "starshipjs",
+  "version": "3.14.1",
+  "author": "Anmol1696 <anmol1696@gmail.com>",
+  "description": "JS utilities for Starship",
+  "main": "index.js",
+  "module": "esm/index.js",
+  "types": "index.d.ts",
+  "homepage": "https://github.com/hyperweb-io/starship",
+  "license": "SEE LICENSE IN LICENSE",
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hyperweb-io/starship"
+  },
+  "bugs": {
+    "url": "https://github.com/hyperweb-io/starship/issues"
+  },
+  "scripts": {
+    "copy": "copyfiles -f ../../LICENSE README.md package.json dist",
+    "clean": "del dist/**",
+    "prepare": "npm run build",
+    "build": "npm run clean; tsc; tsc -p tsconfig.esm.json; npm run copy",
+    "lint": "eslint .",
+    "format": "eslint . --fix",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "devDependencies": {
+    "@types/node-fetch": "^2.6.11"
+  },
+  "dependencies": {
+    "@chain-registry/client": "^2.0.0",
+    "@starship-ci/types": "^3.14.0",
+    "bip39": "^3.1.0",
+    "js-yaml": "^4.1.0",
+    "node-fetch": "^2.6.1"
+  },
+  "keywords": []
+}
