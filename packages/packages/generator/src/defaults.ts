@@ -1,7 +1,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import * as yaml from 'js-yaml';
-import { Chain, FaucetConfig, Script } from '@starship-ci/types';
+import { Chain, FaucetConfig, Script } from '@starship-ci/types/src';
 import { ProcessedChain, DefaultsConfig } from './types';
 import { TemplateHelpers } from './helpers';
 

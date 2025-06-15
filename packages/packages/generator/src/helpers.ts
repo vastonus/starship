@@ -1,4 +1,4 @@
-import { StarshipConfig } from '@starship-ci/types';
+import { StarshipConfig } from '@starship-ci/types/src';
 import { ProcessedChain, EnvVar } from './types';
 
 export class TemplateHelpers {
@@ -140,5 +140,222 @@ export class TemplateHelpers {
       cpu: '0.5',
       memory: '500M',
     });
+  }
+
+  /**
+   * Standard port mappings for Cosmos chains
+   */
+  static getPortMap(): Record<string, number> {
+    return {
+      p2p: 26656,
+      address: 26658,
+      grpc: 9090,
+      'grpc-web': 9091,
+      rest: 1317,
+      rpc: 26657,
+      metrics: 26660,
+      exposer: 8081,
+      faucet: 8000,
+    };
+  }
+
+  /**
+   * Returns comma-separated list of chain IDs
+   */
+  static chainIds(chains: ProcessedChain[]): string {
+    return chains.map(chain => chain.id).join(',');
+  }
+
+  /**
+   * Returns comma-separated list of chain names
+   * If chain name is custom, use chain id instead
+   */
+  static chainNames(chains: ProcessedChain[]): string {
+    return chains.map(chain => 
+      chain.name === 'custom' ? chain.id : chain.name
+    ).join(',');
+  }
+
+  /**
+   * Returns comma-separated list of internal RPC addresses
+   */
+  static chainInternalRpcAddrs(chains: ProcessedChain[]): string {
+    return chains.map(chain => 
+      `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:26657`
+    ).join(',');
+  }
+
+  /**
+   * Returns comma-separated list of RPC addresses
+   */
+  static chainRpcAddrs(chains: ProcessedChain[], config: StarshipConfig): string {
+    const localhost = config.registry?.localhost;
+    const ingress = config.ingress;
+    
+    return chains.map(chain => {
+      if (localhost && chain.ports?.rpc) {
+        return `http://localhost:${chain.ports.rpc}`;
+      } else if (ingress?.enabled && ingress.host) {
+        const host = ingress.host.replace('*.', '');
+        return `https://rpc.${chain.id}-genesis.${host}`;
+      } else {
+        return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:26657`;
+      }
+    }).join(',');
+  }
+
+  /**
+   * Returns comma-separated list of GRPC addresses
+   */
+  static chainGrpcAddrs(chains: ProcessedChain[], config: StarshipConfig): string {
+    const localhost = config.registry?.localhost;
+    const ingress = config.ingress;
+    
+    return chains.map(chain => {
+      if (localhost && chain.ports?.grpc) {
+        return `http://localhost:${chain.ports.grpc}`;
+      } else if (ingress?.enabled && ingress.host) {
+        const host = ingress.host.replace('*.', '');
+        return `https://grpc.${chain.id}-genesis.${host}`;
+      } else {
+        return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:9091`;
+      }
+    }).join(',');
+  }
+
+  /**
+   * Returns comma-separated list of REST addresses
+   */
+  static chainRestAddrs(chains: ProcessedChain[], config: StarshipConfig): string {
+    const localhost = config.registry?.localhost;
+    const ingress = config.ingress;
+    
+    return chains.map(chain => {
+      if (localhost && chain.ports?.rest) {
+        return `http://localhost:${chain.ports.rest}`;
+      } else if (ingress?.enabled && ingress.host) {
+        const host = ingress.host.replace('*.', '');
+        return `https://rest.${chain.id}-genesis.${host}`;
+      } else {
+        return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:1317`;
+      }
+    }).join(',');
+  }
+
+  /**
+   * Returns comma-separated list of exposer addresses
+   */
+  static chainExposerAddrs(chains: ProcessedChain[], port: number = 8081): string {
+    return chains.map(chain => 
+      `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:${port}`
+    ).join(',');
+  }
+
+  /**
+   * Generate init container for waiting on chains to be ready
+   */
+  static generateWaitInitContainer(chains: ProcessedChain[], port: number, imagePullPolicy: string = 'IfNotPresent'): any {
+    const waitScript = chains.map(chain => `
+      while [ $(curl -sw '%{http_code}' http://${chain.hostname}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id -o /dev/null) -ne 200 ]; do
+        echo "Genesis validator does not seem to be ready for: ${chain.id}. Waiting for it to start..."
+        echo "Checking: http://${chain.hostname}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id"
+        sleep 10;
+      done`).join('\n');
+
+    return {
+      name: 'wait-for-chains',
+      image: 'curlimages/curl',
+      imagePullPolicy,
+      env: [
+        { name: 'GENESIS_PORT', value: String(port) },
+        {
+          name: 'NAMESPACE',
+          valueFrom: {
+            fieldRef: {
+              fieldPath: 'metadata.namespace',
+            },
+          },
+        },
+      ],
+      command: ['/bin/sh', '-c', `${waitScript}\necho "Ready to start"\nexit 0`],
+      resources: this.getResourceObject({ cpu: '0.1', memory: '128M' }),
+    };
+  }
+
+  /**
+   * Generate image pull secrets
+   */
+  static generateImagePullSecrets(imagePullSecrets?: Array<{ name: string }>): any {
+    if (!imagePullSecrets || imagePullSecrets.length === 0) {
+      return null;
+    }
+
+    return {
+      imagePullSecrets: imagePullSecrets.map(secret => ({ name: secret.name })),
+    };
+  }
+
+  /**
+   * Extract tag from docker image
+   */
+  static extractImageTag(image: string): string {
+    const match = image.match(/[^:]+$/);
+    return match ? match[0] : 'latest';
+  }
+
+  /**
+   * Generate volume mounts for chain containers
+   */
+  static generateChainVolumeMounts(chain: ProcessedChain): any[] {
+    return [
+      {
+        mountPath: chain.home,
+        name: 'node',
+      },
+      {
+        mountPath: '/configs',
+        name: 'addresses',
+      },
+      {
+        mountPath: '/scripts',
+        name: 'scripts',
+      },
+    ];
+  }
+
+  /**
+   * Generate standard volumes for chain pods
+   */
+  static generateChainVolumes(chain: ProcessedChain): any[] {
+    const volumes = [
+      {
+        name: 'node',
+        emptyDir: {},
+      },
+      {
+        name: 'addresses',
+        configMap: {
+          name: 'keys',
+        },
+      },
+      {
+        name: 'scripts',
+        configMap: {
+          name: `setup-scripts-${chain.hostname}`,
+        },
+      },
+    ];
+
+    // Add patch volume if genesis override exists
+    if (chain.genesis) {
+      volumes.push({
+        name: 'patch',
+        configMap: {
+          name: `patch-${chain.hostname}`,
+        },
+      });
+    }
+
+    return volumes;
   }
 } 

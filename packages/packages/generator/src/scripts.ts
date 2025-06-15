@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { Script } from '@starship-ci/types';
+import { Script } from '@starship-ci/types/src';
 
 export class ScriptManager {
   private scriptsPath: string;
