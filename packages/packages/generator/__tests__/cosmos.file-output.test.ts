@@ -95,40 +95,101 @@ describe('CosmosBuilder File Output Tests', () => {
       expect(existsSync(join(multiOutputDir, 'osmosis', 'validator.yaml'))).toBe(true);
     });
 
-    it('should generate valid YAML content in files', () => {
-      const context: GeneratorContext = { config: singleChainConfig };
-      const outputPath = join(testOutputDir, 'yaml-validation-test');
-      const builder = new CosmosBuilder(context, outputPath);
-      
-      const chain = singleChainConfig.chains[0];
-      builder.generateFiles(chain);
-      
-      // Read and validate YAML files
-      const configMapYaml = readFileSync(join(outputPath, 'osmosis', 'configmap.yaml'), 'utf-8');
-      const serviceYaml = readFileSync(join(outputPath, 'osmosis', 'service.yaml'), 'utf-8');
-      const genesisYaml = readFileSync(join(outputPath, 'osmosis', 'genesis.yaml'), 'utf-8');
-      
-      // Parse YAML to ensure it's valid
-      const configMaps = yaml.loadAll(configMapYaml);
-      const services = yaml.loadAll(serviceYaml);
-      const genesis = yaml.loadAll(genesisYaml);
-      
-      expect(configMaps.length).toBeGreaterThan(0);
-      expect(services.length).toBeGreaterThan(0);
-      expect(genesis.length).toBeGreaterThan(0);
-      
-      // Verify content structure
-      const firstConfigMap = configMaps[0] as any;
-      expect(firstConfigMap.kind).toBe('ConfigMap');
-      expect(firstConfigMap.metadata.name).toContain('osmosis');
-      
-      const firstService = services[0] as any;
-      expect(firstService.kind).toBe('Service');
-      expect(firstService.metadata.name).toContain('osmosis');
-      
-      const firstGenesis = genesis[0] as any;
-      expect(firstGenesis.kind).toBe('StatefulSet');
-      expect(firstGenesis.metadata.name).toContain('genesis');
+    describe('YAML Content Snapshots', () => {
+      it('should generate valid YAML content - snapshots', () => {
+        const context: GeneratorContext = { config: singleChainConfig };
+        const outputPath = join(testOutputDir, 'yaml-validation-test');
+        const builder = new CosmosBuilder(context, outputPath);
+        
+        const chain = singleChainConfig.chains[0];
+        builder.generateFiles(chain);
+        
+        // Read and validate YAML files
+        const configMapYaml = readFileSync(join(outputPath, 'osmosis', 'configmap.yaml'), 'utf-8');
+        const serviceYaml = readFileSync(join(outputPath, 'osmosis', 'service.yaml'), 'utf-8');
+        const genesisYaml = readFileSync(join(outputPath, 'osmosis', 'genesis.yaml'), 'utf-8');
+        
+        // Parse YAML to ensure it's valid
+        const configMaps = yaml.loadAll(configMapYaml);
+        const services = yaml.loadAll(serviceYaml);
+        const genesis = yaml.loadAll(genesisYaml);
+        
+        // Manual checks
+        expect(configMaps.length).toBeGreaterThan(0);
+        expect(services.length).toBeGreaterThan(0);
+        expect(genesis.length).toBeGreaterThan(0);
+        
+        // Verify content structure
+        const firstConfigMap = configMaps[0] as any;
+        expect(firstConfigMap.kind).toBe('ConfigMap');
+        expect(firstConfigMap.metadata.name).toContain('osmosis');
+        
+        const firstService = services[0] as any;
+        expect(firstService.kind).toBe('Service');
+        expect(firstService.metadata.name).toContain('osmosis');
+        
+        const firstGenesis = genesis[0] as any;
+        expect(firstGenesis.kind).toBe('StatefulSet');
+        expect(firstGenesis.metadata.name).toContain('genesis');
+        
+        // Snapshot tests for generated YAML content
+        expect(configMapYaml).toMatchSnapshot('single-chain-configmap-yaml');
+        expect(serviceYaml).toMatchSnapshot('single-chain-service-yaml');
+        expect(genesisYaml).toMatchSnapshot('single-chain-genesis-yaml');
+      });
+
+      it('should generate valid multi-validator YAML content - snapshots', () => {
+        const context: GeneratorContext = { config: multiValidatorConfig };
+        const outputPath = join(testOutputDir, 'multi-validator-yaml-validation');
+        const builder = new CosmosBuilder(context, outputPath);
+        
+        const chain = multiValidatorConfig.chains[0];
+        builder.generateFiles(chain);
+        
+        // Read YAML files
+        const configMapYaml = readFileSync(join(outputPath, 'osmosis', 'configmap.yaml'), 'utf-8');
+        const serviceYaml = readFileSync(join(outputPath, 'osmosis', 'service.yaml'), 'utf-8');
+        const genesisYaml = readFileSync(join(outputPath, 'osmosis', 'genesis.yaml'), 'utf-8');
+        const validatorYaml = readFileSync(join(outputPath, 'osmosis', 'validator.yaml'), 'utf-8');
+        
+        // Manual checks
+        expect(configMapYaml).toBeDefined();
+        expect(serviceYaml).toBeDefined();
+        expect(genesisYaml).toBeDefined();
+        expect(validatorYaml).toBeDefined();
+        
+        // Snapshot tests
+        expect(configMapYaml).toMatchSnapshot('multi-validator-configmap-yaml');
+        expect(serviceYaml).toMatchSnapshot('multi-validator-service-yaml');
+        expect(genesisYaml).toMatchSnapshot('multi-validator-genesis-yaml');
+        expect(validatorYaml).toMatchSnapshot('multi-validator-validator-yaml');
+      });
+
+      it('should generate two-chain YAML content - snapshots', () => {
+        const context: GeneratorContext = { config: twoChainConfig };
+        const outputPath = join(testOutputDir, 'two-chain-yaml-snapshots');
+        const builder = new CosmosBuilder(context, outputPath);
+        
+        builder.generateAllFiles();
+        
+        // Read osmosis files
+        const osmosisConfigMapYaml = readFileSync(join(outputPath, 'osmosis', 'configmap.yaml'), 'utf-8');
+        const osmosisServiceYaml = readFileSync(join(outputPath, 'osmosis', 'service.yaml'), 'utf-8');
+        
+        // Read cosmoshub files
+        const cosmoshubConfigMapYaml = readFileSync(join(outputPath, 'cosmoshub', 'configmap.yaml'), 'utf-8');
+        const cosmoshubServiceYaml = readFileSync(join(outputPath, 'cosmoshub', 'service.yaml'), 'utf-8');
+        
+        // Manual checks
+        expect(osmosisConfigMapYaml).toBeDefined();
+        expect(cosmoshubConfigMapYaml).toBeDefined();
+        
+        // Snapshot tests
+        expect(osmosisConfigMapYaml).toMatchSnapshot('two-chain-osmosis-configmap-yaml');
+        expect(osmosisServiceYaml).toMatchSnapshot('two-chain-osmosis-service-yaml');
+        expect(cosmoshubConfigMapYaml).toMatchSnapshot('two-chain-cosmoshub-configmap-yaml');
+        expect(cosmoshubServiceYaml).toMatchSnapshot('two-chain-cosmoshub-service-yaml');
+      });
     });
   });
 }); 
