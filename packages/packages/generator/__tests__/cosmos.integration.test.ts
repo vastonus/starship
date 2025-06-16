@@ -138,7 +138,7 @@ describe('Cosmos Generator Integration Tests', () => {
     it('should include build init container when build enabled', () => {
       const chain = buildChainConfig.chains[0]; // has build.enabled: true
       const generator = new CosmosStatefulSetGenerator(chain, buildChainConfig, scriptManager);
-      
+            
       const statefulSet = generator.genesisStatefulSet();
       
       const buildInitContainer = statefulSet.spec?.template.spec?.initContainers?.find(

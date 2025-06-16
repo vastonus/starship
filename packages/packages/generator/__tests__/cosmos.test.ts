@@ -75,7 +75,7 @@ describe('Cosmos Generator Tests', () => {
           },
           {
             id: 'cosmoshub-4',
-            name: 'cosmoshub',
+            name: 'cosmoshub' as const,
             denom: 'uatom',
             prefix: 'cosmos',
             binary: 'gaiad',
@@ -326,3 +326,4 @@ describe('Cosmos Generator Tests', () => {
     });
   });
 });
+ 

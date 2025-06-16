@@ -48,7 +48,7 @@ describe('Basic Generator Tests', () => {
   it('should generate basic ConfigMap', () => {
     const chain = singleChainConfig.chains[0]; // osmosis-1
     const generator = new CosmosConfigMapGenerator(chain, singleChainConfig, scriptManager);
-    
+        
     const configMap = generator.scriptsConfigMap();
     
     expect(configMap).toBeDefined();

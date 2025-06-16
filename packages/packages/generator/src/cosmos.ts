@@ -4,6 +4,9 @@ import { GeneratorContext } from './types';
 import { DefaultsManager } from './defaults';
 import { ScriptManager } from './scripts';
 import { TemplateHelpers } from './helpers';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as yaml from 'js-yaml';
 
 // Helper functions
 function getHostname(chain: Chain): string {
@@ -822,6 +825,12 @@ export class CosmosBuilder {
     }
 
     const manifests = this.buildManifests(chain);
+    
+    // Skip if no manifests to write (e.g., Ethereum chains or other unsupported chains)
+    if (manifests.length === 0) {
+      return;
+    }
+
     this.writeManifests(chain, manifests, targetDir);
   }
 
@@ -848,10 +857,6 @@ export class CosmosBuilder {
    *   configmap.yaml: configmaps for the chain
    */
   writeManifests(chain: Chain, manifests: Array<ConfigMap | Service | StatefulSet>, outputDir: string): void {
-    const fs = require('fs');
-    const path = require('path');
-    const yaml = require('js-yaml');
-
     const chainName = chain.name || String(chain.id);
     const chainDir = path.join(outputDir, chainName);
     
