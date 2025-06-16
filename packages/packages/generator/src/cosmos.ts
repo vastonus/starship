@@ -1,4 +1,4 @@
-import { KubernetesClient, ConfigMap, Service, StatefulSet } from 'kubernetesjs';
+import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
 import { StarshipConfig, Chain } from '@starship-ci/types/src';
 import { GeneratorContext } from './types';
 import { DefaultsManager } from './defaults';
@@ -749,20 +749,18 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
 }
 
 /**
- * Main Cosmos chain builder using KubernetesJS
- * Orchestrates ConfigMap, Service, and StatefulSet generation
+ * Main Cosmos builder
+ * Orchestrates ConfigMap, Service, and StatefulSet generation and file output
  */
-export class CosmosChainBuilder {
-  private kubernetesClient: KubernetesClient;
+export class CosmosBuilder {
   private defaultsManager: DefaultsManager;
   private scriptManager: ScriptManager;
   private context: GeneratorContext;
+  private outputDir?: string;
 
-  constructor(context: GeneratorContext, kubernetesEndpoint?: string) {
+  constructor(context: GeneratorContext, outputDir?: string) {
     this.context = context;
-    this.kubernetesClient = new KubernetesClient({
-      restEndpoint: kubernetesEndpoint || 'http://localhost:8001'
-    });
+    this.outputDir = outputDir;
     this.defaultsManager = new DefaultsManager();
     this.scriptManager = new ScriptManager();
   }
@@ -770,13 +768,12 @@ export class CosmosChainBuilder {
   /**
    * Build all Kubernetes manifests for a Cosmos chain
    */
-  buildChainManifests(chain: Chain): Array<ConfigMap | Service | StatefulSet> {
+  buildManifests(chain: Chain): Array<ConfigMap | Service | StatefulSet> {
     // Skip Ethereum chains
     if (chain.name?.startsWith('ethereum')) {
       return [];
     }
 
-    const processedChain = this.defaultsManager.processChain(chain);
     const manifests: Array<ConfigMap | Service | StatefulSet> = [];
 
     // Create generators for this chain
@@ -796,69 +793,104 @@ export class CosmosChainBuilder {
     // Build Services
     manifests.push(serviceGenerator.genesisService());
     
-    if (processedChain.numValidators > 1) {
+    if (chain.numValidators > 1) {
       manifests.push(serviceGenerator.validatorService());
     }
 
     // Build StatefulSets
     manifests.push(statefulSetGenerator.genesisStatefulSet());
     
-    if (processedChain.numValidators > 1) {
+    if (chain.numValidators > 1) {
       manifests.push(statefulSetGenerator.validatorStatefulSet());
     }
 
     // Build cometmock if enabled
-    if (processedChain.cometmock?.enabled) {
-      manifests.push(...this.cometmockManifests(processedChain));
+    if (chain.cometmock?.enabled) {
+      manifests.push(...this.cometmockManifests(chain));
     }
 
     return manifests;
   }
 
   /**
-   * Deploy manifests to Kubernetes using KubernetesJS client
+   * Generate and write YAML files for a single chain
    */
-  async deployChain(chain: Chain, namespace: string = 'default'): Promise<void> {
-    const manifests = this.buildChainManifests(chain);
-    
-    for (const manifest of manifests) {
-      try {
-        await this.deployManifest(manifest, namespace);
-      } catch (error) {
-        console.error(`Failed to deploy ${manifest.kind} ${manifest.metadata?.name}:`, error);
-        throw error;
-      }
+  generateFiles(chain: Chain, outputDir?: string): void {
+    const targetDir = outputDir || this.outputDir;
+    if (!targetDir) {
+      throw new Error('Output directory must be provided either in constructor or method call');
+    }
+
+    const manifests = this.buildManifests(chain);
+    this.writeManifests(chain, manifests, targetDir);
+  }
+
+  /**
+   * Generate and write YAML files for all chains in the config
+   */
+  generateAllFiles(outputDir?: string): void {
+    const targetDir = outputDir || this.outputDir;
+    if (!targetDir) {
+      throw new Error('Output directory must be provided either in constructor or method call');
+    }
+
+    for (const chain of this.context.config.chains) {
+      this.generateFiles(chain, targetDir);
     }
   }
 
   /**
-   * Deploy individual manifest using appropriate KubernetesJS method
+   * Write manifests to the directory structure:
+   * <chain.name>/
+   *   genesis.yaml: genesis yaml file
+   *   validator.yaml: validator statefulset, if exists
+   *   service.yaml: services for deployments
+   *   configmap.yaml: configmaps for the chain
    */
-  private async deployManifest(manifest: any, namespace: string): Promise<void> {
-    switch (manifest.kind) {
-      case 'ConfigMap':
-        await this.kubernetesClient.createCoreV1NamespacedConfigMap({
-          path: { namespace },
-          query: {},
-          body: manifest
-        });
-        break;
-      case 'Service':
-        await this.kubernetesClient.createCoreV1NamespacedService({
-          path: { namespace },
-          query: {},
-          body: manifest
-        });
-        break;
-      case 'StatefulSet':
-        await this.kubernetesClient.createAppsV1NamespacedStatefulSet({
-          path: { namespace },
-          query: {},
-          body: manifest
-        });
-        break;
-      default:
-        throw new Error(`Unsupported manifest kind: ${manifest.kind}`);
+  writeManifests(chain: Chain, manifests: Array<ConfigMap | Service | StatefulSet>, outputDir: string): void {
+    const fs = require('fs');
+    const path = require('path');
+    const yaml = require('js-yaml');
+
+    const chainName = chain.name || String(chain.id);
+    const chainDir = path.join(outputDir, chainName);
+    
+    // Create chain directory
+    fs.mkdirSync(chainDir, { recursive: true });
+
+    // Separate manifests by type
+    const configMaps = manifests.filter(m => m.kind === 'ConfigMap') as ConfigMap[];
+    const services = manifests.filter(m => m.kind === 'Service') as Service[];
+    const statefulSets = manifests.filter(m => m.kind === 'StatefulSet') as StatefulSet[];
+
+    // Write ConfigMaps
+    if (configMaps.length > 0) {
+      const configMapYaml = configMaps.map(cm => yaml.dump(cm)).join('---\n');
+      fs.writeFileSync(path.join(chainDir, 'configmap.yaml'), configMapYaml);
+    }
+
+    // Write Services
+    if (services.length > 0) {
+      const serviceYaml = services.map(svc => yaml.dump(svc)).join('---\n');
+      fs.writeFileSync(path.join(chainDir, 'service.yaml'), serviceYaml);
+    }
+
+    // Write StatefulSets - separate genesis and validator
+    const genesisStatefulSets = statefulSets.filter(ss => 
+      ss.metadata?.name?.includes('genesis')
+    );
+    const validatorStatefulSets = statefulSets.filter(ss => 
+      ss.metadata?.name?.includes('validator') && !ss.metadata?.name?.includes('genesis')
+    );
+
+    if (genesisStatefulSets.length > 0) {
+      const genesisYaml = genesisStatefulSets.map(ss => yaml.dump(ss)).join('---\n');
+      fs.writeFileSync(path.join(chainDir, 'genesis.yaml'), genesisYaml);
+    }
+
+    if (validatorStatefulSets.length > 0) {
+      const validatorYaml = validatorStatefulSets.map(ss => yaml.dump(ss)).join('---\n');
+      fs.writeFileSync(path.join(chainDir, 'validator.yaml'), validatorYaml);
     }
   }
 
@@ -870,3 +902,6 @@ export class CosmosChainBuilder {
     return [];
   }
 }
+
+// Backward compatibility export
+export const CosmosChainBuilder = CosmosBuilder;

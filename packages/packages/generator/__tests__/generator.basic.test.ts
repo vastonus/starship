@@ -1,4 +1,4 @@
-import { CosmosConfigMapGenerator, CosmosServiceGenerator, CosmosChainBuilder } from '../src/cosmos';
+import { CosmosConfigMapGenerator, CosmosServiceGenerator, CosmosBuilder } from '../src/cosmos';
 import { GeneratorContext } from '../src/types';
 import { ScriptManager } from '../src/scripts';
 import { 
@@ -12,7 +12,6 @@ import {
   ethereumConfig,
   outputDir 
 } from './test-utils/config';
-import { TestCosmosGenerator } from './test-utils/generator';
 import { mkdirSync, existsSync } from 'fs';
 import { join } from 'path';
 
@@ -37,11 +36,11 @@ describe('Basic Generator Tests', () => {
     expect(generator).toBeDefined();
   });
 
-  it('should create CosmosChainBuilder', () => {
+  it('should create CosmosBuilder', () => {
     const context: GeneratorContext = {
       config: singleChainConfig
     };
-    const builder = new CosmosChainBuilder(context);
+    const builder = new CosmosBuilder(context);
     
     expect(builder).toBeDefined();
   });
@@ -122,36 +121,30 @@ describe('YAML File Generation Tests', () => {
     mkdirSync(testOutputDir, { recursive: true });
   });
 
-  it('should create TestCosmosGenerator', () => {
-    const generator = new TestCosmosGenerator({
-      config: singleChainConfig,
-      outputDir: testOutputDir
-    });
+  it('should create CosmosBuilder', () => {
+    const context: GeneratorContext = { config: singleChainConfig };
+    const builder = new CosmosBuilder(context, testOutputDir);
     
-    expect(generator).toBeDefined();
+    expect(builder).toBeDefined();
   });
 
   it('should generate chain directory structure', () => {
-    const generator = new TestCosmosGenerator({
-      config: singleChainConfig,
-      outputDir: testOutputDir
-    });
+    const context: GeneratorContext = { config: singleChainConfig };
+    const builder = new CosmosBuilder(context, testOutputDir);
     
     const chain = singleChainConfig.chains[0]; // osmosis-1
-    generator.generateChain(chain);
+    builder.generateFiles(chain);
     
     // Check that chain directory was created
     expect(existsSync(join(testOutputDir, 'osmosis'))).toBe(true);
   });
 
   it('should generate YAML files for single validator chain', () => {
-    const generator = new TestCosmosGenerator({
-      config: singleChainConfig,
-      outputDir: testOutputDir
-    });
+    const context: GeneratorContext = { config: singleChainConfig };
+    const builder = new CosmosBuilder(context, testOutputDir);
     
     const chain = singleChainConfig.chains[0]; // osmosis-1 with numValidators: 1
-    generator.generateChain(chain);
+    builder.generateFiles(chain);
     
     // Check that YAML files were created
     expect(existsSync(join(testOutputDir, 'osmosis', 'configmap.yaml'))).toBe(true);
@@ -163,13 +156,11 @@ describe('YAML File Generation Tests', () => {
   });
 
   it('should generate YAML files for multi-validator chain', () => {
-    const generator = new TestCosmosGenerator({
-      config: multiValidatorConfig,
-      outputDir: testOutputDir
-    });
+    const context: GeneratorContext = { config: multiValidatorConfig };
+    const builder = new CosmosBuilder(context, testOutputDir);
     
     const chain = multiValidatorConfig.chains[0]; // osmosis-1 with numValidators: 2
-    generator.generateChain(chain);
+    builder.generateFiles(chain);
     
     // Check that YAML files were created
     expect(existsSync(join(testOutputDir, 'osmosis', 'configmap.yaml'))).toBe(true);
@@ -181,24 +172,20 @@ describe('YAML File Generation Tests', () => {
   });
 
   it('should skip Ethereum chains', () => {
-    const generator = new TestCosmosGenerator({
-      config: ethereumConfig,
-      outputDir: testOutputDir
-    });
+    const context: GeneratorContext = { config: ethereumConfig };
+    const builder = new CosmosBuilder(context, testOutputDir);
     
-    generator.generateAllChains();
+    builder.generateAllFiles();
     
     // Ethereum chain should not have files (skipped)
     expect(existsSync(join(testOutputDir, 'ethereum'))).toBe(false);
   });
 
   it('should generate multiple chains', () => {
-    const generator = new TestCosmosGenerator({
-      config: twoChainConfig,
-      outputDir: testOutputDir
-    });
+    const context: GeneratorContext = { config: twoChainConfig };
+    const builder = new CosmosBuilder(context, testOutputDir);
     
-    generator.generateAllChains();
+    builder.generateAllFiles();
     
     // Both chains should have directories
     expect(existsSync(join(testOutputDir, 'osmosis'))).toBe(true);

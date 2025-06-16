@@ -1,0 +1,201 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: cosmoshub-validator
+  labels:
+    helm.sh/chart: devnet-4.0.0
+    app.kubernetes.io/name: starship-generator-test
+    app.kubernetes.io/instance: starship-generator-test
+    app.kubernetes.io/version: 4.0.0
+    app.kubernetes.io/managed-by: starship-generator
+spec:
+  serviceName: cosmoshub-validator
+  podManagementPolicy: Parallel
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: cosmoshub
+      app.kubernetes.io/name: cosmoshub-4-validator
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
+      labels:
+        app.kubernetes.io/instance: cosmoshub
+        app.kubernetes.io/type: cosmoshub-4
+        app.kubernetes.io/name: cosmoshub-4-validator
+        app.kubernetes.io/version: 4.0.0
+    spec:
+      initContainers:
+        - name: init-validator
+          image: ghcr.io/cosmology-tech/starship/gaia:v18.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DENOM
+              value: uatom
+            - name: COINS
+              value: 100000000000000uatom
+            - name: CHAIN_BIN
+              value: gaiad
+            - name: CHAIN_DIR
+              value: /root/.gaia
+            - name: CODE_REPO
+              value: https://github.com/cosmos/gaia
+            - name: DAEMON_HOME
+              value: /root/.gaia
+            - name: DAEMON_NAME
+              value: gaiad
+            - name: CHAIN_ID
+              value: cosmoshub-4
+            - name: KEYS_CONFIG
+              value: /configs/keys.json
+          command:
+            - bash
+            - '-c'
+            - >-
+              #!/bin/bash
+
+              set -euo pipefail
+
+
+              echo "Initializing validator node for cosmoshub-4..."
+
+              gaiad init validator-${HOSTNAME##*-} --chain-id cosmoshub-4 --home
+              /root/.gaia
+
+              echo "Validator initialization completed"
+          resources:
+            limits:
+              cpu: '0.5'
+              memory: 500M
+            requests:
+              cpu: '0.5'
+              memory: 500M
+          volumeMounts:
+            - mountPath: /root/.gaia
+              name: node
+            - mountPath: /configs
+              name: addresses
+            - mountPath: /scripts
+              name: scripts
+        - name: init-validator-config
+          image: ghcr.io/cosmology-tech/starship/gaia:v18.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DENOM
+              value: uatom
+            - name: COINS
+              value: 100000000000000uatom
+            - name: CHAIN_BIN
+              value: gaiad
+            - name: CHAIN_DIR
+              value: /root/.gaia
+            - name: CODE_REPO
+              value: https://github.com/cosmos/gaia
+            - name: DAEMON_HOME
+              value: /root/.gaia
+            - name: DAEMON_NAME
+              value: gaiad
+            - name: CHAIN_ID
+              value: cosmoshub-4
+            - name: KEYS_CONFIG
+              value: /configs/keys.json
+            - name: METRICS
+              value: 'false'
+          command:
+            - bash
+            - '-c'
+            - /scripts/update-config.sh
+          resources:
+            limits:
+              cpu: '0.5'
+              memory: 500M
+            requests:
+              cpu: '0.5'
+              memory: 500M
+          volumeMounts:
+            - mountPath: /root/.gaia
+              name: node
+            - mountPath: /configs
+              name: addresses
+            - mountPath: /scripts
+              name: scripts
+      containers:
+        - name: validator
+          image: ghcr.io/cosmology-tech/starship/gaia:v18.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DENOM
+              value: uatom
+            - name: COINS
+              value: 100000000000000uatom
+            - name: CHAIN_BIN
+              value: gaiad
+            - name: CHAIN_DIR
+              value: /root/.gaia
+            - name: CODE_REPO
+              value: https://github.com/cosmos/gaia
+            - name: DAEMON_HOME
+              value: /root/.gaia
+            - name: DAEMON_NAME
+              value: gaiad
+            - name: CHAIN_ID
+              value: cosmoshub-4
+            - name: SLOGFILE
+              value: slog.slog
+          command:
+            - bash
+            - '-c'
+            - |-
+              #!/bin/bash
+              set -euo pipefail
+
+              echo "Starting gaiad validator..."
+              exec gaiad start --home /root/.gaia --log_level info
+          resources:
+            limits:
+              cpu: '0.5'
+              memory: 500M
+            requests:
+              cpu: '0.5'
+              memory: 500M
+          volumeMounts:
+            - mountPath: /root/.gaia
+              name: node
+            - mountPath: /configs
+              name: addresses
+            - mountPath: /scripts
+              name: scripts
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - bash
+                  - '-c'
+                  - |-
+                    #!/bin/bash
+                    echo "Validator post-start hook for cosmoshub-4"
+                    # Add any post-start logic here
+          readinessProbe:
+            exec:
+              command:
+                - bash
+                - '-e'
+                - /scripts/chain-rpc-ready.sh
+                - http://localhost:26657
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 15
+      volumes:
+        - name: node
+          emptyDir: {}
+        - name: addresses
+          configMap:
+            name: keys
+        - name: scripts
+          configMap:
+            name: setup-scripts-cosmoshub-4

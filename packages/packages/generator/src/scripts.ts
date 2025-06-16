@@ -3,24 +3,26 @@ import * as path from 'path';
 import { Script } from '@starship-ci/types/src';
 
 export class ScriptManager {
-  private scriptsPath: string;
+  private packageRoot: string;
 
-  constructor(scriptsPath?: string) {
-    // Default to the scripts directory in the generator package
-    this.scriptsPath = scriptsPath || path.join(__dirname, '../scripts');
+  constructor(packageRoot?: string) {
+    // Default to the generator package root (where scripts/ directory is located)
+    // __dirname is src/, so we go up one level to get to the package root
+    this.packageRoot = packageRoot || path.resolve(__dirname, '..');
   }
 
   /**
    * Load a script from the filesystem
    */
-  loadScript(scriptName: string): string {
-    const scriptPath = path.join(this.scriptsPath, scriptName);
+  loadScript(scriptPath: string): string {
+    // Resolve the script path relative to the package root
+    const fullScriptPath = path.resolve(this.packageRoot, scriptPath);
     
-    if (!fs.existsSync(scriptPath)) {
-      throw new Error(`Script not found: ${scriptPath}`);
+    if (!fs.existsSync(fullScriptPath)) {
+      throw new Error(`Script not found: ${fullScriptPath}`);
     }
 
-    return fs.readFileSync(scriptPath, 'utf8');
+    return fs.readFileSync(fullScriptPath, 'utf8');
   }
 
   /**
@@ -44,11 +46,12 @@ export class ScriptManager {
    * Get all available script files
    */
   getAvailableScripts(): string[] {
-    if (!fs.existsSync(this.scriptsPath)) {
+    const scriptsDir = path.join(this.packageRoot, 'scripts');
+    if (!fs.existsSync(scriptsDir)) {
       return [];
     }
 
-    return fs.readdirSync(this.scriptsPath)
+    return fs.readdirSync(scriptsDir)
       .filter(file => file.endsWith('.sh'))
       .sort();
   }
@@ -56,15 +59,15 @@ export class ScriptManager {
   /**
    * Check if a script file exists
    */
-  scriptExists(scriptName: string): boolean {
-    const scriptPath = path.join(this.scriptsPath, scriptName);
-    return fs.existsSync(scriptPath);
+  scriptExists(scriptPath: string): boolean {
+    const fullScriptPath = path.resolve(this.packageRoot, scriptPath);
+    return fs.existsSync(fullScriptPath);
   }
 
   /**
    * Get the full path to a script
    */
-  getScriptPath(scriptName: string): string {
-    return path.join(this.scriptsPath, scriptName);
+  getScriptPath(scriptPath: string): string {
+    return path.resolve(this.packageRoot, scriptPath);
   }
 } 

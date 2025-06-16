@@ -1,4 +1,4 @@
-import { CosmosConfigMapGenerator, CosmosServiceGenerator, CosmosStatefulSetGenerator, CosmosChainBuilder } from '../src/cosmos';
+import { CosmosConfigMapGenerator, CosmosServiceGenerator, CosmosStatefulSetGenerator, CosmosBuilder } from '../src/cosmos';
 import { GeneratorContext } from '../src/types';
 import { ScriptManager } from '../src/scripts';
 import { 
@@ -12,7 +12,6 @@ import {
   ethereumConfig,
   outputDir 
 } from './test-utils/config';
-import { TestCosmosGenerator } from './test-utils/generator';
 import { mkdirSync, existsSync, readFileSync } from 'fs';
 import { join } from 'path';
 import * as yaml from 'js-yaml';
@@ -51,7 +50,8 @@ describe('Cosmos Generator Integration Tests', () => {
       expect(configMap?.kind).toBe('ConfigMap');
       expect(configMap?.metadata?.name).toBe('patch-osmosis');
       
-      const genesisData = JSON.parse(configMap?.data?.['genesis.json'] || '{}');
+      const genesisJsonString = configMap?.data?.['genesis.json'] as string;
+      const genesisData = JSON.parse(genesisJsonString || '{}');
       expect(genesisData.app_state.staking.params.unbonding_time).toBe('5s');
     });
 
@@ -169,19 +169,19 @@ describe('Cosmos Generator Integration Tests', () => {
     });
   });
 
-  describe('Chain Builder Integration', () => {
+  describe('Builder Integration', () => {
     it('should build all manifests for a single chain', () => {
       const context: GeneratorContext = { config: singleChainConfig };
-      const builder = new CosmosChainBuilder(context);
+      const builder = new CosmosBuilder(context);
       const chain = singleChainConfig.chains[0];
       
-      const manifests = builder.buildChainManifests(chain);
+      const manifests = builder.buildManifests(chain);
       
       expect(manifests.length).toBeGreaterThan(0);
       
-      const configMaps = manifests.filter(m => m.kind === 'ConfigMap');
-      const services = manifests.filter(m => m.kind === 'Service');
-      const statefulSets = manifests.filter(m => m.kind === 'StatefulSet');
+      const configMaps = manifests.filter((m: any) => m.kind === 'ConfigMap');
+      const services = manifests.filter((m: any) => m.kind === 'Service');
+      const statefulSets = manifests.filter((m: any) => m.kind === 'StatefulSet');
       
       expect(configMaps.length).toBeGreaterThan(0);
       expect(services.length).toBeGreaterThan(0);
@@ -190,36 +190,36 @@ describe('Cosmos Generator Integration Tests', () => {
 
     it('should skip Ethereum chains', () => {
       const context: GeneratorContext = { config: ethereumConfig };
-      const builder = new CosmosChainBuilder(context);
+      const builder = new CosmosBuilder(context);
       const chain = ethereumConfig.chains[0];
       
-      const manifests = builder.buildChainManifests(chain);
+      const manifests = builder.buildManifests(chain);
       
       expect(manifests.length).toBe(0);
     });
 
     it('should generate different manifests for single vs multi-validator', () => {
       const context: GeneratorContext = { config: singleChainConfig };
-      const builder = new CosmosChainBuilder(context);
+      const builder = new CosmosBuilder(context);
       
       // Single validator chain
       const singleChain = singleChainConfig.chains[0];
-      const singleManifests = builder.buildChainManifests(singleChain);
+      const singleManifests = builder.buildManifests(singleChain);
       
       // Multi validator chain
       const multiContext: GeneratorContext = { config: multiValidatorConfig };
-      const multiBuilder = new CosmosChainBuilder(multiContext);
+      const multiBuilder = new CosmosBuilder(multiContext);
       const multiChain = multiValidatorConfig.chains[0];
-      const multiManifests = multiBuilder.buildChainManifests(multiChain);
+      const multiManifests = multiBuilder.buildManifests(multiChain);
       
       // Multi-validator should have more manifests (validator service/statefulset)
       expect(multiManifests.length).toBeGreaterThan(singleManifests.length);
       
       // Check for validator-specific manifests
-      const validatorServices = multiManifests.filter(m => 
+      const validatorServices = multiManifests.filter((m: any) => 
         m.kind === 'Service' && m.metadata?.name?.includes('validator')
       );
-      const validatorStatefulSets = multiManifests.filter(m => 
+      const validatorStatefulSets = multiManifests.filter((m: any) => 
         m.kind === 'StatefulSet' && m.metadata?.name?.includes('validator')
       );
       
@@ -230,12 +230,10 @@ describe('Cosmos Generator Integration Tests', () => {
 
   describe('YAML File Generation', () => {
     it('should generate correct directory structure for single chain', () => {
-      const generator = new TestCosmosGenerator({
-        config: singleChainConfig,
-        outputDir: testOutputDir
-      });
+      const context: GeneratorContext = { config: singleChainConfig };
+      const builder = new CosmosBuilder(context, testOutputDir);
       
-      generator.generateAllChains();
+      builder.generateAllFiles();
       
       expect(existsSync(join(testOutputDir, 'osmosis'))).toBe(true);
       expect(existsSync(join(testOutputDir, 'osmosis', 'configmap.yaml'))).toBe(true);
@@ -247,12 +245,10 @@ describe('Cosmos Generator Integration Tests', () => {
     });
 
     it('should generate correct directory structure for multi-validator chain', () => {
-      const generator = new TestCosmosGenerator({
-        config: multiValidatorConfig,
-        outputDir: testOutputDir
-      });
+      const context: GeneratorContext = { config: multiValidatorConfig };
+      const builder = new CosmosBuilder(context, testOutputDir);
       
-      generator.generateAllChains();
+      builder.generateAllFiles();
       
       expect(existsSync(join(testOutputDir, 'osmosis'))).toBe(true);
       expect(existsSync(join(testOutputDir, 'osmosis', 'configmap.yaml'))).toBe(true);
@@ -264,12 +260,10 @@ describe('Cosmos Generator Integration Tests', () => {
     });
 
     it('should generate valid YAML content', () => {
-      const generator = new TestCosmosGenerator({
-        config: singleChainConfig,
-        outputDir: testOutputDir
-      });
+      const context: GeneratorContext = { config: singleChainConfig };
+      const builder = new CosmosBuilder(context, testOutputDir);
       
-      generator.generateAllChains();
+      builder.generateAllFiles();
       
       // Read and parse YAML files
       const configMapYaml = readFileSync(join(testOutputDir, 'osmosis', 'configmap.yaml'), 'utf-8');
@@ -300,12 +294,10 @@ describe('Cosmos Generator Integration Tests', () => {
     });
 
     it('should handle multiple chains correctly', () => {
-      const generator = new TestCosmosGenerator({
-        config: twoChainConfig,
-        outputDir: testOutputDir
-      });
+      const context: GeneratorContext = { config: twoChainConfig };
+      const builder = new CosmosBuilder(context, testOutputDir);
       
-      generator.generateAllChains();
+      builder.generateAllFiles();
       
       // Both chains should have directories
       expect(existsSync(join(testOutputDir, 'osmosis'))).toBe(true);
@@ -323,24 +315,20 @@ describe('Cosmos Generator Integration Tests', () => {
     });
 
     it('should skip Ethereum chains in file generation', () => {
-      const generator = new TestCosmosGenerator({
-        config: ethereumConfig,
-        outputDir: testOutputDir
-      });
+      const context: GeneratorContext = { config: ethereumConfig };
+      const builder = new CosmosBuilder(context, testOutputDir);
       
-      generator.generateAllChains();
+      builder.generateAllFiles();
       
       // Ethereum chain should not have files (skipped)
       expect(existsSync(join(testOutputDir, 'ethereum'))).toBe(false);
     });
 
     it('should handle custom chain configuration', () => {
-      const generator = new TestCosmosGenerator({
-        config: customChainConfig,
-        outputDir: testOutputDir
-      });
+      const context: GeneratorContext = { config: customChainConfig };
+      const builder = new CosmosBuilder(context, testOutputDir);
       
-      generator.generateAllChains();
+      builder.generateAllFiles();
       
       expect(existsSync(join(testOutputDir, 'custom'))).toBe(true);
       expect(existsSync(join(testOutputDir, 'custom', 'configmap.yaml'))).toBe(true);
@@ -352,12 +340,10 @@ describe('Cosmos Generator Integration Tests', () => {
     });
 
     it('should handle build-enabled chains', () => {
-      const generator = new TestCosmosGenerator({
-        config: buildChainConfig,
-        outputDir: testOutputDir
-      });
+      const context: GeneratorContext = { config: buildChainConfig };
+      const builder = new CosmosBuilder(context, testOutputDir);
       
-      generator.generateAllChains();
+      builder.generateAllFiles();
       
       expect(existsSync(join(testOutputDir, 'persistencecore'))).toBe(true);
       expect(existsSync(join(testOutputDir, 'persistencecore', 'genesis.yaml'))).toBe(true);
@@ -369,12 +355,10 @@ describe('Cosmos Generator Integration Tests', () => {
     });
 
     it('should handle cometmock-enabled chains', () => {
-      const generator = new TestCosmosGenerator({
-        config: cometmockConfig,
-        outputDir: testOutputDir
-      });
+      const context: GeneratorContext = { config: cometmockConfig };
+      const builder = new CosmosBuilder(context, testOutputDir);
       
-      generator.generateAllChains();
+      builder.generateAllFiles();
       
       expect(existsSync(join(testOutputDir, 'cosmoshub'))).toBe(true);
       expect(existsSync(join(testOutputDir, 'cosmoshub', 'genesis.yaml'))).toBe(true);
