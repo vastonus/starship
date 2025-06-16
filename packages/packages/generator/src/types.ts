@@ -1,4 +1,10 @@
-import { StarshipConfig, Chain, FaucetConfig, Relayer, Script } from '@starship-ci/types/src';
+import {
+  Chain,
+  FaucetConfig,
+  Relayer,
+  Script,
+  StarshipConfig
+} from '@starship-ci/types/src';
 
 export interface EnvVar {
   name: string;

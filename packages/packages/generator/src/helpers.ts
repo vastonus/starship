@@ -1,5 +1,6 @@
 import { StarshipConfig } from '@starship-ci/types/src';
-import { ProcessedChain, EnvVar } from './types';
+
+import { EnvVar, ProcessedChain } from './types';
 
 export class TemplateHelpers {
   /**
@@ -27,7 +28,7 @@ export class TemplateHelpers {
       'helm.sh/chart': `devnet-${config.version || '1.8.0'}`,
       ...this.selectorLabels(config),
       'app.kubernetes.io/version': config.version || '1.8.0',
-      'app.kubernetes.io/managed-by': 'starship-generator',
+      'app.kubernetes.io/managed-by': 'starship-generator'
     };
   }
 
@@ -37,7 +38,7 @@ export class TemplateHelpers {
   static selectorLabels(config: StarshipConfig): Record<string, string> {
     return {
       'app.kubernetes.io/name': this.fullname(config),
-      'app.kubernetes.io/instance': config.name || 'starship',
+      'app.kubernetes.io/instance': config.name || 'starship'
     };
   }
 
@@ -52,7 +53,7 @@ export class TemplateHelpers {
       { name: 'CHAIN_DIR', value: chain.home || '' },
       { name: 'CODE_REPO', value: chain.repo || '' },
       { name: 'DAEMON_HOME', value: chain.home || '' },
-      { name: 'DAEMON_NAME', value: chain.binary || '' },
+      { name: 'DAEMON_NAME', value: chain.binary || '' }
     ];
   }
 
@@ -60,9 +61,7 @@ export class TemplateHelpers {
    * Chain-specific environment variables
    */
   static chainEnvVars(chain: ProcessedChain): EnvVar[] {
-    return [
-      { name: 'CHAIN_ID', value: String(chain.id) },
-    ];
+    return [{ name: 'CHAIN_ID', value: String(chain.id) }];
   }
 
   /**
@@ -70,14 +69,14 @@ export class TemplateHelpers {
    */
   static timeoutVars(timeouts: Record<string, any>): EnvVar[] {
     const envVars: EnvVar[] = [];
-    
+
     for (const [key, value] of Object.entries(timeouts)) {
       envVars.push({
         name: key.toUpperCase(),
-        value: String(value),
+        value: String(value)
       });
     }
-    
+
     return envVars;
   }
 
@@ -93,11 +92,11 @@ export class TemplateHelpers {
         value: {
           valueFrom: {
             fieldRef: {
-              fieldPath: 'metadata.namespace',
-            },
-          },
-        },
-      },
+              fieldPath: 'metadata.namespace'
+            }
+          }
+        }
+      }
     ];
   }
 
@@ -115,12 +114,12 @@ export class TemplateHelpers {
       return {
         limits: {
           cpu: resources.cpu,
-          memory: resources.memory,
+          memory: resources.memory
         },
         requests: {
           cpu: resources.cpu,
-          memory: resources.memory,
-        },
+          memory: resources.memory
+        }
       };
     }
 
@@ -135,11 +134,13 @@ export class TemplateHelpers {
     if (chain.resources) {
       return this.getResourceObject(chain.resources);
     }
-    
-    return this.getResourceObject(context.resources?.node || {
-      cpu: '0.5',
-      memory: '500M',
-    });
+
+    return this.getResourceObject(
+      context.resources?.node || {
+        cpu: '0.5',
+        memory: '500M'
+      }
+    );
   }
 
   /**
@@ -155,7 +156,7 @@ export class TemplateHelpers {
       rpc: 26657,
       metrics: 26660,
       exposer: 8081,
-      faucet: 8000,
+      faucet: 8000
     };
   }
 
@@ -163,7 +164,7 @@ export class TemplateHelpers {
    * Returns comma-separated list of chain IDs
    */
   static chainIds(chains: ProcessedChain[]): string {
-    return chains.map(chain => chain.id).join(',');
+    return chains.map((chain) => chain.id).join(',');
   }
 
   /**
@@ -171,96 +172,128 @@ export class TemplateHelpers {
    * If chain name is custom, use chain id instead
    */
   static chainNames(chains: ProcessedChain[]): string {
-    return chains.map(chain => 
-      chain.name === 'custom' ? chain.id : chain.name
-    ).join(',');
+    return chains
+      .map((chain) => (chain.name === 'custom' ? chain.id : chain.name))
+      .join(',');
   }
 
   /**
    * Returns comma-separated list of internal RPC addresses
    */
   static chainInternalRpcAddrs(chains: ProcessedChain[]): string {
-    return chains.map(chain => 
-      `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:26657`
-    ).join(',');
+    return chains
+      .map(
+        (chain) =>
+          `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:26657`
+      )
+      .join(',');
   }
 
   /**
    * Returns comma-separated list of RPC addresses
    */
-  static chainRpcAddrs(chains: ProcessedChain[], config: StarshipConfig): string {
+  static chainRpcAddrs(
+    chains: ProcessedChain[],
+    config: StarshipConfig
+  ): string {
     const localhost = config.registry?.localhost;
     const ingress = config.ingress;
-    
-    return chains.map(chain => {
-      if (localhost && chain.ports?.rpc) {
-        return `http://localhost:${chain.ports.rpc}`;
-      } else if (ingress?.enabled && ingress.host) {
-        const host = ingress.host.replace('*.', '');
-        return `https://rpc.${chain.id}-genesis.${host}`;
-      } else {
-        return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:26657`;
-      }
-    }).join(',');
+
+    return chains
+      .map((chain) => {
+        if (localhost && chain.ports?.rpc) {
+          return `http://localhost:${chain.ports.rpc}`;
+        } else if (ingress?.enabled && ingress.host) {
+          const host = ingress.host.replace('*.', '');
+          return `https://rpc.${chain.id}-genesis.${host}`;
+        } else {
+          return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:26657`;
+        }
+      })
+      .join(',');
   }
 
   /**
    * Returns comma-separated list of GRPC addresses
    */
-  static chainGrpcAddrs(chains: ProcessedChain[], config: StarshipConfig): string {
+  static chainGrpcAddrs(
+    chains: ProcessedChain[],
+    config: StarshipConfig
+  ): string {
     const localhost = config.registry?.localhost;
     const ingress = config.ingress;
-    
-    return chains.map(chain => {
-      if (localhost && chain.ports?.grpc) {
-        return `http://localhost:${chain.ports.grpc}`;
-      } else if (ingress?.enabled && ingress.host) {
-        const host = ingress.host.replace('*.', '');
-        return `https://grpc.${chain.id}-genesis.${host}`;
-      } else {
-        return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:9091`;
-      }
-    }).join(',');
+
+    return chains
+      .map((chain) => {
+        if (localhost && chain.ports?.grpc) {
+          return `http://localhost:${chain.ports.grpc}`;
+        } else if (ingress?.enabled && ingress.host) {
+          const host = ingress.host.replace('*.', '');
+          return `https://grpc.${chain.id}-genesis.${host}`;
+        } else {
+          return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:9091`;
+        }
+      })
+      .join(',');
   }
 
   /**
    * Returns comma-separated list of REST addresses
    */
-  static chainRestAddrs(chains: ProcessedChain[], config: StarshipConfig): string {
+  static chainRestAddrs(
+    chains: ProcessedChain[],
+    config: StarshipConfig
+  ): string {
     const localhost = config.registry?.localhost;
     const ingress = config.ingress;
-    
-    return chains.map(chain => {
-      if (localhost && chain.ports?.rest) {
-        return `http://localhost:${chain.ports.rest}`;
-      } else if (ingress?.enabled && ingress.host) {
-        const host = ingress.host.replace('*.', '');
-        return `https://rest.${chain.id}-genesis.${host}`;
-      } else {
-        return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:1317`;
-      }
-    }).join(',');
+
+    return chains
+      .map((chain) => {
+        if (localhost && chain.ports?.rest) {
+          return `http://localhost:${chain.ports.rest}`;
+        } else if (ingress?.enabled && ingress.host) {
+          const host = ingress.host.replace('*.', '');
+          return `https://rest.${chain.id}-genesis.${host}`;
+        } else {
+          return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:1317`;
+        }
+      })
+      .join(',');
   }
 
   /**
    * Returns comma-separated list of exposer addresses
    */
-  static chainExposerAddrs(chains: ProcessedChain[], port: number = 8081): string {
-    return chains.map(chain => 
-      `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:${port}`
-    ).join(',');
+  static chainExposerAddrs(
+    chains: ProcessedChain[],
+    port: number = 8081
+  ): string {
+    return chains
+      .map(
+        (chain) =>
+          `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:${port}`
+      )
+      .join(',');
   }
 
   /**
    * Generate init container for waiting on chains to be ready
    */
-  static generateWaitInitContainer(chains: ProcessedChain[], port: number, imagePullPolicy: string = 'IfNotPresent'): any {
-    const waitScript = chains.map(chain => `
+  static generateWaitInitContainer(
+    chains: ProcessedChain[],
+    port: number,
+    imagePullPolicy: string = 'IfNotPresent'
+  ): any {
+    const waitScript = chains
+      .map(
+        (chain) => `
       while [ $(curl -sw '%{http_code}' http://${chain.hostname}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id -o /dev/null) -ne 200 ]; do
         echo "Genesis validator does not seem to be ready for: ${chain.id}. Waiting for it to start..."
         echo "Checking: http://${chain.hostname}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id"
         sleep 10;
-      done`).join('\n');
+      done`
+      )
+      .join('\n');
 
     return {
       name: 'wait-for-chains',
@@ -272,26 +305,34 @@ export class TemplateHelpers {
           name: 'NAMESPACE',
           valueFrom: {
             fieldRef: {
-              fieldPath: 'metadata.namespace',
-            },
-          },
-        },
+              fieldPath: 'metadata.namespace'
+            }
+          }
+        }
       ],
-      command: ['/bin/sh', '-c', `${waitScript}\necho "Ready to start"\nexit 0`],
-      resources: this.getResourceObject({ cpu: '0.1', memory: '128M' }),
+      command: [
+        '/bin/sh',
+        '-c',
+        `${waitScript}\necho "Ready to start"\nexit 0`
+      ],
+      resources: this.getResourceObject({ cpu: '0.1', memory: '128M' })
     };
   }
 
   /**
    * Generate image pull secrets
    */
-  static generateImagePullSecrets(imagePullSecrets?: Array<{ name: string }>): any {
+  static generateImagePullSecrets(
+    imagePullSecrets?: Array<{ name: string }>
+  ): any {
     if (!imagePullSecrets || imagePullSecrets.length === 0) {
       return null;
     }
 
     return {
-      imagePullSecrets: imagePullSecrets.map(secret => ({ name: secret.name })),
+      imagePullSecrets: imagePullSecrets.map((secret) => ({
+        name: secret.name
+      }))
     };
   }
 
@@ -310,16 +351,16 @@ export class TemplateHelpers {
     return [
       {
         mountPath: chain.home,
-        name: 'node',
+        name: 'node'
       },
       {
         mountPath: '/configs',
-        name: 'addresses',
+        name: 'addresses'
       },
       {
         mountPath: '/scripts',
-        name: 'scripts',
-      },
+        name: 'scripts'
+      }
     ];
   }
 
@@ -330,20 +371,20 @@ export class TemplateHelpers {
     const volumes = [
       {
         name: 'node',
-        emptyDir: {},
+        emptyDir: {}
       },
       {
         name: 'addresses',
         configMap: {
-          name: 'keys',
-        },
+          name: 'keys'
+        }
       },
       {
         name: 'scripts',
         configMap: {
-          name: `setup-scripts-${chain.hostname}`,
-        },
-      },
+          name: `setup-scripts-${chain.hostname}`
+        }
+      }
     ];
 
     // Add patch volume if genesis override exists
@@ -351,11 +392,11 @@ export class TemplateHelpers {
       volumes.push({
         name: 'patch',
         configMap: {
-          name: `patch-${chain.hostname}`,
-        },
+          name: `patch-${chain.hostname}`
+        }
       });
     }
 
     return volumes;
   }
-} 
+}

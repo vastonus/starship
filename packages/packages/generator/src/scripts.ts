@@ -1,6 +1,6 @@
+import { Script } from '@starship-ci/types/src';
 import * as fs from 'fs';
 import * as path from 'path';
-import { Script } from '@starship-ci/types/src';
 
 export class ScriptManager {
   private packageRoot: string;
@@ -17,7 +17,7 @@ export class ScriptManager {
   loadScript(scriptPath: string): string {
     // Resolve the script path relative to the package root
     const fullScriptPath = path.resolve(this.packageRoot, scriptPath);
-    
+
     if (!fs.existsSync(fullScriptPath)) {
       throw new Error(`Script not found: ${fullScriptPath}`);
     }
@@ -51,8 +51,9 @@ export class ScriptManager {
       return [];
     }
 
-    return fs.readdirSync(scriptsDir)
-      .filter(file => file.endsWith('.sh'))
+    return fs
+      .readdirSync(scriptsDir)
+      .filter((file) => file.endsWith('.sh'))
       .sort();
   }
 
@@ -70,4 +71,4 @@ export class ScriptManager {
   getScriptPath(scriptPath: string): string {
     return path.resolve(this.packageRoot, scriptPath);
   }
-} 
+}

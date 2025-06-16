@@ -13,10 +13,7 @@ module.exports = {
   },
   transformIgnorePatterns: [`/node_modules/*`],
   testRegex: '(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$',
-  testPathIgnorePatterns: [
-    '/node_modules/',
-    '/__tests__/test-utils/'
-  ],
+  testPathIgnorePatterns: ['/node_modules/', '/__tests__/test-utils/'],
   moduleFileExtensions: ['ts', 'tsx', 'js', 'jsx', 'json', 'node'],
   modulePathIgnorePatterns: ['dist/*']
 };

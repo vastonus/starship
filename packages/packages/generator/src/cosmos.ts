@@ -1,12 +1,13 @@
-import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
-import { StarshipConfig, Chain } from '@starship-ci/types/src';
-import { GeneratorContext } from './types';
-import { DefaultsManager } from './defaults';
-import { ScriptManager } from './scripts';
-import { TemplateHelpers } from './helpers';
+import { Chain, StarshipConfig } from '@starship-ci/types/src';
 import * as fs from 'fs';
-import * as path from 'path';
 import * as yaml from 'js-yaml';
+import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
+import * as path from 'path';
+
+import { DefaultsManager } from './defaults';
+import { TemplateHelpers } from './helpers';
+import { ScriptManager } from './scripts';
+import { GeneratorContext } from './types';
 
 // Helper functions
 function getHostname(chain: Chain): string {
@@ -27,7 +28,11 @@ export class CosmosConfigMapGenerator {
   private config: StarshipConfig;
   private chain: Chain;
 
-  constructor(chain: Chain, config: StarshipConfig, scriptManager: ScriptManager) {
+  constructor(
+    chain: Chain,
+    config: StarshipConfig,
+    scriptManager: ScriptManager
+  ) {
     this.scriptManager = scriptManager;
     this.defaultsManager = new DefaultsManager();
     this.config = config;
@@ -39,7 +44,7 @@ export class CosmosConfigMapGenerator {
    */
   scriptsConfigMap(): ConfigMap {
     const scriptsData: Record<string, string> = {};
-    
+
     for (const [key, script] of Object.entries(this.chain.scripts)) {
       const scriptName = script.name || `${key}.sh`;
       scriptsData[scriptName] = this.scriptManager.getScriptContent(script);
@@ -50,9 +55,9 @@ export class CosmosConfigMapGenerator {
       kind: 'ConfigMap',
       metadata: {
         name: `setup-scripts-${getHostname(this.chain)}`,
-        labels: TemplateHelpers.commonLabels(this.config),
+        labels: TemplateHelpers.commonLabels(this.config)
       },
-      data: scriptsData,
+      data: scriptsData
     };
   }
 
@@ -67,11 +72,11 @@ export class CosmosConfigMapGenerator {
       kind: 'ConfigMap',
       metadata: {
         name: `patch-${getHostname(this.chain)}`,
-        labels: TemplateHelpers.commonLabels(this.config),
+        labels: TemplateHelpers.commonLabels(this.config)
       },
       data: {
-        'genesis.json': JSON.stringify(this.chain.genesis, null, 2),
-      },
+        'genesis.json': JSON.stringify(this.chain.genesis, null, 2)
+      }
     };
   }
 
@@ -82,7 +87,7 @@ export class CosmosConfigMapGenerator {
     if (!this.chain.ics?.enabled) return null;
 
     const icsChain = this.defaultsManager.processChain(
-      this.config.chains.find(c => c.id === this.chain.ics.provider)!
+      this.config.chains.find((c) => c.id === this.chain.ics.provider)!
     );
 
     return {
@@ -90,35 +95,41 @@ export class CosmosConfigMapGenerator {
       kind: 'ConfigMap',
       metadata: {
         name: `consumer-proposal-${getHostname(this.chain)}`,
-        labels: TemplateHelpers.commonLabels(this.config),
+        labels: TemplateHelpers.commonLabels(this.config)
       },
       data: {
-        'proposal.json': JSON.stringify({
-          title: `Add ${this.chain.name} consumer chain`,
-          summary: `Add ${this.chain.name} consumer chain with id ${getChainId(this.chain)}`,
-          chain_id: getChainId(this.chain),
-          initial_height: {
-            revision_height: 1,
-            revision_number: 1,
+        'proposal.json': JSON.stringify(
+          {
+            title: `Add ${this.chain.name} consumer chain`,
+            summary: `Add ${this.chain.name} consumer chain with id ${getChainId(this.chain)}`,
+            chain_id: getChainId(this.chain),
+            initial_height: {
+              revision_height: 1,
+              revision_number: 1
+            },
+            genesis_hash:
+              'd86d756e10118e66e6805e9cc476949da2e750098fcc7634fd0cc77f57a0b2b0',
+            binary_hash:
+              '376cdbd3a222a3d5c730c9637454cd4dd925e2f9e2e0d0f3702fc922928583f1',
+            spawn_time: '2023-02-28T20:40:00.000000Z',
+            unbonding_period: 294000000000,
+            ccv_timeout_period: 259920000000,
+            transfer_timeout_period: 18000000000,
+            consumer_redistribution_fraction: '0.75',
+            blocks_per_distribution_transmission: 10,
+            historical_entries: 100,
+            distribution_transmission_channel: '',
+            top_N: 95,
+            validators_power_cap: 0,
+            validator_set_cap: 0,
+            allowlist: [],
+            denylist: [],
+            deposit: `10000${icsChain.denom}`
           },
-          genesis_hash: 'd86d756e10118e66e6805e9cc476949da2e750098fcc7634fd0cc77f57a0b2b0',
-          binary_hash: '376cdbd3a222a3d5c730c9637454cd4dd925e2f9e2e0d0f3702fc922928583f1',
-          spawn_time: '2023-02-28T20:40:00.000000Z',
-          unbonding_period: 294000000000,
-          ccv_timeout_period: 259920000000,
-          transfer_timeout_period: 18000000000,
-          consumer_redistribution_fraction: '0.75',
-          blocks_per_distribution_transmission: 10,
-          historical_entries: 100,
-          distribution_transmission_channel: '',
-          top_N: 95,
-          validators_power_cap: 0,
-          validator_set_cap: 0,
-          allowlist: [],
-          denylist: [],
-          deposit: `10000${icsChain.denom}`,
-        }, null, 2),
-      },
+          null,
+          2
+        )
+      }
     };
   }
 }
@@ -145,7 +156,7 @@ export class CosmosServiceGenerator {
       name,
       port,
       protocol: 'TCP' as const,
-      targetPort: String(port),
+      targetPort: String(port)
     }));
 
     // Add metrics port if enabled
@@ -154,7 +165,7 @@ export class CosmosServiceGenerator {
         name: 'metrics',
         port: 26660,
         protocol: 'TCP' as const,
-        targetPort: '26660',
+        targetPort: '26660'
       });
     }
 
@@ -165,16 +176,16 @@ export class CosmosServiceGenerator {
         name: `${getHostname(this.chain)}-genesis`,
         labels: {
           ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`,
-        },
+          'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`
+        }
       },
       spec: {
         clusterIP: 'None',
         ports,
         selector: {
-          'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`,
-        },
-      },
+          'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`
+        }
+      }
     };
   }
 
@@ -187,7 +198,7 @@ export class CosmosServiceGenerator {
       name,
       port,
       protocol: 'TCP' as const,
-      targetPort: String(port),
+      targetPort: String(port)
     }));
 
     if (this.chain.metrics) {
@@ -195,7 +206,7 @@ export class CosmosServiceGenerator {
         name: 'metrics',
         port: 26660,
         protocol: 'TCP' as const,
-        targetPort: '26660',
+        targetPort: '26660'
       });
     }
 
@@ -206,16 +217,16 @@ export class CosmosServiceGenerator {
         name: `${getHostname(this.chain)}-validator`,
         labels: {
           ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`,
-        },
+          'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`
+        }
       },
       spec: {
         clusterIP: 'None',
         ports,
         selector: {
-          'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`,
-        },
-      },
+          'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`
+        }
+      }
     };
   }
 }
@@ -230,7 +241,11 @@ export class CosmosStatefulSetGenerator {
   private config: StarshipConfig;
   private chain: any; // ProcessedChain
 
-  constructor(chain: Chain, config: StarshipConfig, scriptManager: ScriptManager) {
+  constructor(
+    chain: Chain,
+    config: StarshipConfig,
+    scriptManager: ScriptManager
+  ) {
     this.scriptManager = scriptManager;
     this.defaultsManager = new DefaultsManager();
     this.config = config;
@@ -246,7 +261,7 @@ export class CosmosStatefulSetGenerator {
       kind: 'StatefulSet',
       metadata: {
         name: `${getHostname(this.chain)}-genesis`,
-        labels: TemplateHelpers.commonLabels(this.config),
+        labels: TemplateHelpers.commonLabels(this.config)
       },
       spec: {
         serviceName: `${getHostname(this.chain)}-genesis`,
@@ -254,9 +269,10 @@ export class CosmosStatefulSetGenerator {
         revisionHistoryLimit: 3,
         selector: {
           matchLabels: {
-            'app.kubernetes.io/instance': this.chain.name || getChainId(this.chain),
-            'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`,
-          },
+            'app.kubernetes.io/instance':
+              this.chain.name || getChainId(this.chain),
+            'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`
+          }
         },
         template: {
           metadata: {
@@ -264,24 +280,29 @@ export class CosmosStatefulSetGenerator {
               quality: 'release',
               role: 'api-gateway',
               sla: 'high',
-              tier: 'gateway',
+              tier: 'gateway'
             },
             labels: {
-              'app.kubernetes.io/instance': this.chain.name || getChainId(this.chain),
+              'app.kubernetes.io/instance':
+                this.chain.name || getChainId(this.chain),
               'app.kubernetes.io/type': getChainId(this.chain),
               'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`,
               'app.kubernetes.io/rawname': getChainId(this.chain),
-              'app.kubernetes.io/version': this.config.version || '1.8.0',
-            },
+              'app.kubernetes.io/version': this.config.version || '1.8.0'
+            }
           },
           spec: {
-            ...(this.chain.imagePullSecrets ? TemplateHelpers.generateImagePullSecrets(this.chain.imagePullSecrets) : {}),
+            ...(this.chain.imagePullSecrets
+              ? TemplateHelpers.generateImagePullSecrets(
+                  this.chain.imagePullSecrets
+                )
+              : {}),
             initContainers: this.genesisInitContainers(),
             containers: this.genesisContainers(),
-            volumes: TemplateHelpers.generateChainVolumes(this.chain),
-          },
-        },
-      },
+            volumes: TemplateHelpers.generateChainVolumes(this.chain)
+          }
+        }
+      }
     };
   }
 
@@ -294,7 +315,7 @@ export class CosmosStatefulSetGenerator {
       kind: 'StatefulSet',
       metadata: {
         name: `${getHostname(this.chain)}-validator`,
-        labels: TemplateHelpers.commonLabels(this.config),
+        labels: TemplateHelpers.commonLabels(this.config)
       },
       spec: {
         serviceName: `${getHostname(this.chain)}-validator`,
@@ -303,9 +324,10 @@ export class CosmosStatefulSetGenerator {
         revisionHistoryLimit: 3,
         selector: {
           matchLabels: {
-            'app.kubernetes.io/instance': this.chain.name || getChainId(this.chain),
-            'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`,
-          },
+            'app.kubernetes.io/instance':
+              this.chain.name || getChainId(this.chain),
+            'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`
+          }
         },
         template: {
           metadata: {
@@ -313,23 +335,28 @@ export class CosmosStatefulSetGenerator {
               quality: 'release',
               role: 'api-gateway',
               sla: 'high',
-              tier: 'gateway',
+              tier: 'gateway'
             },
             labels: {
-              'app.kubernetes.io/instance': this.chain.name || getChainId(this.chain),
+              'app.kubernetes.io/instance':
+                this.chain.name || getChainId(this.chain),
               'app.kubernetes.io/type': getChainId(this.chain),
               'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`,
-              'app.kubernetes.io/version': this.config.version || '1.8.0',
-            },
+              'app.kubernetes.io/version': this.config.version || '1.8.0'
+            }
           },
           spec: {
-            ...(this.chain.imagePullSecrets ? TemplateHelpers.generateImagePullSecrets(this.chain.imagePullSecrets) : {}),
+            ...(this.chain.imagePullSecrets
+              ? TemplateHelpers.generateImagePullSecrets(
+                  this.chain.imagePullSecrets
+                )
+              : {}),
             initContainers: this.validatorInitContainers(),
             containers: this.validatorContainers(),
-            volumes: TemplateHelpers.generateChainVolumes(this.chain),
-          },
-        },
-      },
+            volumes: TemplateHelpers.generateChainVolumes(this.chain)
+          }
+        }
+      }
     };
   }
 
@@ -342,7 +369,7 @@ export class CosmosStatefulSetGenerator {
 
     // Build images init container if needed
     if (this.chain.build?.enabled || this.chain.upgrade?.enabled) {
-      let buildCommands = [
+      const buildCommands = [
         '# Install cosmovisor',
         'go install github.com/cosmos/cosmos-sdk/cosmovisor/cmd/cosmovisor@v1.0.0',
         '',
@@ -351,16 +378,22 @@ export class CosmosStatefulSetGenerator {
 
       if (this.chain.upgrade?.enabled) {
         // Build genesis version
-        buildCommands.push(`UPGRADE_NAME=genesis CODE_TAG=${this.chain.upgrade.genesis} bash -e /scripts/build-chain.sh`);
-        
+        buildCommands.push(
+          `UPGRADE_NAME=genesis CODE_TAG=${this.chain.upgrade.genesis} bash -e /scripts/build-chain.sh`
+        );
+
         // Build upgrade versions
         if (this.chain.upgrade.upgrades) {
           this.chain.upgrade.upgrades.forEach((upgrade: any) => {
-            buildCommands.push(`UPGRADE_NAME=${upgrade.name} CODE_TAG=${upgrade.version} bash -e /scripts/build-chain.sh`);
+            buildCommands.push(
+              `UPGRADE_NAME=${upgrade.name} CODE_TAG=${upgrade.version} bash -e /scripts/build-chain.sh`
+            );
           });
         }
       } else if (this.chain.build?.enabled) {
-        buildCommands.push(`UPGRADE_NAME=genesis CODE_TAG=${this.chain.build.source} bash -e /scripts/build-chain.sh`);
+        buildCommands.push(
+          `UPGRADE_NAME=genesis CODE_TAG=${this.chain.build.source} bash -e /scripts/build-chain.sh`
+        );
       }
 
       initContainers.push({
@@ -373,10 +406,10 @@ export class CosmosStatefulSetGenerator {
           { name: 'UPGRADE_DIR', value: `${this.chain.home}/cosmovisor` },
           { name: 'GOBIN', value: '/go/bin' },
           { name: 'CHAIN_NAME', value: getChainId(this.chain) },
-          ...TemplateHelpers.defaultEnvVars(this.chain),
+          ...TemplateHelpers.defaultEnvVars(this.chain)
         ],
         resources: TemplateHelpers.nodeResources(this.chain, this.config),
-        volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain),
+        volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
       });
     }
 
@@ -390,13 +423,22 @@ export class CosmosStatefulSetGenerator {
         ...TemplateHelpers.chainEnvVars(this.chain),
         ...TemplateHelpers.timeoutVars(this.config.timeouts || {}),
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' },
-        { name: 'FAUCET_ENABLED', value: String(this.chain.faucet?.enabled || false) },
-        { name: 'NUM_VALIDATORS', value: String(this.chain.numValidators || 1) },
-        { name: 'NUM_RELAYERS', value: String(this.config.relayers?.length || 0) },
+        {
+          name: 'FAUCET_ENABLED',
+          value: String(this.chain.faucet?.enabled || false)
+        },
+        {
+          name: 'NUM_VALIDATORS',
+          value: String(this.chain.numValidators || 1)
+        },
+        {
+          name: 'NUM_RELAYERS',
+          value: String(this.config.relayers?.length || 0)
+        }
       ],
       command: ['bash', '-c', this.genesisScript()],
       resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain),
+      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
     });
 
     // Config init container
@@ -409,17 +451,21 @@ export class CosmosStatefulSetGenerator {
         ...TemplateHelpers.chainEnvVars(this.chain),
         ...TemplateHelpers.timeoutVars(this.config.timeouts || {}),
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' },
-        { name: 'METRICS', value: String(this.chain.metrics || false) },
+        { name: 'METRICS', value: String(this.chain.metrics || false) }
       ],
       command: ['bash', '-c', '/scripts/update-config.sh'],
       resources: TemplateHelpers.nodeResources(this.chain, this.config),
       volumeMounts: [
         ...TemplateHelpers.generateChainVolumeMounts(this.chain),
-        ...(this.chain.genesis ? [{
-          mountPath: '/patch',
-          name: 'patch',
-        }] : []),
-      ],
+        ...(this.chain.genesis
+          ? [
+              {
+                mountPath: '/patch',
+                name: 'patch'
+              }
+            ]
+          : [])
+      ]
     });
 
     // Add additional init containers based on chain configuration
@@ -448,47 +494,82 @@ export class CosmosStatefulSetGenerator {
       env: [
         ...TemplateHelpers.defaultEnvVars(this.chain),
         ...TemplateHelpers.chainEnvVars(this.chain),
-        { name: 'FAUCET_ENABLED', value: String(this.chain.faucet?.enabled || false) },
+        {
+          name: 'FAUCET_ENABLED',
+          value: String(this.chain.faucet?.enabled || false)
+        },
         { name: 'SLOGFILE', value: 'slog.slog' },
-        ...(this.chain.env || []).map((env: any) => ({ name: env.name, value: String(env.value) })),
+        ...(this.chain.env || []).map((env: any) => ({
+          name: env.name,
+          value: String(env.value)
+        }))
       ],
       command: ['bash', '-c', this.validatorStartScript()],
       resources: TemplateHelpers.nodeResources(this.chain, this.config),
       volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain),
-      ...(this.chain.cometmock?.enabled ? {} : {
-        readinessProbe: this.chain.readinessProbe || {
-          exec: {
-            command: ['bash', '-e', '/scripts/chain-rpc-ready.sh', 'http://localhost:26657'],
-          },
-          initialDelaySeconds: 10,
-          periodSeconds: 10,
-          timeoutSeconds: 15,
-        },
-      }),
+      ...(this.chain.cometmock?.enabled
+        ? {}
+        : {
+            readinessProbe: this.chain.readinessProbe || {
+              exec: {
+                command: [
+                  'bash',
+                  '-e',
+                  '/scripts/chain-rpc-ready.sh',
+                  'http://localhost:26657'
+                ]
+              },
+              initialDelaySeconds: 10,
+              periodSeconds: 10,
+              timeoutSeconds: 15
+            }
+          })
     });
 
     // Exposer container
     containers.push({
       name: 'exposer',
-      image: this.config.exposer?.image || 'ghcr.io/cosmology-tech/starship/exposer:latest',
+      image:
+        this.config.exposer?.image ||
+        'ghcr.io/cosmology-tech/starship/exposer:latest',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
-        ...TemplateHelpers.genesisVars(this.chain, this.config.exposer?.ports?.rest || 8081),
+        ...TemplateHelpers.genesisVars(
+          this.chain,
+          this.config.exposer?.ports?.rest || 8081
+        ),
         { name: 'EXPOSER_HTTP_PORT', value: '8081' },
         { name: 'EXPOSER_GRPC_PORT', value: '9099' },
-        { name: 'EXPOSER_GENESIS_FILE', value: `${this.chain.home}/config/genesis.json` },
+        {
+          name: 'EXPOSER_GENESIS_FILE',
+          value: `${this.chain.home}/config/genesis.json`
+        },
         { name: 'EXPOSER_MNEMONIC_FILE', value: '/configs/keys.json' },
-        { name: 'EXPOSER_PRIV_VAL_FILE', value: `${this.chain.home}/config/priv_validator_key.json` },
-        { name: 'EXPOSER_NODE_KEY_FILE', value: `${this.chain.home}/config/node_key.json` },
-        { name: 'EXPOSER_NODE_ID_FILE', value: `${this.chain.home}/config/node_id.json` },
-        { name: 'EXPOSER_PRIV_VAL_STATE_FILE', value: `${this.chain.home}/data/priv_validator_state.json` },
+        {
+          name: 'EXPOSER_PRIV_VAL_FILE',
+          value: `${this.chain.home}/config/priv_validator_key.json`
+        },
+        {
+          name: 'EXPOSER_NODE_KEY_FILE',
+          value: `${this.chain.home}/config/node_key.json`
+        },
+        {
+          name: 'EXPOSER_NODE_ID_FILE',
+          value: `${this.chain.home}/config/node_id.json`
+        },
+        {
+          name: 'EXPOSER_PRIV_VAL_STATE_FILE',
+          value: `${this.chain.home}/data/priv_validator_state.json`
+        }
       ],
       command: ['exposer'],
-      resources: TemplateHelpers.getResourceObject(this.config.exposer?.resources || { cpu: '0.1', memory: '128M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.config.exposer?.resources || { cpu: '0.1', memory: '128M' }
+      ),
       volumeMounts: [
         { mountPath: this.chain.home, name: 'node' },
-        { mountPath: '/configs', name: 'addresses' },
-      ],
+        { mountPath: '/configs', name: 'addresses' }
+      ]
     });
 
     // Faucet container if enabled
@@ -507,7 +588,7 @@ export class CosmosStatefulSetGenerator {
 
     // Build images init container if needed
     if (this.chain.build?.enabled || this.chain.upgrade?.enabled) {
-      let buildCommands = [
+      const buildCommands = [
         '# Install cosmovisor',
         'go install github.com/cosmos/cosmos-sdk/cosmovisor/cmd/cosmovisor@v1.0.0',
         '',
@@ -516,16 +597,22 @@ export class CosmosStatefulSetGenerator {
 
       if (this.chain.upgrade?.enabled) {
         // Build genesis version
-        buildCommands.push(`UPGRADE_NAME=genesis CODE_TAG=${this.chain.upgrade.genesis} bash -e /scripts/build-chain.sh`);
-        
+        buildCommands.push(
+          `UPGRADE_NAME=genesis CODE_TAG=${this.chain.upgrade.genesis} bash -e /scripts/build-chain.sh`
+        );
+
         // Build upgrade versions
         if (this.chain.upgrade.upgrades) {
           this.chain.upgrade.upgrades.forEach((upgrade: any) => {
-            buildCommands.push(`UPGRADE_NAME=${upgrade.name} CODE_TAG=${upgrade.version} bash -e /scripts/build-chain.sh`);
+            buildCommands.push(
+              `UPGRADE_NAME=${upgrade.name} CODE_TAG=${upgrade.version} bash -e /scripts/build-chain.sh`
+            );
           });
         }
       } else if (this.chain.build?.enabled) {
-        buildCommands.push(`UPGRADE_NAME=genesis CODE_TAG=${this.chain.build.source} bash -e /scripts/build-chain.sh`);
+        buildCommands.push(
+          `UPGRADE_NAME=genesis CODE_TAG=${this.chain.build.source} bash -e /scripts/build-chain.sh`
+        );
       }
 
       initContainers.push({
@@ -538,10 +625,10 @@ export class CosmosStatefulSetGenerator {
           { name: 'UPGRADE_DIR', value: `${this.chain.home}/cosmovisor` },
           { name: 'GOBIN', value: '/go/bin' },
           { name: 'CHAIN_NAME', value: getChainId(this.chain) },
-          ...TemplateHelpers.defaultEnvVars(this.chain),
+          ...TemplateHelpers.defaultEnvVars(this.chain)
         ],
         resources: TemplateHelpers.nodeResources(this.chain, this.config),
-        volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain),
+        volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
       });
     }
 
@@ -554,11 +641,11 @@ export class CosmosStatefulSetGenerator {
         ...TemplateHelpers.defaultEnvVars(this.chain),
         ...TemplateHelpers.chainEnvVars(this.chain),
         ...TemplateHelpers.timeoutVars(this.config.timeouts || {}),
-        { name: 'KEYS_CONFIG', value: '/configs/keys.json' },
+        { name: 'KEYS_CONFIG', value: '/configs/keys.json' }
       ],
       command: ['bash', '-c', this.validatorInitScript()],
       resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain),
+      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
     });
 
     // Validator config init container
@@ -571,11 +658,11 @@ export class CosmosStatefulSetGenerator {
         ...TemplateHelpers.chainEnvVars(this.chain),
         ...TemplateHelpers.timeoutVars(this.config.timeouts || {}),
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' },
-        { name: 'METRICS', value: String(this.chain.metrics || false) },
+        { name: 'METRICS', value: String(this.chain.metrics || false) }
       ],
       command: ['bash', '-c', this.validatorConfigScript()],
       resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain),
+      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
     });
 
     return initContainers;
@@ -596,7 +683,10 @@ export class CosmosStatefulSetGenerator {
         ...TemplateHelpers.defaultEnvVars(this.chain),
         ...TemplateHelpers.chainEnvVars(this.chain),
         { name: 'SLOGFILE', value: 'slog.slog' },
-        ...(this.chain.env || []).map((env: any) => ({ name: env.name, value: String(env.value) })),
+        ...(this.chain.env || []).map((env: any) => ({
+          name: env.name,
+          value: String(env.value)
+        }))
       ],
       command: ['bash', '-c', this.validatorStartScript()],
       resources: TemplateHelpers.nodeResources(this.chain, this.config),
@@ -604,37 +694,48 @@ export class CosmosStatefulSetGenerator {
       lifecycle: {
         postStart: {
           exec: {
-            command: ['bash', '-c', this.validatorPostStartScript()],
-          },
-        },
+            command: ['bash', '-c', this.validatorPostStartScript()]
+          }
+        }
       },
-      ...(this.chain.cometmock?.enabled ? {} : {
-        readinessProbe: this.chain.readinessProbe || {
-          exec: {
-            command: ['bash', '-e', '/scripts/chain-rpc-ready.sh', 'http://localhost:26657'],
-          },
-          initialDelaySeconds: 10,
-          periodSeconds: 10,
-          timeoutSeconds: 15,
-        },
-      }),
+      ...(this.chain.cometmock?.enabled
+        ? {}
+        : {
+            readinessProbe: this.chain.readinessProbe || {
+              exec: {
+                command: [
+                  'bash',
+                  '-e',
+                  '/scripts/chain-rpc-ready.sh',
+                  'http://localhost:26657'
+                ]
+              },
+              initialDelaySeconds: 10,
+              periodSeconds: 10,
+              timeoutSeconds: 15
+            }
+          })
     });
 
     return containers;
   }
 
   private genesisScript(): string {
-    return this.scriptManager.getScriptContent(this.chain.scripts['create-genesis'] || {
-      name: 'create-genesis.sh',
-      data: '/scripts/create-genesis.sh',
-    });
+    return this.scriptManager.getScriptContent(
+      this.chain.scripts['create-genesis'] || {
+        name: 'create-genesis.sh',
+        data: '/scripts/create-genesis.sh'
+      }
+    );
   }
 
   private configScript(): string {
-    return this.scriptManager.getScriptContent(this.chain.scripts['update-config'] || {
-      name: 'update-config.sh',
-      data: '/scripts/update-config.sh',
-    });
+    return this.scriptManager.getScriptContent(
+      this.chain.scripts['update-config'] || {
+        name: 'update-config.sh',
+        data: '/scripts/update-config.sh'
+      }
+    );
   }
 
   private validatorStartScript(): string {
@@ -655,10 +756,12 @@ echo "Validator initialization completed"`;
   }
 
   private validatorConfigScript(): string {
-    return this.scriptManager.getScriptContent(this.chain.scripts['update-config'] || {
-      name: 'update-config.sh',
-      data: '/scripts/update-config.sh',
-    });
+    return this.scriptManager.getScriptContent(
+      this.chain.scripts['update-config'] || {
+        name: 'update-config.sh',
+        data: '/scripts/update-config.sh'
+      }
+    );
   }
 
   private validatorPostStartScript(): string {
@@ -672,9 +775,13 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
       name: 'init-faucet',
       image: this.chain.faucet!.image,
       imagePullPolicy: 'IfNotPresent',
-      command: ['bash', '-c', 'cp /bin/faucet /faucet/faucet && chmod +x /faucet/faucet'],
+      command: [
+        'bash',
+        '-c',
+        'cp /bin/faucet /faucet/faucet && chmod +x /faucet/faucet'
+      ],
       resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: [{ mountPath: '/faucet', name: 'faucet' }],
+      volumeMounts: [{ mountPath: '/faucet', name: 'faucet' }]
     };
   }
 
@@ -685,11 +792,15 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
         ...TemplateHelpers.defaultEnvVars(this.chain),
-        { name: 'EXPOSER_PORT', value: String(exposerPort) },
+        { name: 'EXPOSER_PORT', value: String(exposerPort) }
       ],
-      command: ['bash', '-c', `echo "ICS initialization for consumer chain ${getChainId(this.chain)}"`],
+      command: [
+        'bash',
+        '-c',
+        `echo "ICS initialization for consumer chain ${getChainId(this.chain)}"`
+      ],
       resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain),
+      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
     };
   }
 
@@ -706,22 +817,51 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
       image: this.chain.faucet!.image,
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
-        { name: 'FAUCET_CONCURRENCY', value: String(this.chain.faucet!.concurrency || 1) },
-        { name: 'FAUCET_PORT', value: String(this.chain.faucet!.ports?.rest || 8000) },
-        { name: 'FAUCET_GAS_PRICE', value: this.chain.faucet!.gasPrice || '0.025' },
-        { name: 'FAUCET_PATH_PATTERN', value: this.chain.faucet!.pathPattern || '' },
+        {
+          name: 'FAUCET_CONCURRENCY',
+          value: String(this.chain.faucet!.concurrency || 1)
+        },
+        {
+          name: 'FAUCET_PORT',
+          value: String(this.chain.faucet!.ports?.rest || 8000)
+        },
+        {
+          name: 'FAUCET_GAS_PRICE',
+          value: this.chain.faucet!.gasPrice || '0.025'
+        },
+        {
+          name: 'FAUCET_PATH_PATTERN',
+          value: this.chain.faucet!.pathPattern || ''
+        },
         { name: 'FAUCET_ADDRESS_PREFIX', value: this.chain.prefix },
-        { name: 'FAUCET_TOKENS', value: this.chain.faucet!.tokens?.join(',') || this.chain.denom },
-        { name: 'FAUCET_CREDIT_AMOUNT_SEND', value: String(this.chain.faucet!.creditAmount?.send || 10000000) },
-        { name: 'FAUCET_CREDIT_AMOUNT_STAKE', value: String(this.chain.faucet!.creditAmount?.stake || 10000000) },
-        { name: 'FAUCET_MAX_CREDIT', value: String(this.chain.faucet!.maxCredit || 99999999) },
+        {
+          name: 'FAUCET_TOKENS',
+          value: this.chain.faucet!.tokens?.join(',') || this.chain.denom
+        },
+        {
+          name: 'FAUCET_CREDIT_AMOUNT_SEND',
+          value: String(this.chain.faucet!.creditAmount?.send || 10000000)
+        },
+        {
+          name: 'FAUCET_CREDIT_AMOUNT_STAKE',
+          value: String(this.chain.faucet!.creditAmount?.stake || 10000000)
+        },
+        {
+          name: 'FAUCET_MAX_CREDIT',
+          value: String(this.chain.faucet!.maxCredit || 99999999)
+        },
         { name: 'FAUCET_MNEMONIC', value: this.chain.faucet!.mnemonic || '' },
         { name: 'FAUCET_CHAIN_ID', value: getChainId(this.chain) },
-        { name: 'FAUCET_RPC_ENDPOINT', value: `http://localhost:${TemplateHelpers.getPortMap().rpc}` },
+        {
+          name: 'FAUCET_RPC_ENDPOINT',
+          value: `http://localhost:${TemplateHelpers.getPortMap().rpc}`
+        }
       ],
       command: ['yarn', 'start'],
-      resources: TemplateHelpers.getResourceObject(this.chain.faucet!.resources || { cpu: '0.2', memory: '200M' }),
-      volumeMounts: [{ mountPath: '/configs', name: 'addresses' }],
+      resources: TemplateHelpers.getResourceObject(
+        this.chain.faucet!.resources || { cpu: '0.2', memory: '200M' }
+      ),
+      volumeMounts: [{ mountPath: '/configs', name: 'addresses' }]
     };
   }
 
@@ -731,22 +871,42 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
       image: 'busybox:1.34.1',
       imagePullPolicy: 'IfNotPresent',
       env: [
-        { name: 'FAUCET_CONCURRENCY', value: String(this.chain.faucet!.concurrency || 1) },
-        { name: 'FAUCET_PORT', value: String(this.chain.faucet!.ports?.rest || 8000) },
+        {
+          name: 'FAUCET_CONCURRENCY',
+          value: String(this.chain.faucet!.concurrency || 1)
+        },
+        {
+          name: 'FAUCET_PORT',
+          value: String(this.chain.faucet!.ports?.rest || 8000)
+        },
         { name: 'FAUCET_CHAIN_ID', value: getChainId(this.chain) },
         { name: 'FAUCET_CHAIN_DENOM', value: this.chain.denom },
         { name: 'FAUCET_CHAIN_PREFIX', value: this.chain.prefix },
-        { name: 'FAUCET_AMOUNT_SEND', value: String(this.chain.faucet!.creditAmount?.send || 10000000) },
-        { name: 'FAUCET_AMOUNT_STAKE', value: String(this.chain.faucet!.creditAmount?.stake || 10000000) },
-        { name: 'FAUCET_RPC_ENDPOINT', value: `http://localhost:${TemplateHelpers.getPortMap().rpc}` },
-        { name: 'FAUCET_REST_ENDPOINT', value: `http://localhost:${TemplateHelpers.getPortMap().rest}` },
+        {
+          name: 'FAUCET_AMOUNT_SEND',
+          value: String(this.chain.faucet!.creditAmount?.send || 10000000)
+        },
+        {
+          name: 'FAUCET_AMOUNT_STAKE',
+          value: String(this.chain.faucet!.creditAmount?.stake || 10000000)
+        },
+        {
+          name: 'FAUCET_RPC_ENDPOINT',
+          value: `http://localhost:${TemplateHelpers.getPortMap().rpc}`
+        },
+        {
+          name: 'FAUCET_REST_ENDPOINT',
+          value: `http://localhost:${TemplateHelpers.getPortMap().rest}`
+        }
       ],
       command: ['sh', '-c', '/faucet/faucet'],
-      resources: TemplateHelpers.getResourceObject(this.chain.faucet!.resources || { cpu: '0.1', memory: '128M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.chain.faucet!.resources || { cpu: '0.1', memory: '128M' }
+      ),
       volumeMounts: [
         { mountPath: '/configs', name: 'addresses' },
-        { mountPath: '/faucet', name: 'faucet' },
-      ],
+        { mountPath: '/faucet', name: 'faucet' }
+      ]
     };
   }
 }
@@ -780,29 +940,40 @@ export class CosmosBuilder {
     const manifests: Array<ConfigMap | Service | StatefulSet> = [];
 
     // Create generators for this chain
-    const configMapGenerator = new CosmosConfigMapGenerator(chain, this.context.config, this.scriptManager);
-    const serviceGenerator = new CosmosServiceGenerator(chain, this.context.config);
-    const statefulSetGenerator = new CosmosStatefulSetGenerator(chain, this.context.config, this.scriptManager);
+    const configMapGenerator = new CosmosConfigMapGenerator(
+      chain,
+      this.context.config,
+      this.scriptManager
+    );
+    const serviceGenerator = new CosmosServiceGenerator(
+      chain,
+      this.context.config
+    );
+    const statefulSetGenerator = new CosmosStatefulSetGenerator(
+      chain,
+      this.context.config,
+      this.scriptManager
+    );
 
     // Build ConfigMaps
     manifests.push(configMapGenerator.scriptsConfigMap());
-    
+
     const genesisPatch = configMapGenerator.genesisPatchConfigMap();
     if (genesisPatch) manifests.push(genesisPatch);
-    
+
     const icsProposal = configMapGenerator.icsConsumerProposalConfigMap();
     if (icsProposal) manifests.push(icsProposal);
 
     // Build Services
     manifests.push(serviceGenerator.genesisService());
-    
+
     if (chain.numValidators > 1) {
       manifests.push(serviceGenerator.validatorService());
     }
 
     // Build StatefulSets
     manifests.push(statefulSetGenerator.genesisStatefulSet());
-    
+
     if (chain.numValidators > 1) {
       manifests.push(statefulSetGenerator.validatorStatefulSet());
     }
@@ -821,11 +992,13 @@ export class CosmosBuilder {
   generateFiles(chain: Chain, outputDir?: string): void {
     const targetDir = outputDir || this.outputDir;
     if (!targetDir) {
-      throw new Error('Output directory must be provided either in constructor or method call');
+      throw new Error(
+        'Output directory must be provided either in constructor or method call'
+      );
     }
 
     const manifests = this.buildManifests(chain);
-    
+
     // Skip if no manifests to write (e.g., Ethereum chains or other unsupported chains)
     if (manifests.length === 0) {
       return;
@@ -840,7 +1013,9 @@ export class CosmosBuilder {
   generateAllFiles(outputDir?: string): void {
     const targetDir = outputDir || this.outputDir;
     if (!targetDir) {
-      throw new Error('Output directory must be provided either in constructor or method call');
+      throw new Error(
+        'Output directory must be provided either in constructor or method call'
+      );
     }
 
     for (const chain of this.context.config.chains) {
@@ -856,45 +1031,59 @@ export class CosmosBuilder {
    *   service.yaml: services for deployments
    *   configmap.yaml: configmaps for the chain
    */
-  writeManifests(chain: Chain, manifests: Array<ConfigMap | Service | StatefulSet>, outputDir: string): void {
+  writeManifests(
+    chain: Chain,
+    manifests: Array<ConfigMap | Service | StatefulSet>,
+    outputDir: string
+  ): void {
     const chainName = chain.name || String(chain.id);
     const chainDir = path.join(outputDir, chainName);
-    
+
     // Create chain directory
     fs.mkdirSync(chainDir, { recursive: true });
 
     // Separate manifests by type
-    const configMaps = manifests.filter(m => m.kind === 'ConfigMap') as ConfigMap[];
-    const services = manifests.filter(m => m.kind === 'Service') as Service[];
-    const statefulSets = manifests.filter(m => m.kind === 'StatefulSet') as StatefulSet[];
+    const configMaps = manifests.filter(
+      (m) => m.kind === 'ConfigMap'
+    ) as ConfigMap[];
+    const services = manifests.filter((m) => m.kind === 'Service') as Service[];
+    const statefulSets = manifests.filter(
+      (m) => m.kind === 'StatefulSet'
+    ) as StatefulSet[];
 
     // Write ConfigMaps
     if (configMaps.length > 0) {
-      const configMapYaml = configMaps.map(cm => yaml.dump(cm)).join('---\n');
+      const configMapYaml = configMaps.map((cm) => yaml.dump(cm)).join('---\n');
       fs.writeFileSync(path.join(chainDir, 'configmap.yaml'), configMapYaml);
     }
 
     // Write Services
     if (services.length > 0) {
-      const serviceYaml = services.map(svc => yaml.dump(svc)).join('---\n');
+      const serviceYaml = services.map((svc) => yaml.dump(svc)).join('---\n');
       fs.writeFileSync(path.join(chainDir, 'service.yaml'), serviceYaml);
     }
 
     // Write StatefulSets - separate genesis and validator
-    const genesisStatefulSets = statefulSets.filter(ss => 
+    const genesisStatefulSets = statefulSets.filter((ss) =>
       ss.metadata?.name?.includes('genesis')
     );
-    const validatorStatefulSets = statefulSets.filter(ss => 
-      ss.metadata?.name?.includes('validator') && !ss.metadata?.name?.includes('genesis')
+    const validatorStatefulSets = statefulSets.filter(
+      (ss) =>
+        ss.metadata?.name?.includes('validator') &&
+        !ss.metadata?.name?.includes('genesis')
     );
 
     if (genesisStatefulSets.length > 0) {
-      const genesisYaml = genesisStatefulSets.map(ss => yaml.dump(ss)).join('---\n');
+      const genesisYaml = genesisStatefulSets
+        .map((ss) => yaml.dump(ss))
+        .join('---\n');
       fs.writeFileSync(path.join(chainDir, 'genesis.yaml'), genesisYaml);
     }
 
     if (validatorStatefulSets.length > 0) {
-      const validatorYaml = validatorStatefulSets.map(ss => yaml.dump(ss)).join('---\n');
+      const validatorYaml = validatorStatefulSets
+        .map((ss) => yaml.dump(ss))
+        .join('---\n');
       fs.writeFileSync(path.join(chainDir, 'validator.yaml'), validatorYaml);
     }
   }
@@ -902,7 +1091,9 @@ export class CosmosBuilder {
   /**
    * Build cometmock manifests (placeholder for now)
    */
-  private cometmockManifests(chain: any): Array<ConfigMap | Service | StatefulSet> {
+  private cometmockManifests(
+    _chain: any
+  ): Array<ConfigMap | Service | StatefulSet> {
     // TODO: Implement cometmock manifest generation
     return [];
   }

@@ -1,9 +1,10 @@
-import * as fs from 'fs';
-import * as path from 'path';
-import * as yaml from 'js-yaml';
 import { Chain, FaucetConfig, Script } from '@starship-ci/types/src';
-import { ProcessedChain, DefaultsConfig } from './types';
+import * as fs from 'fs';
+import * as yaml from 'js-yaml';
+import * as path from 'path';
+
 import { TemplateHelpers } from './helpers';
+import { DefaultsConfig, ProcessedChain } from './types';
 
 export class DefaultsManager {
   private defaultsData: DefaultsConfig;
@@ -11,7 +12,8 @@ export class DefaultsManager {
 
   constructor(defaultsPath?: string) {
     // Default to the configs/defaults.yaml in the generator package
-    this.defaultsPath = defaultsPath || path.join(__dirname, '../configs/defaults.yaml');
+    this.defaultsPath =
+      defaultsPath || path.join(__dirname, '../configs/defaults.yaml');
     this.loadDefaults();
   }
 
@@ -24,13 +26,17 @@ export class DefaultsManager {
         const yamlContent = fs.readFileSync(this.defaultsPath, 'utf8');
         this.defaultsData = yaml.load(yamlContent) as DefaultsConfig;
       } else {
-        console.warn(`Defaults file not found at ${this.defaultsPath}, using empty defaults`);
+        console.warn(
+          `Defaults file not found at ${this.defaultsPath}, using empty defaults`
+        );
         this.defaultsData = {
           defaultChains: {},
           defaultFaucet: {},
           defaultRelayers: {},
           defaultScripts: {},
-          defaultCometmock: { image: 'ghcr.io/informalsystems/cometmock:v0.37.x' }
+          defaultCometmock: {
+            image: 'ghcr.io/informalsystems/cometmock:v0.37.x'
+          }
         };
       }
     } catch (error) {
@@ -87,16 +93,17 @@ export class DefaultsManager {
   processChain(chainConfig: Chain): ProcessedChain {
     // Get default chain configuration
     const defaultChain = this.getChainDefaults(chainConfig.name);
-    
+
     // Merge configurations (chain config takes precedence)
     const mergedChain = {
       ...defaultChain,
-      ...chainConfig,
+      ...chainConfig
     };
 
     // Set computed properties
     const hostname = TemplateHelpers.chainName(String(chainConfig.id));
-    const toBuild = chainConfig.build?.enabled || chainConfig.upgrade?.enabled || false;
+    const toBuild =
+      chainConfig.build?.enabled || chainConfig.upgrade?.enabled || false;
 
     // Process faucet configuration
     const defaultFaucet = this.getFaucetDefaults('starship');
@@ -104,14 +111,14 @@ export class DefaultsManager {
       enabled: true,
       type: 'starship' as const,
       ...defaultFaucet,
-      ...mergedChain.faucet,
+      ...mergedChain.faucet
     };
 
     // Process cometmock configuration
     const cometmockConfig = {
       enabled: false,
       ...this.getDefaultCometmock(),
-      ...mergedChain.cometmock,
+      ...mergedChain.cometmock
     };
 
     // Process upgrade/build settings
@@ -130,7 +137,7 @@ export class DefaultsManager {
     const scripts = {
       ...defaultScripts,
       ...chainDefaultScripts,
-      ...mergedChain.scripts,
+      ...mergedChain.scripts
     };
 
     return {
@@ -142,7 +149,7 @@ export class DefaultsManager {
       cometmock: cometmockConfig,
       upgrade: upgradeConfig,
       build: buildConfig,
-      scripts,
+      scripts
     } as ProcessedChain;
   }
 
@@ -166,4 +173,4 @@ export class DefaultsManager {
   getAllDefaults(): DefaultsConfig {
     return this.defaultsData;
   }
-} 
+}
