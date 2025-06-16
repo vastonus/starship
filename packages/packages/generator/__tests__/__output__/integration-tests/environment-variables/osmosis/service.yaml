@@ -3,11 +3,12 @@ kind: Service
 metadata:
   name: osmosis-genesis
   labels:
-    helm.sh/chart: devnet-4.0.0
-    app.kubernetes.io/name: osmosis-1-genesis
     app.kubernetes.io/instance: starship-generator-test
     app.kubernetes.io/version: 4.0.0
-    app.kubernetes.io/managed-by: starship-generator
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/id: osmosis-1
+    app.kubernetes.io/name: osmosis
+    app.kubernetes.io/type: osmosis-1-service
 spec:
   clusterIP: None
   ports:

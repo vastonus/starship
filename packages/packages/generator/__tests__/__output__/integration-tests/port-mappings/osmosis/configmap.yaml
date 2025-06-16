@@ -3,11 +3,12 @@ kind: ConfigMap
 metadata:
   name: setup-scripts-osmosis
   labels:
-    helm.sh/chart: devnet-4.0.0
-    app.kubernetes.io/name: starship-generator-test
     app.kubernetes.io/instance: starship-generator-test
     app.kubernetes.io/version: 4.0.0
-    app.kubernetes.io/managed-by: starship-generator
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/id: osmosis-1
+    app.kubernetes.io/name: osmosis
+    app.kubernetes.io/type: osmosis-1-configmap
 data:
   create-genesis.sh: >
     #!/bin/bash
@@ -839,11 +840,12 @@ kind: ConfigMap
 metadata:
   name: patch-osmosis
   labels:
-    helm.sh/chart: devnet-4.0.0
-    app.kubernetes.io/name: starship-generator-test
     app.kubernetes.io/instance: starship-generator-test
     app.kubernetes.io/version: 4.0.0
-    app.kubernetes.io/managed-by: starship-generator
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/id: osmosis-1
+    app.kubernetes.io/name: osmosis
+    app.kubernetes.io/type: osmosis-1-configmap
 data:
   genesis.json: |-
     {

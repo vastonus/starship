@@ -25,10 +25,9 @@ export class TemplateHelpers {
    */
   static commonLabels(config: StarshipConfig): Record<string, string> {
     return {
-      'helm.sh/chart': `devnet-${config.version || '1.8.0'}`,
       ...this.selectorLabels(config),
-      'app.kubernetes.io/version': config.version || '1.8.0',
-      'app.kubernetes.io/managed-by': 'starship-generator'
+      'app.kubernetes.io/version': config.version,
+      'app.kubernetes.io/managed-by': 'starship'
     };
   }
 
@@ -37,8 +36,7 @@ export class TemplateHelpers {
    */
   static selectorLabels(config: StarshipConfig): Record<string, string> {
     return {
-      'app.kubernetes.io/name': this.fullname(config),
-      'app.kubernetes.io/instance': config.name || 'starship'
+      'app.kubernetes.io/instance': config.name,
     };
   }
 

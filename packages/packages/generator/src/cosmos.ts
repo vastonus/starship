@@ -39,6 +39,15 @@ export class CosmosConfigMapGenerator {
     this.chain = this.defaultsManager.processChain(chain);
   }
 
+  labels(): Record<string, string> {
+    return {
+      ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/id': getChainId(this.chain),
+      'app.kubernetes.io/name': this.chain.name,
+      'app.kubernetes.io/type': `${getChainId(this.chain)}-configmap`
+    };
+  }
+
   /**
    * Create scripts ConfigMap
    */
@@ -55,7 +64,7 @@ export class CosmosConfigMapGenerator {
       kind: 'ConfigMap',
       metadata: {
         name: `setup-scripts-${getHostname(this.chain)}`,
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: this.labels()
       },
       data: scriptsData
     };
@@ -72,7 +81,7 @@ export class CosmosConfigMapGenerator {
       kind: 'ConfigMap',
       metadata: {
         name: `patch-${getHostname(this.chain)}`,
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: this.labels()
       },
       data: {
         'genesis.json': JSON.stringify(this.chain.genesis, null, 2)
@@ -95,7 +104,7 @@ export class CosmosConfigMapGenerator {
       kind: 'ConfigMap',
       metadata: {
         name: `consumer-proposal-${getHostname(this.chain)}`,
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: this.labels()
       },
       data: {
         'proposal.json': JSON.stringify(
@@ -147,6 +156,15 @@ export class CosmosServiceGenerator {
     this.chain = chain;
   }
 
+  labels(): Record<string, string> {
+    return {
+      ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/id': getChainId(this.chain),
+      'app.kubernetes.io/name': this.chain.name,
+      'app.kubernetes.io/type': `${getChainId(this.chain)}-service`
+    };
+  }
+
   /**
    * Create Service for genesis node
    */
@@ -174,10 +192,7 @@ export class CosmosServiceGenerator {
       kind: 'Service',
       metadata: {
         name: `${getHostname(this.chain)}-genesis`,
-        labels: {
-          ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`
-        }
+        labels: this.labels()
       },
       spec: {
         clusterIP: 'None',
@@ -252,6 +267,15 @@ export class CosmosStatefulSetGenerator {
     this.chain = this.defaultsManager.processChain(chain);
   }
 
+  labels(): Record<string, string> {
+    return {
+      ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/id': getChainId(this.chain),
+      'app.kubernetes.io/name': `${getHostname(this.chain)}-genesis`,
+      'app.kubernetes.io/type': `${getChainId(this.chain)}-statefulset`
+    };
+  }
+
   /**
    * Create StatefulSet for genesis node
    */
@@ -261,7 +285,7 @@ export class CosmosStatefulSetGenerator {
       kind: 'StatefulSet',
       metadata: {
         name: `${getHostname(this.chain)}-genesis`,
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: this.labels()
       },
       spec: {
         serviceName: `${getHostname(this.chain)}-genesis`,
@@ -315,7 +339,7 @@ export class CosmosStatefulSetGenerator {
       kind: 'StatefulSet',
       metadata: {
         name: `${getHostname(this.chain)}-validator`,
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: this.labels()
       },
       spec: {
         serviceName: `${getHostname(this.chain)}-validator`,

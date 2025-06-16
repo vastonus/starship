@@ -3,11 +3,12 @@ kind: StatefulSet
 metadata:
   name: osmosis-genesis
   labels:
-    helm.sh/chart: devnet-4.0.0
-    app.kubernetes.io/name: starship-generator-test
     app.kubernetes.io/instance: starship-generator-test
     app.kubernetes.io/version: 4.0.0
-    app.kubernetes.io/managed-by: starship-generator
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/id: osmosis-1
+    app.kubernetes.io/name: osmosis-genesis
+    app.kubernetes.io/type: osmosis-1-statefulset
 spec:
   serviceName: osmosis-genesis
   replicas: 1
