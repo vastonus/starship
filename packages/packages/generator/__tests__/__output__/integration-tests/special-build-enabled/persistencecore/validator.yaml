@@ -1,0 +1,260 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: persistencecore-validator
+  labels:
+    app.kubernetes.io/instance: starship-generator-test
+    app.kubernetes.io/version: 4.0.0
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/id: core-1
+    app.kubernetes.io/name: persistencecore-genesis
+    app.kubernetes.io/type: core-1-statefulset
+spec:
+  serviceName: persistencecore-validator
+  podManagementPolicy: Parallel
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: persistencecore
+      app.kubernetes.io/name: core-1-validator
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
+      labels:
+        app.kubernetes.io/instance: persistencecore
+        app.kubernetes.io/type: core-1
+        app.kubernetes.io/name: core-1-validator
+        app.kubernetes.io/version: 4.0.0
+    spec:
+      initContainers:
+        - name: init-build-images
+          image: ghcr.io/cosmology-tech/starship/builder:latest
+          imagePullPolicy: IfNotPresent
+          command:
+            - bash
+            - '-c'
+            - >-
+              # Install cosmovisor
+
+              go install
+              github.com/cosmos/cosmos-sdk/cosmovisor/cmd/cosmovisor@v1.0.0
+
+
+              # Build genesis
+
+              UPGRADE_NAME=genesis CODE_TAG=v7.0.0 bash -e
+              /scripts/build-chain.sh
+          env:
+            - name: CODE_REF
+              value: https://github.com/persistenceOne/persistenceCore
+            - name: UPGRADE_DIR
+              value: /root/.persistenceCore/cosmovisor
+            - name: GOBIN
+              value: /go/bin
+            - name: CHAIN_NAME
+              value: core-1
+            - name: DENOM
+              value: uxprt
+            - name: COINS
+              value: 100000000000000uxprt
+            - name: CHAIN_BIN
+              value: persistenceCore
+            - name: CHAIN_DIR
+              value: /root/.persistenceCore
+            - name: CODE_REPO
+              value: https://github.com/persistenceOne/persistenceCore
+            - name: DAEMON_HOME
+              value: /root/.persistenceCore
+            - name: DAEMON_NAME
+              value: persistenceCore
+          resources:
+            limits:
+              cpu: '2'
+              memory: 2Gi
+            requests:
+              cpu: '2'
+              memory: 2Gi
+          volumeMounts:
+            - mountPath: /root/.persistenceCore
+              name: node
+            - mountPath: /configs
+              name: addresses
+            - mountPath: /scripts
+              name: scripts
+        - name: init-validator
+          image: ghcr.io/cosmology-tech/starship/runner:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DENOM
+              value: uxprt
+            - name: COINS
+              value: 100000000000000uxprt
+            - name: CHAIN_BIN
+              value: persistenceCore
+            - name: CHAIN_DIR
+              value: /root/.persistenceCore
+            - name: CODE_REPO
+              value: https://github.com/persistenceOne/persistenceCore
+            - name: DAEMON_HOME
+              value: /root/.persistenceCore
+            - name: DAEMON_NAME
+              value: persistenceCore
+            - name: CHAIN_ID
+              value: core-1
+            - name: KEYS_CONFIG
+              value: /configs/keys.json
+          command:
+            - bash
+            - '-c'
+            - >-
+              #!/bin/bash
+
+              set -euo pipefail
+
+
+              echo "Initializing validator node for core-1..."
+
+              persistenceCore init validator-${HOSTNAME##*-} --chain-id core-1
+              --home /root/.persistenceCore
+
+              echo "Validator initialization completed"
+          resources:
+            limits:
+              cpu: '2'
+              memory: 2Gi
+            requests:
+              cpu: '2'
+              memory: 2Gi
+          volumeMounts:
+            - mountPath: /root/.persistenceCore
+              name: node
+            - mountPath: /configs
+              name: addresses
+            - mountPath: /scripts
+              name: scripts
+        - name: init-validator-config
+          image: ghcr.io/cosmology-tech/starship/runner:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DENOM
+              value: uxprt
+            - name: COINS
+              value: 100000000000000uxprt
+            - name: CHAIN_BIN
+              value: persistenceCore
+            - name: CHAIN_DIR
+              value: /root/.persistenceCore
+            - name: CODE_REPO
+              value: https://github.com/persistenceOne/persistenceCore
+            - name: DAEMON_HOME
+              value: /root/.persistenceCore
+            - name: DAEMON_NAME
+              value: persistenceCore
+            - name: CHAIN_ID
+              value: core-1
+            - name: KEYS_CONFIG
+              value: /configs/keys.json
+            - name: METRICS
+              value: 'false'
+          command:
+            - bash
+            - '-c'
+            - /scripts/update-config.sh
+          resources:
+            limits:
+              cpu: '2'
+              memory: 2Gi
+            requests:
+              cpu: '2'
+              memory: 2Gi
+          volumeMounts:
+            - mountPath: /root/.persistenceCore
+              name: node
+            - mountPath: /configs
+              name: addresses
+            - mountPath: /scripts
+              name: scripts
+      containers:
+        - name: validator
+          image: ghcr.io/cosmology-tech/starship/runner:latest
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DENOM
+              value: uxprt
+            - name: COINS
+              value: 100000000000000uxprt
+            - name: CHAIN_BIN
+              value: persistenceCore
+            - name: CHAIN_DIR
+              value: /root/.persistenceCore
+            - name: CODE_REPO
+              value: https://github.com/persistenceOne/persistenceCore
+            - name: DAEMON_HOME
+              value: /root/.persistenceCore
+            - name: DAEMON_NAME
+              value: persistenceCore
+            - name: CHAIN_ID
+              value: core-1
+            - name: SLOGFILE
+              value: slog.slog
+          command:
+            - bash
+            - '-c'
+            - >-
+              #!/bin/bash
+
+              set -euo pipefail
+
+
+              echo "Starting persistenceCore validator..."
+
+              exec persistenceCore start --home /root/.persistenceCore
+              --log_level info
+          resources:
+            limits:
+              cpu: '2'
+              memory: 2Gi
+            requests:
+              cpu: '2'
+              memory: 2Gi
+          volumeMounts:
+            - mountPath: /root/.persistenceCore
+              name: node
+            - mountPath: /configs
+              name: addresses
+            - mountPath: /scripts
+              name: scripts
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - bash
+                  - '-c'
+                  - |-
+                    #!/bin/bash
+                    echo "Validator post-start hook for core-1"
+                    # Add any post-start logic here
+          readinessProbe:
+            exec:
+              command:
+                - bash
+                - '-e'
+                - /scripts/chain-rpc-ready.sh
+                - http://localhost:26657
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 15
+      volumes:
+        - name: node
+          emptyDir: {}
+        - name: addresses
+          configMap:
+            name: keys
+        - name: scripts
+          configMap:
+            name: setup-scripts-core-1

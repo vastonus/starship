@@ -1,0 +1,202 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: osmosis-validator
+  labels:
+    app.kubernetes.io/instance: starship-generator-test
+    app.kubernetes.io/version: 4.0.0
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/id: osmosis-1
+    app.kubernetes.io/name: osmosis-genesis
+    app.kubernetes.io/type: osmosis-1-statefulset
+spec:
+  serviceName: osmosis-validator
+  podManagementPolicy: Parallel
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: osmosis
+      app.kubernetes.io/name: osmosis-1-validator
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
+      labels:
+        app.kubernetes.io/instance: osmosis
+        app.kubernetes.io/type: osmosis-1
+        app.kubernetes.io/name: osmosis-1-validator
+        app.kubernetes.io/version: 4.0.0
+    spec:
+      initContainers:
+        - name: init-validator
+          image: ghcr.io/cosmology-tech/starship/osmosis:v25.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DENOM
+              value: uosmo
+            - name: COINS
+              value: 100000000000000uosmo,100000000000000uion
+            - name: CHAIN_BIN
+              value: osmosisd
+            - name: CHAIN_DIR
+              value: /root/.osmosisd
+            - name: CODE_REPO
+              value: https://github.com/osmosis-labs/osmosis
+            - name: DAEMON_HOME
+              value: /root/.osmosisd
+            - name: DAEMON_NAME
+              value: osmosisd
+            - name: CHAIN_ID
+              value: osmosis-1
+            - name: KEYS_CONFIG
+              value: /configs/keys.json
+          command:
+            - bash
+            - '-c'
+            - >-
+              #!/bin/bash
+
+              set -euo pipefail
+
+
+              echo "Initializing validator node for osmosis-1..."
+
+              osmosisd init validator-${HOSTNAME##*-} --chain-id osmosis-1
+              --home /root/.osmosisd
+
+              echo "Validator initialization completed"
+          resources:
+            limits:
+              cpu: '0.5'
+              memory: 500M
+            requests:
+              cpu: '0.5'
+              memory: 500M
+          volumeMounts:
+            - mountPath: /root/.osmosisd
+              name: node
+            - mountPath: /configs
+              name: addresses
+            - mountPath: /scripts
+              name: scripts
+        - name: init-validator-config
+          image: ghcr.io/cosmology-tech/starship/osmosis:v25.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DENOM
+              value: uosmo
+            - name: COINS
+              value: 100000000000000uosmo,100000000000000uion
+            - name: CHAIN_BIN
+              value: osmosisd
+            - name: CHAIN_DIR
+              value: /root/.osmosisd
+            - name: CODE_REPO
+              value: https://github.com/osmosis-labs/osmosis
+            - name: DAEMON_HOME
+              value: /root/.osmosisd
+            - name: DAEMON_NAME
+              value: osmosisd
+            - name: CHAIN_ID
+              value: osmosis-1
+            - name: KEYS_CONFIG
+              value: /configs/keys.json
+            - name: METRICS
+              value: 'false'
+          command:
+            - bash
+            - '-c'
+            - /scripts/update-config.sh
+          resources:
+            limits:
+              cpu: '0.5'
+              memory: 500M
+            requests:
+              cpu: '0.5'
+              memory: 500M
+          volumeMounts:
+            - mountPath: /root/.osmosisd
+              name: node
+            - mountPath: /configs
+              name: addresses
+            - mountPath: /scripts
+              name: scripts
+      containers:
+        - name: validator
+          image: ghcr.io/cosmology-tech/starship/osmosis:v25.0.0
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: DENOM
+              value: uosmo
+            - name: COINS
+              value: 100000000000000uosmo,100000000000000uion
+            - name: CHAIN_BIN
+              value: osmosisd
+            - name: CHAIN_DIR
+              value: /root/.osmosisd
+            - name: CODE_REPO
+              value: https://github.com/osmosis-labs/osmosis
+            - name: DAEMON_HOME
+              value: /root/.osmosisd
+            - name: DAEMON_NAME
+              value: osmosisd
+            - name: CHAIN_ID
+              value: osmosis-1
+            - name: SLOGFILE
+              value: slog.slog
+          command:
+            - bash
+            - '-c'
+            - |-
+              #!/bin/bash
+              set -euo pipefail
+
+              echo "Starting osmosisd validator..."
+              exec osmosisd start --home /root/.osmosisd --log_level info
+          resources:
+            limits:
+              cpu: '0.5'
+              memory: 500M
+            requests:
+              cpu: '0.5'
+              memory: 500M
+          volumeMounts:
+            - mountPath: /root/.osmosisd
+              name: node
+            - mountPath: /configs
+              name: addresses
+            - mountPath: /scripts
+              name: scripts
+          lifecycle:
+            postStart:
+              exec:
+                command:
+                  - bash
+                  - '-c'
+                  - |-
+                    #!/bin/bash
+                    echo "Validator post-start hook for osmosis-1"
+                    # Add any post-start logic here
+          readinessProbe:
+            exec:
+              command:
+                - bash
+                - '-e'
+                - /scripts/chain-rpc-ready.sh
+                - http://localhost:26657
+            initialDelaySeconds: 10
+            periodSeconds: 10
+            timeoutSeconds: 15
+      volumes:
+        - name: node
+          emptyDir: {}
+        - name: addresses
+          configMap:
+            name: keys
+        - name: scripts
+          configMap:
+            name: setup-scripts-osmosis-1
