@@ -1,4 +1,4 @@
-import { StarshipConfig } from '@starship-ci/types/src';
+import { StarshipConfig } from '@starship-ci/types';
 
 import { EnvVar, ProcessedChain } from './types';
 

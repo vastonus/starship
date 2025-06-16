@@ -1,4 +1,4 @@
-import { Script } from '@starship-ci/types/src';
+import { Script } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as path from 'path';
 

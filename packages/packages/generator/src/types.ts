@@ -4,7 +4,7 @@ import {
   Relayer,
   Script,
   StarshipConfig
-} from '@starship-ci/types/src';
+} from '@starship-ci/types';
 
 export interface EnvVar {
   name: string;

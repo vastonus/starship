@@ -1,4 +1,4 @@
-import { StarshipConfig } from '@starship-ci/types/src';
+import { StarshipConfig } from '@starship-ci/types';
 import { join, resolve } from 'path';
 
 export const outputDir = resolve(join(__dirname, '../__output__'));

@@ -1,4 +1,4 @@
-import { Chain, StarshipConfig } from '@starship-ci/types/src';
+import { Chain, StarshipConfig } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';

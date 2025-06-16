@@ -10,4 +10,4 @@ export { ScriptManager } from './scripts';
 export { CosmosChainBuilder } from './cosmos';
 
 // Re-export types from starship-ci/types for convenience
-export { Chain, StarshipConfig } from '@starship-ci/types/src';
+export { Chain, StarshipConfig } from '@starship-ci/types';

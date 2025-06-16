@@ -1,4 +1,4 @@
-import { Chain, FaucetConfig, Script } from '@starship-ci/types/src';
+import { Chain, FaucetConfig, Script } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
