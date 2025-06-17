@@ -4,10 +4,10 @@ import * as yaml from 'js-yaml';
 import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
 import * as path from 'path';
 
-import { DefaultsManager } from './defaults';
-import { TemplateHelpers } from './helpers';
-import { ScriptManager } from './scripts';
-import { GeneratorContext } from './types';
+import { DefaultsManager } from '../defaults';
+import { TemplateHelpers } from '../helpers';
+import { ScriptManager } from '../scripts';
+import { GeneratorContext } from '../types';
 
 // Helper functions
 function getHostname(chain: Chain): string {

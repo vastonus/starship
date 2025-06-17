@@ -7,7 +7,7 @@ import {
   CosmosConfigMapGenerator,
   CosmosServiceGenerator,
   CosmosStatefulSetGenerator
-} from '../src/cosmos';
+} from '../src/builders/cosmos';
 import { ScriptManager } from '../src/scripts';
 import { GeneratorContext } from '../src/types';
 import {

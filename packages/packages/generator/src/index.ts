@@ -7,7 +7,7 @@ export { TemplateHelpers } from './helpers';
 export { ScriptManager } from './scripts';
 
 // Builders
-export { CosmosChainBuilder } from './cosmos';
+export { CosmosBuilder } from './builders/cosmos';
 
 // Re-export types from starship-ci/types for convenience
 export { Chain, StarshipConfig } from '@starship-ci/types';

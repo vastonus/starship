@@ -2,7 +2,7 @@ import { existsSync, mkdirSync, readFileSync } from 'fs';
 import * as yaml from 'js-yaml';
 import { join } from 'path';
 
-import { CosmosBuilder } from '../src/cosmos';
+import { CosmosBuilder } from '../src/builders/cosmos';
 import { GeneratorContext } from '../src/types';
 import {
   buildChainConfig,
