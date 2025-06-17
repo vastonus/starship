@@ -1123,5 +1123,3 @@ export class CosmosBuilder {
   }
 }
 
-// Backward compatibility export
-export const CosmosChainBuilder = CosmosBuilder;
