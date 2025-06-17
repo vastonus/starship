@@ -36,7 +36,7 @@ export class TemplateHelpers {
    */
   static selectorLabels(config: StarshipConfig): Record<string, string> {
     return {
-      'app.kubernetes.io/instance': config.name,
+      'app.kubernetes.io/instance': config.name
     };
   }
 

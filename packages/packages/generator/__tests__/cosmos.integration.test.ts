@@ -2,20 +2,13 @@ import { existsSync, mkdirSync, readFileSync } from 'fs';
 import * as yaml from 'js-yaml';
 import { join } from 'path';
 
-import {
-  CosmosBuilder,
-  CosmosConfigMapGenerator,
-  CosmosServiceGenerator,
-  CosmosStatefulSetGenerator
-} from '../src/cosmos';
+import { CosmosBuilder } from '../src/cosmos';
 import { GeneratorContext } from '../src/types';
 import {
   buildChainConfig,
   cometmockConfig,
   cosmjsFaucetConfig,
-  customChainConfig,
   ethereumConfig,
-  multiValidatorConfig,
   outputDir,
   singleChainConfig,
   twoChainConfig
@@ -135,12 +128,20 @@ describe('Cosmos Integration Tests', () => {
       expect(existsSync(join(outputPath, 'osmosis'))).toBe(true);
 
       // Should have basic files
-      expect(existsSync(join(outputPath, 'osmosis', 'configmap.yaml'))).toBe(true);
-      expect(existsSync(join(outputPath, 'osmosis', 'service.yaml'))).toBe(true);
-      expect(existsSync(join(outputPath, 'osmosis', 'genesis.yaml'))).toBe(true);
+      expect(existsSync(join(outputPath, 'osmosis', 'configmap.yaml'))).toBe(
+        true
+      );
+      expect(existsSync(join(outputPath, 'osmosis', 'service.yaml'))).toBe(
+        true
+      );
+      expect(existsSync(join(outputPath, 'osmosis', 'genesis.yaml'))).toBe(
+        true
+      );
 
       // Single validator should not have validator.yaml
-      expect(existsSync(join(outputPath, 'osmosis', 'validator.yaml'))).toBe(false);
+      expect(existsSync(join(outputPath, 'osmosis', 'validator.yaml'))).toBe(
+        false
+      );
 
       // Snapshot the setup
       const chainContent = {
@@ -196,31 +197,61 @@ describe('Cosmos Integration Tests', () => {
       // Check ConfigMap labels
       configMaps.forEach((configMap) => {
         expect(configMap.metadata.labels).toBeDefined();
-        expect(configMap.metadata.labels['app.kubernetes.io/name']).toBe('osmosis');
-        expect(configMap.metadata.labels['app.kubernetes.io/version']).toBe(context.config.version);
-        expect(configMap.metadata.labels['app.kubernetes.io/managed-by']).toBe('starship');
-        expect(configMap.metadata.labels['app.kubernetes.io/type']).toBe('osmosis-1-configmap');
-        expect(configMap.metadata.labels['app.kubernetes.io/id']).toBe('osmosis-1');
+        expect(configMap.metadata.labels['app.kubernetes.io/name']).toBe(
+          'osmosis'
+        );
+        expect(configMap.metadata.labels['app.kubernetes.io/version']).toBe(
+          context.config.version
+        );
+        expect(configMap.metadata.labels['app.kubernetes.io/managed-by']).toBe(
+          'starship'
+        );
+        expect(configMap.metadata.labels['app.kubernetes.io/type']).toBe(
+          'osmosis-1-configmap'
+        );
+        expect(configMap.metadata.labels['app.kubernetes.io/id']).toBe(
+          'osmosis-1'
+        );
       });
 
       // Check Service labels
       services.forEach((service) => {
         expect(service.metadata.labels).toBeDefined();
-        expect(service.metadata.labels['app.kubernetes.io/name']).toBe('osmosis');
-        expect(service.metadata.labels['app.kubernetes.io/version']).toBe(context.config.version);
-        expect(service.metadata.labels['app.kubernetes.io/managed-by']).toBe('starship');
-        expect(service.metadata.labels['app.kubernetes.io/type']).toBe('osmosis-1-service');
-        expect(service.metadata.labels['app.kubernetes.io/id']).toBe('osmosis-1');
+        expect(service.metadata.labels['app.kubernetes.io/name']).toBe(
+          'osmosis'
+        );
+        expect(service.metadata.labels['app.kubernetes.io/version']).toBe(
+          context.config.version
+        );
+        expect(service.metadata.labels['app.kubernetes.io/managed-by']).toBe(
+          'starship'
+        );
+        expect(service.metadata.labels['app.kubernetes.io/type']).toBe(
+          'osmosis-1-service'
+        );
+        expect(service.metadata.labels['app.kubernetes.io/id']).toBe(
+          'osmosis-1'
+        );
       });
 
       // Check StatefulSet labels
       statefulSets.forEach((statefulSet) => {
         expect(statefulSet.metadata.labels).toBeDefined();
-        expect(statefulSet.metadata.labels['app.kubernetes.io/name']).toBe('osmosis-genesis');
-        expect(statefulSet.metadata.labels['app.kubernetes.io/version']).toBe(context.config.version);
-        expect(statefulSet.metadata.labels['app.kubernetes.io/managed-by']).toBe('starship');
-        expect(statefulSet.metadata.labels['app.kubernetes.io/type']).toBe('osmosis-1-statefulset');
-        expect(statefulSet.metadata.labels['app.kubernetes.io/id']).toBe('osmosis-1');
+        expect(statefulSet.metadata.labels['app.kubernetes.io/name']).toBe(
+          'osmosis-genesis'
+        );
+        expect(statefulSet.metadata.labels['app.kubernetes.io/version']).toBe(
+          context.config.version
+        );
+        expect(
+          statefulSet.metadata.labels['app.kubernetes.io/managed-by']
+        ).toBe('starship');
+        expect(statefulSet.metadata.labels['app.kubernetes.io/type']).toBe(
+          'osmosis-1-statefulset'
+        );
+        expect(statefulSet.metadata.labels['app.kubernetes.io/id']).toBe(
+          'osmosis-1'
+        );
       });
 
       // Snapshot the resource structure
@@ -247,11 +278,13 @@ describe('Cosmos Integration Tests', () => {
         'utf-8'
       );
       const statefulSets = yaml.loadAll(genesisYaml) as any[];
-      
+
       expect(statefulSets.length).toBeGreaterThan(0);
-      
+
       const genesisStatefulSet = statefulSets[0];
-      expect(genesisStatefulSet?.spec?.template?.spec?.containers).toBeDefined();
+      expect(
+        genesisStatefulSet?.spec?.template?.spec?.containers
+      ).toBeDefined();
 
       const containers = genesisStatefulSet.spec.template.spec.containers || [];
       expect(containers.length).toBeGreaterThan(0);
@@ -260,7 +293,7 @@ describe('Cosmos Integration Tests', () => {
       const validatorContainer = containers.find(
         (c: any) => c.name === 'validator'
       );
-      
+
       expect(validatorContainer).toBeDefined();
       expect(validatorContainer.env).toBeDefined();
       expect(validatorContainer.env.length).toBeGreaterThan(0);
@@ -340,7 +373,9 @@ describe('Cosmos Integration Tests', () => {
         const chainName = chain.name;
 
         // Check that files exist
-        const hasGenesis = existsSync(join(outputPath, chainName, 'genesis.yaml'));
+        const hasGenesis = existsSync(
+          join(outputPath, chainName, 'genesis.yaml')
+        );
         specialConfigs[name] = { hasGenesis };
       });
 

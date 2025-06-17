@@ -384,9 +384,7 @@ describe('Cosmos Generator Tests', () => {
 
       // Check that readiness probe is removed for cometmock
       const containers = statefulSet.spec?.template.spec?.containers || [];
-      const validatorContainer = containers.find(
-        (c) => c.name === 'validator'
-      );
+      const validatorContainer = containers.find((c) => c.name === 'validator');
 
       expect(validatorContainer?.readinessProbe).toBeUndefined();
 
@@ -683,7 +681,9 @@ describe('Cosmos Generator Tests', () => {
         'utf-8'
       );
 
-      expect(customConfigMapYaml).toMatchSnapshot('custom-chain-configmap-yaml');
+      expect(customConfigMapYaml).toMatchSnapshot(
+        'custom-chain-configmap-yaml'
+      );
       expect(customServiceYaml).toMatchSnapshot('custom-chain-service-yaml');
       expect(customGenesisYaml).toMatchSnapshot('custom-chain-genesis-yaml');
 
@@ -706,7 +706,9 @@ describe('Cosmos Generator Tests', () => {
         'ghcr.io/cosmology-tech/starship/builder:latest'
       );
 
-      expect(buildGenesisYaml).toMatchSnapshot('build-enabled-chain-genesis-yaml');
+      expect(buildGenesisYaml).toMatchSnapshot(
+        'build-enabled-chain-genesis-yaml'
+      );
     });
 
     it('should generate YAML for multiple chains with snapshots', () => {
