@@ -4,7 +4,7 @@ import * as yaml from 'js-yaml';
 import * as path from 'path';
 
 import { TemplateHelpers } from './helpers';
-import { DefaultsConfig, ProcessedChain } from './types';
+import { DefaultsConfig } from './types';
 
 export class DefaultsManager {
   private defaultsData: DefaultsConfig;
@@ -90,7 +90,7 @@ export class DefaultsManager {
    * Process a chain configuration by merging with defaults
    * This replaces the complex _chains.tpl logic
    */
-  processChain(chainConfig: Chain): ProcessedChain {
+  processChain(chainConfig: Chain): Chain {
     // Get default chain configuration
     const defaultChain = this.getChainDefaults(chainConfig.name);
 
@@ -150,7 +150,7 @@ export class DefaultsManager {
       upgrade: upgradeConfig,
       build: buildConfig,
       scripts
-    } as ProcessedChain;
+    } as Chain;
   }
 
   /**

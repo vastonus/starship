@@ -42,10 +42,3 @@ export interface DefaultsConfig {
   defaultScripts: Record<string, Script>;
   defaultCometmock: CometmockDefault;
 }
-
-// Extended chain with computed properties
-export interface ProcessedChain extends Chain {
-  hostname: string;
-  toBuild: boolean;
-  scripts: Record<string, Script>;
-}

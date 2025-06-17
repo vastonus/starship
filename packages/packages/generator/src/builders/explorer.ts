@@ -13,70 +13,57 @@ import { GeneratorContext } from '../types';
  * Handles chain configurations for the explorer
  */
 export class ExplorerConfigMapGenerator {
-  private defaultsManager: DefaultsManager;
   private config: StarshipConfig;
 
   constructor(config: StarshipConfig) {
-    this.defaultsManager = new DefaultsManager();
     this.config = config;
   }
 
-  labels(): Record<string, string> {
-    return {
-      ...TemplateHelpers.commonLabels(this.config),
-      'app.kubernetes.io/name': 'explorer',
-      'app.kubernetes.io/type': 'explorer-configmap'
-    };
-  }
+  configMap(): ConfigMap {
+    const chainConfigs: Record<string, string> = {};
 
-  /**
-   * Create ConfigMap for chain configurations
-   */
-  chainConfigMap(): ConfigMap {
-    const data: Record<string, string> = {};
-    const defaultFile = this.defaultsManager.getDefaults();
+    if (this.config.chains) {
+      for (const chain of this.config.chains) {
+        const hostname = TemplateHelpers.chainName(String(chain.id));
+        const host = this.config.explorer?.localhost
+          ? 'localhost'
+          : `${hostname}-genesis.$(NAMESPACE).svc.cluster.local`;
 
-    for (const chain of this.config.chains) {
-      const processedChain = this.defaultsManager.processChain(chain);
-      const host = this.config.explorer?.localhost 
-        ? 'localhost' 
-        : `${processedChain.hostname}-genesis.${this.config.name}.svc.cluster.local`;
-
-      // Generate chain configuration
-      data[`${processedChain.id}.json`] = JSON.stringify({
-        chain_name: processedChain.id,
-        coingecko: processedChain.name,
-        ...(this.config.ingress?.enabled
-          ? {
-              api: `https://rest.${processedChain.id}-genesis.${this.config.ingress.host.replace('*.', '')}:443`,
-              rpc: [
-                `https://rpc.${processedChain.id}-genesis.${this.config.ingress.host.replace('*.', '')}:443`,
-                `https://rpc.${processedChain.id}-genesis.${this.config.ingress.host.replace('*.', '')}:443`
-              ]
-            }
-          : {
-              api: `http://${host}:${processedChain.ports?.rest || 1317}`,
-              rpc: [
-                `http://${host}:${processedChain.ports?.rpc || 26657}`,
-                `http://${host}:${processedChain.ports?.rpc || 26657}`
-              ]
-            }),
-        snapshot_provider: '',
-        sdk_version: '0.45.6',
-        coin_type: processedChain.coinType,
-        min_tx_fee: '3000',
-        addr_prefix: processedChain.prefix,
-        logo: '',
-        assets: [
+        chainConfigs[`${chain.id}.json`] = JSON.stringify(
           {
-            base: processedChain.denom,
-            symbol: processedChain.prefix.toUpperCase(),
-            exponent: '6',
-            coingecko_id: processedChain.id,
-            logo: ''
-          }
-        ]
-      }, null, 2);
+            chain_name: chain.id,
+            coingecko: chain.name,
+            api: this.config.ingress?.enabled
+              ? `https://rest.${chain.id}-genesis.${this.config.ingress.host?.replace('*.', '')}`
+              : `http://${host}:${chain.ports?.rest || 1317}`,
+            rpc: [
+              this.config.ingress?.enabled
+                ? `https://rpc.${chain.id}-genesis.${this.config.ingress.host?.replace('*.', '')}`
+                : `http://${host}:${chain.ports?.rpc || 26657}`,
+              this.config.ingress?.enabled
+                ? `https://rpc.${chain.id}-genesis.${this.config.ingress.host?.replace('*.', '')}`
+                : `http://${host}:${chain.ports?.rpc || 26657}`
+            ],
+            snapshot_provider: '',
+            sdk_version: '0.45.6',
+            coin_type: chain.coinType,
+            min_tx_fee: '3000',
+            addr_prefix: chain.prefix,
+            logo: '',
+            assets: [
+              {
+                base: chain.denom,
+                symbol: chain.prefix.toUpperCase(),
+                exponent: '6',
+                coingecko_id: chain.id,
+                logo: ''
+              }
+            ]
+          },
+          null,
+          2
+        );
+      }
     }
 
     return {
@@ -84,9 +71,13 @@ export class ExplorerConfigMapGenerator {
       kind: 'ConfigMap',
       metadata: {
         name: 'explorer',
-        labels: this.labels()
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/name': 'explorer',
+          'app.kubernetes.io/type': 'explorer-configmap'
+        }
       },
-      data
+      data: chainConfigs
     };
   }
 }
@@ -127,7 +118,7 @@ export class ExplorerServiceGenerator {
             name: 'http',
             port: 8080,
             protocol: 'TCP',
-            targetPort: 8080
+            targetPort: '8080'
           }
         ],
         selector: {
@@ -193,19 +184,12 @@ export class ExplorerDeploymentGenerator {
             }
           },
           spec: {
-            ...(this.config.explorer?.imagePullSecrets
-              ? TemplateHelpers.generateImagePullSecrets(this.config.explorer.imagePullSecrets)
-              : {}),
             containers: [
               {
                 name: 'explorer',
                 image: this.config.explorer?.image || 'ghcr.io/cosmology-tech/starship/explorer:latest',
                 imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
-                command: [
-                  'bash',
-                  '-c',
-                  'yarn serve --host 0.0.0.0 --port 8080'
-                ],
+                command: ['bash', '-c', 'yarn serve --host 0.0.0.0 --port 8080'],
                 resources: TemplateHelpers.getResourceObject(
                   this.config.explorer?.resources || { cpu: '0.1', memory: '128M' }
                 ),
@@ -217,14 +201,14 @@ export class ExplorerDeploymentGenerator {
                 ],
                 readinessProbe: {
                   tcpSocket: {
-                    port: 8080
+                    port: '8080'
                   },
                   initialDelaySeconds: 60,
                   periodSeconds: 30
                 },
                 livenessProbe: {
                   tcpSocket: {
-                    port: 8080
+                    port: '8080'
                   },
                   initialDelaySeconds: 60,
                   periodSeconds: 30
@@ -277,7 +261,7 @@ export class ExplorerBuilder {
     const deploymentGenerator = new ExplorerDeploymentGenerator(this.context.config);
 
     // Build ConfigMaps
-    manifests.push(configMapGenerator.chainConfigMap());
+    manifests.push(configMapGenerator.configMap());
 
     // Build Service
     manifests.push(serviceGenerator.service());

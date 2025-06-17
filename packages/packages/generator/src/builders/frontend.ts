@@ -7,19 +7,33 @@ import * as path from 'path';
 import { DefaultsManager } from '../defaults';
 import { TemplateHelpers } from '../helpers';
 import { GeneratorContext } from '../types';
-import { BaseBuilder, BaseConfig, BaseDeploymentGenerator, BaseServiceGenerator } from './base';
 
-interface FrontendConfig extends BaseConfig {
-  type: 'frontend';
-}
+/**
+ * Service generator for Frontend services
+ */
+export class FrontendServiceGenerator {
+  private config: StarshipConfig;
+  private frontend: Frontend;
 
-class FrontendServiceGenerator extends BaseServiceGenerator<FrontendConfig> {
+  constructor(frontend: Frontend, config: StarshipConfig) {
+    this.config = config;
+    this.frontend = frontend;
+  }
+
+  labels(): Record<string, string> {
+    return {
+      ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/name': this.frontend.name,
+      'app.kubernetes.io/type': 'frontend-service'
+    };
+  }
+
   service(): Service {
     const ports = [];
-    if (this.serviceConfig.ports?.rest) {
+    if (this.frontend.ports?.rest) {
       ports.push({
         name: 'http',
-        port: this.serviceConfig.ports.rest,
+        port: this.frontend.ports.rest,
         protocol: 'TCP' as const,
         targetPort: 'http'
       });
@@ -29,27 +43,46 @@ class FrontendServiceGenerator extends BaseServiceGenerator<FrontendConfig> {
       apiVersion: 'v1',
       kind: 'Service',
       metadata: {
-        name: this.serviceConfig.name,
+        name: this.frontend.name,
         labels: this.labels()
       },
       spec: {
         clusterIP: 'None',
         ports,
         selector: {
-          'app.kubernetes.io/name': this.serviceConfig.name
+          'app.kubernetes.io/name': this.frontend.name
         }
       }
     };
   }
 }
 
-class FrontendDeploymentGenerator extends BaseDeploymentGenerator<FrontendConfig> {
+/**
+ * Deployment generator for Frontend services
+ */
+export class FrontendDeploymentGenerator {
+  private config: StarshipConfig;
+  private frontend: Frontend;
+
+  constructor(frontend: Frontend, config: StarshipConfig) {
+    this.config = config;
+    this.frontend = frontend;
+  }
+
+  labels(): Record<string, string> {
+    return {
+      ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/name': this.frontend.name,
+      'app.kubernetes.io/type': 'frontend-deployment'
+    };
+  }
+
   deployment(): Deployment {
     const ports = [];
-    if (this.serviceConfig.ports?.rest) {
+    if (this.frontend.ports?.rest) {
       ports.push({
         name: 'http',
-        containerPort: this.serviceConfig.ports.rest,
+        containerPort: this.frontend.ports.rest,
         protocol: 'TCP'
       });
     }
@@ -58,33 +91,39 @@ class FrontendDeploymentGenerator extends BaseDeploymentGenerator<FrontendConfig
       apiVersion: 'apps/v1',
       kind: 'Deployment',
       metadata: {
-        name: this.serviceConfig.name,
+        name: this.frontend.name,
         labels: this.labels()
       },
       spec: {
-        replicas: this.serviceConfig.replicas || 1,
+        replicas: this.frontend.replicas || 1,
         revisionHistoryLimit: 3,
         selector: {
           matchLabels: {
-            'app.kubernetes.io/instance': this.serviceConfig.name,
-            'app.kubernetes.io/name': this.serviceConfig.name
+            'app.kubernetes.io/instance': this.frontend.name,
+            'app.kubernetes.io/name': this.frontend.name
           }
         },
         template: {
           metadata: {
-            annotations: this.commonAnnotations(),
-            labels: this.commonLabels()
+            annotations: {
+              quality: 'release',
+              role: 'frontend',
+              sla: 'high',
+              tier: 'frontend'
+            },
+            labels: {
+              'app.kubernetes.io/instance': this.frontend.name,
+              'app.kubernetes.io/type': this.frontend.type,
+              'app.kubernetes.io/name': this.frontend.name,
+              'app.kubernetes.io/rawname': this.frontend.name,
+              'app.kubernetes.io/version': this.config.version || '1.8.0'
+            }
           },
           spec: {
-            ...(this.serviceConfig.imagePullSecrets
-              ? TemplateHelpers.generateImagePullSecrets(
-                  this.serviceConfig.imagePullSecrets.map((name) => ({ name }))
-                )
-              : {}),
             containers: [
               {
-                name: this.serviceConfig.name,
-                image: this.serviceConfig.image,
+                name: this.frontend.name,
+                image: this.frontend.image,
                 imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
                 env: [
                   {
@@ -95,18 +134,35 @@ class FrontendDeploymentGenerator extends BaseDeploymentGenerator<FrontendConfig
                       }
                     }
                   },
-                  ...(this.serviceConfig.env
-                    ? Object.entries(this.serviceConfig.env).map(([name, value]) => ({
-                        name,
-                        value: String(value)
+                  ...(Array.isArray(this.frontend.env) 
+                    ? this.frontend.env.map((env: any) => ({
+                        name: env.name,
+                        value: String(env.value)
                       }))
                     : [])
                 ],
                 ...(ports.length > 0 && { ports }),
                 resources: TemplateHelpers.getResourceObject(
-                  this.serviceConfig.resources || { cpu: '0.1', memory: '128M' }
+                  this.frontend.resources || { cpu: '0.1', memory: '128M' }
                 ),
-                ...this.commonProbes('http')
+                readinessProbe: {
+                  tcpSocket: {
+                    port: 'http'
+                  },
+                  initialDelaySeconds: 20,
+                  periodSeconds: 10,
+                  timeoutSeconds: 5,
+                  failureThreshold: 3
+                },
+                livenessProbe: {
+                  tcpSocket: {
+                    port: 'http'
+                  },
+                  initialDelaySeconds: 20,
+                  periodSeconds: 10,
+                  timeoutSeconds: 5,
+                  failureThreshold: 3
+                }
               }
             ]
           }
@@ -116,8 +172,21 @@ class FrontendDeploymentGenerator extends BaseDeploymentGenerator<FrontendConfig
   }
 }
 
-export class FrontendBuilder extends BaseBuilder<FrontendConfig> {
-  protected buildManifests(frontend: FrontendConfig): Array<Service | Deployment> {
+/**
+ * Main Frontend builder
+ */
+export class FrontendBuilder {
+  private defaultsManager: DefaultsManager;
+  private context: GeneratorContext;
+  private outputDir?: string;
+
+  constructor(context: GeneratorContext, outputDir?: string) {
+    this.context = context;
+    this.outputDir = outputDir;
+    this.defaultsManager = new DefaultsManager();
+  }
+
+  buildManifests(frontend: Frontend): Array<Service | Deployment> {
     const manifests: Array<Service | Deployment> = [];
     const serviceGenerator = new FrontendServiceGenerator(frontend, this.context.config);
     const deploymentGenerator = new FrontendDeploymentGenerator(frontend, this.context.config);
@@ -126,7 +195,7 @@ export class FrontendBuilder extends BaseBuilder<FrontendConfig> {
     return manifests;
   }
 
-  async generateFiles(outputDir?: string): Promise<void> {
+  generateFiles(outputDir?: string): void {
     const targetDir = outputDir || this.outputDir;
     if (!targetDir) {
       throw new Error('Output directory must be provided either in constructor or method call');
@@ -137,20 +206,12 @@ export class FrontendBuilder extends BaseBuilder<FrontendConfig> {
     }
 
     for (const frontend of this.context.config.frontends) {
-      const config: FrontendConfig = {
-        ...frontend,
-        type: 'frontend',
-        resources: {
-          cpu: String(frontend.resources?.cpu || '0.1'),
-          memory: String(frontend.resources?.memory || '128M')
-        }
-      };
-      const manifests = this.buildManifests(config);
-      this.writeManifests(config, manifests, targetDir);
+      const manifests = this.buildManifests(frontend);
+      this.writeManifests(frontend, manifests, targetDir);
     }
   }
 
-  writeManifests(frontend: FrontendConfig, manifests: Array<Service | Deployment>, outputDir: string): void {
+  writeManifests(frontend: Frontend, manifests: Array<Service | Deployment>, outputDir: string): void {
     const frontendDir = path.join(outputDir, 'frontends', frontend.name);
     fs.mkdirSync(frontendDir, { recursive: true });
 

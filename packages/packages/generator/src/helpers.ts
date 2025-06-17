@@ -1,6 +1,6 @@
-import { StarshipConfig } from '@starship-ci/types';
+import { StarshipConfig, Chain } from '@starship-ci/types';
 
-import { EnvVar, ProcessedChain } from './types';
+import { EnvVar } from './types';
 
 export class TemplateHelpers {
   /**
@@ -43,7 +43,7 @@ export class TemplateHelpers {
   /**
    * Default environment variables for chain containers
    */
-  static defaultEnvVars(chain: ProcessedChain): EnvVar[] {
+  static defaultEnvVars(chain: Chain): EnvVar[] {
     return [
       { name: 'DENOM', value: chain.denom || '' },
       { name: 'COINS', value: chain.coins || '' },
@@ -58,7 +58,7 @@ export class TemplateHelpers {
   /**
    * Chain-specific environment variables
    */
-  static chainEnvVars(chain: ProcessedChain): EnvVar[] {
+  static chainEnvVars(chain: Chain): EnvVar[] {
     return [{ name: 'CHAIN_ID', value: String(chain.id) }];
   }
 
@@ -81,9 +81,9 @@ export class TemplateHelpers {
   /**
    * Genesis-specific environment variables
    */
-  static genesisVars(chain: ProcessedChain, port: number): EnvVar[] {
+  static genesisVars(chain: Chain, port: number): EnvVar[] {
     return [
-      { name: 'GENESIS_HOST', value: `${chain.hostname}-genesis` },
+      { name: 'GENESIS_HOST', value: `${TemplateHelpers.chainName(String(chain.id))}-genesis` },
       { name: 'GENESIS_PORT', value: String(port) },
       {
         name: 'NAMESPACE',
@@ -128,7 +128,7 @@ export class TemplateHelpers {
   /**
    * Get node resources with chain-specific overrides
    */
-  static nodeResources(chain: ProcessedChain, context: StarshipConfig): any {
+  static nodeResources(chain: Chain, context: StarshipConfig): any {
     if (chain.resources) {
       return this.getResourceObject(chain.resources);
     }
@@ -161,7 +161,7 @@ export class TemplateHelpers {
   /**
    * Returns comma-separated list of chain IDs
    */
-  static chainIds(chains: ProcessedChain[]): string {
+  static chainIds(chains: Chain[]): string {
     return chains.map((chain) => chain.id).join(',');
   }
 
@@ -169,7 +169,7 @@ export class TemplateHelpers {
    * Returns comma-separated list of chain names
    * If chain name is custom, use chain id instead
    */
-  static chainNames(chains: ProcessedChain[]): string {
+  static chainNames(chains: Chain[]): string {
     return chains
       .map((chain) => (chain.name === 'custom' ? chain.id : chain.name))
       .join(',');
@@ -178,7 +178,7 @@ export class TemplateHelpers {
   /**
    * Returns comma-separated list of internal RPC addresses
    */
-  static chainInternalRpcAddrs(chains: ProcessedChain[]): string {
+  static chainInternalRpcAddrs(chains: Chain[]): string {
     return chains
       .map(
         (chain) =>
@@ -191,7 +191,7 @@ export class TemplateHelpers {
    * Returns comma-separated list of RPC addresses
    */
   static chainRpcAddrs(
-    chains: ProcessedChain[],
+    chains: Chain[],
     config: StarshipConfig
   ): string {
     const localhost = config.registry?.localhost;
@@ -215,7 +215,7 @@ export class TemplateHelpers {
    * Returns comma-separated list of GRPC addresses
    */
   static chainGrpcAddrs(
-    chains: ProcessedChain[],
+    chains: Chain[],
     config: StarshipConfig
   ): string {
     const localhost = config.registry?.localhost;
@@ -239,7 +239,7 @@ export class TemplateHelpers {
    * Returns comma-separated list of REST addresses
    */
   static chainRestAddrs(
-    chains: ProcessedChain[],
+    chains: Chain[],
     config: StarshipConfig
   ): string {
     const localhost = config.registry?.localhost;
@@ -263,7 +263,7 @@ export class TemplateHelpers {
    * Returns comma-separated list of exposer addresses
    */
   static chainExposerAddrs(
-    chains: ProcessedChain[],
+    chains: Chain[],
     port: number = 8081
   ): string {
     return chains
@@ -278,7 +278,7 @@ export class TemplateHelpers {
    * Generate init container for waiting on chains to be ready
    */
   static generateWaitInitContainer(
-    chains: ProcessedChain[],
+    chains: Chain[],
     port: number,
     imagePullPolicy: string = 'IfNotPresent'
   ): any {
@@ -345,7 +345,7 @@ export class TemplateHelpers {
   /**
    * Generate volume mounts for chain containers
    */
-  static generateChainVolumeMounts(chain: ProcessedChain): any[] {
+  static generateChainVolumeMounts(chain: Chain): any[] {
     return [
       {
         mountPath: chain.home,
@@ -365,7 +365,7 @@ export class TemplateHelpers {
   /**
    * Generate standard volumes for chain pods
    */
-  static generateChainVolumes(chain: ProcessedChain): any[] {
+  static generateChainVolumes(chain: Chain): any[] {
     const volumes = [
       {
         name: 'node',

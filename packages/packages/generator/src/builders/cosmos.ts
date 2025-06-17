@@ -1,7 +1,7 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
+import { ConfigMap, Service, StatefulSet, Container } from 'kubernetesjs';
 import * as path from 'path';
 
 import { DefaultsManager } from '../defaults';
@@ -169,7 +169,7 @@ export class CosmosServiceGenerator {
    * Create Service for genesis node
    */
   genesisService(): Service {
-    const portMap = TemplateHelpers.getPortMap();
+    const portMap = TemplateHelpers.getPorts(this.chain);
     const ports = Object.entries(portMap).map(([name, port]) => ({
       name,
       port,
@@ -889,7 +889,7 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
     };
   }
 
-  private starshipFaucetContainer(): any {
+  private starshipFaucetContainer(): Container {
     return {
       name: 'faucet',
       image: 'busybox:1.34.1',
