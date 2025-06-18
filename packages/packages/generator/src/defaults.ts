@@ -1,14 +1,19 @@
-import { Chain, FaucetConfig, Script } from '@starship-ci/types';
+import { Chain, FaucetConfig, Script, StarshipConfig } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
+import { merge } from 'lodash';
 
 import { TemplateHelpers } from './helpers';
-import { DefaultsConfig } from './types';
+import { DefaultsConfig, ProcessedChain } from './types';
+import { DEFAULT_CHAIN_CONFIG } from './defaults-chain';
+
+export { ProcessedChain };
 
 export class DefaultsManager {
   private defaultsData: DefaultsConfig;
   private defaultsPath: string;
+  private config: StarshipConfig;
 
   constructor(defaultsPath?: string) {
     // Default to the configs/defaults.yaml in the generator package

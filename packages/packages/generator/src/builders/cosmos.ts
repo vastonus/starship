@@ -1,7 +1,7 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import { ConfigMap, Service, StatefulSet, Container } from 'kubernetesjs';
+import { ConfigMap, Service, ServicePort, StatefulSet, Container } from 'kubernetesjs';
 import * as path from 'path';
 
 import { DefaultsManager } from '../defaults';
@@ -131,8 +131,8 @@ export class CosmosConfigMapGenerator {
             top_N: 95,
             validators_power_cap: 0,
             validator_set_cap: 0,
-            allowlist: [],
-            denylist: [],
+            allowlist: [] as string[],
+            denylist: [] as string[],
             deposit: `10000${icsChain.denom}`
           },
           null,
@@ -169,7 +169,7 @@ export class CosmosServiceGenerator {
    * Create Service for genesis node
    */
   genesisService(): Service {
-    const portMap = TemplateHelpers.getPorts(this.chain);
+    const portMap = TemplateHelpers.getPortMap();
     const ports = Object.entries(portMap).map(([name, port]) => ({
       name,
       port,
@@ -254,7 +254,7 @@ export class CosmosStatefulSetGenerator {
   private scriptManager: ScriptManager;
   private defaultsManager: DefaultsManager;
   private config: StarshipConfig;
-  private chain: any; // ProcessedChain
+  private chain: any; // Chain
 
   constructor(
     chain: Chain,
@@ -940,186 +940,320 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
  * Orchestrates ConfigMap, Service, and StatefulSet generation and file output
  */
 export class CosmosBuilder {
+  private config: StarshipConfig;
   private defaultsManager: DefaultsManager;
-  private scriptManager: ScriptManager;
-  private context: GeneratorContext;
-  private outputDir?: string;
 
-  constructor(context: GeneratorContext, outputDir?: string) {
-    this.context = context;
-    this.outputDir = outputDir;
+  constructor(config: StarshipConfig) {
+    this.config = config;
     this.defaultsManager = new DefaultsManager();
-    this.scriptManager = new ScriptManager();
   }
 
-  /**
-   * Build all Kubernetes manifests for a Cosmos chain
-   */
-  buildManifests(chain: Chain): Array<ConfigMap | Service | StatefulSet> {
-    // Skip Ethereum chains
-    if (chain.name?.startsWith('ethereum')) {
-      return [];
+  buildManifests(): (ConfigMap | Service | StatefulSet)[] {
+    const manifests: (ConfigMap | Service | StatefulSet)[] = [];
+    if (!this.config.chains) {
+      return manifests;
     }
 
-    const manifests: Array<ConfigMap | Service | StatefulSet> = [];
+    const chains: Chain[] = this.config.chains.map(chain => this.defaultsManager.processChain(chain));
 
-    // Create generators for this chain
-    const configMapGenerator = new CosmosConfigMapGenerator(
-      chain,
-      this.context.config,
-      this.scriptManager
-    );
-    const serviceGenerator = new CosmosServiceGenerator(
-      chain,
-      this.context.config
-    );
-    const statefulSetGenerator = new CosmosStatefulSetGenerator(
-      chain,
-      this.context.config,
-      this.scriptManager
-    );
-
-    // Build ConfigMaps
-    manifests.push(configMapGenerator.scriptsConfigMap());
-
-    const genesisPatch = configMapGenerator.genesisPatchConfigMap();
-    if (genesisPatch) manifests.push(genesisPatch);
-
-    const icsProposal = configMapGenerator.icsConsumerProposalConfigMap();
-    if (icsProposal) manifests.push(icsProposal);
-
-    // Build Services
-    manifests.push(serviceGenerator.genesisService());
-
-    if (chain.numValidators > 1) {
-      manifests.push(serviceGenerator.validatorService());
+    // Keys ConfigMap
+    const keysConfigMap = new KeysConfigMap(this.config);
+    const keysCm = keysConfigMap.configMap();
+    if (keysCm) {
+      manifests.push(keysCm);
     }
 
-    // Build StatefulSets
-    manifests.push(statefulSetGenerator.genesisStatefulSet());
-
-    if (chain.numValidators > 1) {
-      manifests.push(statefulSetGenerator.validatorStatefulSet());
+    // Global Scripts ConfigMap
+    const globalScripts = new GlobalScriptsConfigMap();
+    const globalScriptsCm = globalScripts.configMap();
+    if (globalScriptsCm) {
+      manifests.push(globalScriptsCm);
     }
 
-    // Build cometmock if enabled
-    if (chain.cometmock?.enabled) {
-      manifests.push(...this.cometmockManifests(chain));
-    }
+    chains.forEach(chain => {
+      // Service
+      const service = new ChainService(this.config, chain);
+      manifests.push(service.service());
+
+      // StatefulSet
+      const statefulSet = new ChainStatefulSet(this.config, chain);
+      manifests.push(statefulSet.statefulSet());
+
+      // Setup Scripts ConfigMap
+      const setupScripts = new SetupScriptsConfigMap(this.config, chain);
+      const setupScriptsCm = setupScripts.configMap();
+      if (setupScriptsCm) {
+        manifests.push(setupScriptsCm);
+      }
+
+      // Genesis Patch ConfigMap (if needed)
+      if (chain.genesis) {
+        const patch = new GenesisPatchConfigMap(this.config, chain);
+        manifests.push(patch.configMap());
+      }
+
+      // ICS Consumer Proposal ConfigMap
+      const icsProposal = new IcsConsumerProposalConfigMap(this.config, chain, chains);
+      const icsCm = icsProposal.configMap();
+      if (icsCm) {
+        manifests.push(icsCm);
+      }
+    });
 
     return manifests;
   }
+}
 
-  /**
-   * Generate and write YAML files for a single chain
-   */
-  generateFiles(chain: Chain, outputDir?: string): void {
-    const targetDir = outputDir || this.outputDir;
-    if (!targetDir) {
-      throw new Error(
-        'Output directory must be provided either in constructor or method call'
-      );
+class KeysConfigMap {
+  constructor(private config: StarshipConfig, private projectRoot: string = process.cwd()) {}
+
+  configMap(): ConfigMap | null {
+    const keysFilePath = path.join(this.projectRoot, 'configs', 'keys.json');
+
+    if (!fs.existsSync(keysFilePath)) {
+      console.warn(`Warning: 'configs/keys.json' not found. Skipping Keys ConfigMap.`);
+      return null;
     }
 
-    const manifests = this.buildManifests(chain);
-
-    // Skip if no manifests to write (e.g., Ethereum chains or other unsupported chains)
-    if (manifests.length === 0) {
-      return;
-    }
-
-    this.writeManifests(chain, manifests, targetDir);
-  }
-
-  /**
-   * Generate and write YAML files for all chains in the config
-   */
-  generateAllFiles(outputDir?: string): void {
-    const targetDir = outputDir || this.outputDir;
-    if (!targetDir) {
-      throw new Error(
-        'Output directory must be provided either in constructor or method call'
-      );
-    }
-
-    for (const chain of this.context.config.chains) {
-      this.generateFiles(chain, targetDir);
+    try {
+      const keysFileContent = fs.readFileSync(keysFilePath, 'utf-8');
+      return {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata: {
+          name: 'keys'
+        },
+        data: {
+          'keys.json': keysFileContent
+        }
+      };
+    } catch (error) {
+      console.warn(`Warning: Could not read 'configs/keys.json'. Error: ${(error as Error).message}. Skipping.`);
+      return null;
     }
   }
+}
 
-  /**
-   * Write manifests to the directory structure:
-   * <chain.name>/
-   *   genesis.yaml: genesis yaml file
-   *   validator.yaml: validator statefulset, if exists
-   *   service.yaml: services for deployments
-   *   configmap.yaml: configmaps for the chain
-   */
-  writeManifests(
-    chain: Chain,
-    manifests: Array<ConfigMap | Service | StatefulSet>,
-    outputDir: string
-  ): void {
-    const chainName = chain.name || String(chain.id);
-    const chainDir = path.join(outputDir, chainName);
+class GlobalScriptsConfigMap {
+  constructor(private projectRoot: string = process.cwd()) {}
 
-    // Create chain directory
-    fs.mkdirSync(chainDir, { recursive: true });
-
-    // Separate manifests by type
-    const configMaps = manifests.filter(
-      (m) => m.kind === 'ConfigMap'
-    ) as ConfigMap[];
-    const services = manifests.filter((m) => m.kind === 'Service') as Service[];
-    const statefulSets = manifests.filter(
-      (m) => m.kind === 'StatefulSet'
-    ) as StatefulSet[];
-
-    // Write ConfigMaps
-    if (configMaps.length > 0) {
-      const configMapYaml = configMaps.map((cm) => yaml.dump(cm)).join('---\n');
-      fs.writeFileSync(path.join(chainDir, 'configmap.yaml'), configMapYaml);
+  configMap(): ConfigMap | null {
+    const scriptsDir = path.join(this.projectRoot, 'scripts', 'default');
+    if (!fs.existsSync(scriptsDir)) {
+      return null; // No global scripts directory found
     }
 
-    // Write Services
-    if (services.length > 0) {
-      const serviceYaml = services.map((svc) => yaml.dump(svc)).join('---\n');
-      fs.writeFileSync(path.join(chainDir, 'service.yaml'), serviceYaml);
+    const data: { [key: string]: string } = {};
+    try {
+      const scriptFiles = fs.readdirSync(scriptsDir).filter(file => file.endsWith('.sh'));
+
+      if (scriptFiles.length === 0) {
+        return null;
+      }
+
+      scriptFiles.forEach(fileName => {
+        const filePath = path.join(scriptsDir, fileName);
+        data[fileName] = fs.readFileSync(filePath, 'utf-8');
+      });
+    } catch (error) {
+      console.warn(`Warning: Could not read global scripts directory. Error: ${(error as Error).message}. Skipping.`);
+      return null;
     }
 
-    // Write StatefulSets - separate genesis and validator
-    const genesisStatefulSets = statefulSets.filter((ss) =>
-      ss.metadata?.name?.includes('genesis')
-    );
-    const validatorStatefulSets = statefulSets.filter(
-      (ss) =>
-        ss.metadata?.name?.includes('validator') &&
-        !ss.metadata?.name?.includes('genesis')
-    );
-
-    if (genesisStatefulSets.length > 0) {
-      const genesisYaml = genesisStatefulSets
-        .map((ss) => yaml.dump(ss))
-        .join('---\n');
-      fs.writeFileSync(path.join(chainDir, 'genesis.yaml'), genesisYaml);
-    }
-
-    if (validatorStatefulSets.length > 0) {
-      const validatorYaml = validatorStatefulSets
-        .map((ss) => yaml.dump(ss))
-        .join('---\n');
-      fs.writeFileSync(path.join(chainDir, 'validator.yaml'), validatorYaml);
-    }
+    return {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: 'setup-scripts'
+      },
+      data
+    };
   }
+}
 
-  /**
-   * Build cometmock manifests (placeholder for now)
-   */
-  private cometmockManifests(
-    _chain: any
-  ): Array<ConfigMap | Service | StatefulSet> {
-    // TODO: Implement cometmock manifest generation
-    return [];
+class ChainService {
+  constructor(private config: StarshipConfig, private chain: Chain) {}
+
+  service(): Service {
+    const ports: ServicePort[] = [
+      { name: 'rpc', port: 26657, targetPort: '26657', protocol: 'TCP' },
+      { name: 'p2p', port: 26656, targetPort: '26656', protocol: 'TCP' },
+      { name: 'rest', port: 1317, targetPort: '1317', protocol: 'TCP' },
+      { name: 'grpc', port: 9090, targetPort: '9090', protocol: 'TCP' }
+    ];
+
+    return {
+      apiVersion: 'v1',
+      kind: 'Service',
+      metadata: {
+        name: `${this.chain.id}-genesis`,
+        labels: TemplateHelpers.commonLabels(this.config)
+      },
+      spec: {
+        ports,
+        selector: {
+          app: `${this.chain.id}-genesis`
+        }
+      }
+    };
+  }
+}
+
+class ChainStatefulSet {
+  constructor(private config: StarshipConfig, private chain: Chain) {}
+
+  statefulSet(): StatefulSet {
+    // StatefulSet definition here...
+    return {
+      apiVersion: 'apps/v1',
+      kind: 'StatefulSet',
+      metadata: {
+        name: `${this.chain.id}-genesis`,
+        labels: TemplateHelpers.commonLabels(this.config)
+      },
+      spec: {
+        serviceName: `${this.chain.id}-genesis`,
+        replicas: 1,
+        selector: {
+          matchLabels: {
+            app: `${this.chain.id}-genesis`
+          }
+        },
+        template: {
+          metadata: {
+            labels: {
+              app: `${this.chain.id}-genesis`,
+              ...TemplateHelpers.commonLabels(this.config)
+            }
+          },
+          spec: {
+            containers: [{
+              name: `${this.chain.id}-genesis-container`,
+              image: this.chain.image,
+              ports: [
+                { name: 'rpc', containerPort: 26657 },
+                { name: 'p2p', containerPort: 26656 },
+                { name: 'rest', containerPort: 1317 },
+                { name: 'grpc', containerPort: 9090 }
+              ],
+              volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
+            }],
+            volumes: TemplateHelpers.generateChainVolumes(this.chain)
+          }
+        }
+      }
+    };
+  }
+}
+
+class SetupScriptsConfigMap {
+  constructor(private config: StarshipConfig, private chain: Chain) {}
+
+  configMap(): ConfigMap | null {
+    const scripts = this.chain.scripts as Array<{name: string, data?: string, file?: string}>;
+
+    if (!scripts || scripts.length === 0) {
+      return null;
+    }
+
+    const data: { [key: string]: string } = {};
+
+    scripts.forEach(script => {
+      if (script.data) {
+        data[script.name] = script.data;
+      } else if (script.file) {
+        try {
+          // Assuming file paths are relative to the current working directory
+          data[script.name] = fs.readFileSync(script.file, 'utf-8');
+        } catch (error) {
+          console.warn(`Warning: Could not read script file ${script.file}. Error: ${(error as Error).message}. Skipping.`);
+        }
+      }
+    });
+
+    if (Object.keys(data).length === 0) {
+      return null;
+    }
+
+    return {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: `setup-scripts-${TemplateHelpers.chainName(String(this.chain.id))}`
+      },
+      data
+    };
+  }
+}
+
+class GenesisPatchConfigMap {
+  constructor(private config: StarshipConfig, private chain: Chain) {}
+
+  configMap(): ConfigMap {
+    // ConfigMap definition here...
+    return {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: `patch-${TemplateHelpers.chainName(String(this.chain.id))}`
+      },
+      data: {
+        'patch.json': JSON.stringify(this.chain.genesis, null, 2)
+      }
+    };
+  }
+}
+
+class IcsConsumerProposalConfigMap {
+  constructor(private config: StarshipConfig, private chain: Chain, private allChains: Chain[]) {}
+
+  configMap(): ConfigMap | null {
+    if (!this.chain.ics || !this.chain.ics.enabled || !this.chain.ics.provider) {
+      return null;
+    }
+
+    const providerChain = this.allChains.find(c => c.id === this.chain.ics.provider);
+    if (!providerChain) {
+      console.warn(`Warning: ICS Provider chain '${this.chain.ics.provider}' not found. Skipping ICS proposal for '${this.chain.id}'.`);
+      return null;
+    }
+
+    const proposal = {
+      title: `Add ${this.chain.name} consumer chain`,
+      summary: `Add ${this.chain.name} consumer chain with id ${this.chain.id}`,
+      chain_id: this.chain.id,
+      initial_height: {
+        revision_height: 1,
+        revision_number: 1
+      },
+      genesis_hash: "d86d756e10118e66e6805e9cc476949da2e750098fcc7634fd0cc77f57a0b2b0", // placeholder
+      binary_hash: "376cdbd3a222a3d5c730c9637454cd4dd925e2f9e2e0d0f3702fc922928583f1", // placeholder
+      spawn_time: "2023-02-28T20:40:00.000000Z", // placeholder
+      unbonding_period: 294000000000,
+      ccv_timeout_period: 259920000000,
+      transfer_timeout_period: 18000000000,
+      consumer_redistribution_fraction: "0.75",
+      blocks_per_distribution_transmission: 10,
+      historical_entries: 100,
+      distribution_transmission_channel: "",
+      top_N: 95,
+      validators_power_cap: 0,
+      validator_set_cap: 0,
+      allowlist: [] as string[],
+      denylist: [] as string[],
+      deposit: `10000${providerChain.denom}`
+    };
+
+    return {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: `consumer-proposal-${TemplateHelpers.chainName(String(this.chain.id))}`
+      },
+      data: {
+        'proposal.json': JSON.stringify(proposal, null, 2)
+      }
+    };
   }
 }
 
