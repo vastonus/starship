@@ -257,8 +257,7 @@ spec:
                     VAL_NAME="$(jq -r ".validators[0].name" $KEYS_CONFIG)-$VAL_INDEX"
                     echo "Validator Index: $VAL_INDEX, Key name: $VAL_NAME. Chain bin $CHAIN_BIN"
 
-                    echo "Waiting for RPC on http://$genesis_host:26657 to be ready..."
-                    until bash -e /scripts/chain-rpc-ready.sh http://$genesis_host:26657; do
+                    until bash -e /scripts/chain-rpc-ready.sh http://localhost:26657; do
                       sleep 10
                     done
 
