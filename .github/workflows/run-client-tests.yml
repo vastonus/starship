@@ -11,6 +11,7 @@ on:
   pull_request:
     branches:
       - main
+      - v1
     paths:
       - "clients/js/**"
       - ".github/workflows/run-client-tests.yml"
