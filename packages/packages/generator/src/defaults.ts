@@ -1,4 +1,9 @@
-import { Chain, FaucetConfig, Script } from '@starship-ci/types';
+import {
+  Chain,
+  FaucetConfig,
+  Script,
+  StarshipConfig
+} from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
@@ -6,9 +11,12 @@ import * as path from 'path';
 import { TemplateHelpers } from './helpers';
 import { DefaultsConfig, ProcessedChain } from './types';
 
+export { ProcessedChain };
+
 export class DefaultsManager {
   private defaultsData: DefaultsConfig;
   private defaultsPath: string;
+  private config: StarshipConfig;
 
   constructor(defaultsPath?: string) {
     // Default to the configs/defaults.yaml in the generator package
@@ -90,7 +98,7 @@ export class DefaultsManager {
    * Process a chain configuration by merging with defaults
    * This replaces the complex _chains.tpl logic
    */
-  processChain(chainConfig: Chain): ProcessedChain {
+  processChain(chainConfig: Chain): Chain {
     // Get default chain configuration
     const defaultChain = this.getChainDefaults(chainConfig.name);
 
@@ -150,7 +158,7 @@ export class DefaultsManager {
       upgrade: upgradeConfig,
       build: buildConfig,
       scripts
-    } as ProcessedChain;
+    } as Chain;
   }
 
   /**
@@ -173,4 +181,20 @@ export class DefaultsManager {
   getAllDefaults(): DefaultsConfig {
     return this.defaultsData;
   }
+}
+
+/**
+ * Apply defaults to a StarshipConfig
+ * This is a standalone function that processes all chains and returns a fully configured StarshipConfig
+ */
+export function applyDefaults(config: StarshipConfig): StarshipConfig {
+  const defaultsManager = new DefaultsManager();
+  const processedChains = config.chains.map((chain) =>
+    defaultsManager.processChain(chain)
+  );
+
+  return {
+    ...config,
+    chains: processedChains
+  };
 }

@@ -1,17 +1,15 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
 import * as fs from 'fs';
-import * as yaml from 'js-yaml';
-import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
+import { ConfigMap, Container, Service, StatefulSet } from 'kubernetesjs';
 import * as path from 'path';
 
 import { DefaultsManager } from '../defaults';
 import { TemplateHelpers } from '../helpers';
 import { ScriptManager } from '../scripts';
-import { GeneratorContext } from '../types';
 
 // Helper functions
 function getHostname(chain: Chain): string {
-  return chain.name || String(chain.id);
+  return TemplateHelpers.chainName(String(chain.id));
 }
 
 function getChainId(chain: Chain): string {
@@ -42,6 +40,8 @@ export class CosmosConfigMapGenerator {
   labels(): Record<string, string> {
     return {
       ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/component': 'chain',
+      'app.kubernetes.io/part-of': getChainId(this.chain),
       'app.kubernetes.io/id': getChainId(this.chain),
       'app.kubernetes.io/name': this.chain.name,
       'app.kubernetes.io/type': `${getChainId(this.chain)}-configmap`
@@ -131,8 +131,8 @@ export class CosmosConfigMapGenerator {
             top_N: 95,
             validators_power_cap: 0,
             validator_set_cap: 0,
-            allowlist: [],
-            denylist: [],
+            allowlist: [] as string[],
+            denylist: [] as string[],
             deposit: `10000${icsChain.denom}`
           },
           null,
@@ -159,8 +159,10 @@ export class CosmosServiceGenerator {
   labels(): Record<string, string> {
     return {
       ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/component': 'chain',
+      'app.kubernetes.io/part-of': getChainId(this.chain),
       'app.kubernetes.io/id': getChainId(this.chain),
-      'app.kubernetes.io/name': this.chain.name,
+      'app.kubernetes.io/name': `${getHostname(this.chain)}-genesis`,
       'app.kubernetes.io/type': `${getChainId(this.chain)}-service`
     };
   }
@@ -192,7 +194,11 @@ export class CosmosServiceGenerator {
       kind: 'Service',
       metadata: {
         name: `${getHostname(this.chain)}-genesis`,
-        labels: this.labels()
+        labels: {
+          ...this.labels(),
+          'app.kubernetes.io/role': 'genesis',
+          'starship.io/chain-name': this.chain.name // For consistent directory organization
+        }
       },
       spec: {
         clusterIP: 'None',
@@ -231,8 +237,9 @@ export class CosmosServiceGenerator {
       metadata: {
         name: `${getHostname(this.chain)}-validator`,
         labels: {
-          ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`
+          ...this.labels(),
+          'app.kubernetes.io/role': 'validator',
+          'starship.io/chain-name': this.chain.name // For consistent directory organization
         }
       },
       spec: {
@@ -254,7 +261,7 @@ export class CosmosStatefulSetGenerator {
   private scriptManager: ScriptManager;
   private defaultsManager: DefaultsManager;
   private config: StarshipConfig;
-  private chain: any; // ProcessedChain
+  private chain: any; // Chain
 
   constructor(
     chain: Chain,
@@ -270,6 +277,8 @@ export class CosmosStatefulSetGenerator {
   labels(): Record<string, string> {
     return {
       ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/component': 'chain',
+      'app.kubernetes.io/part-of': getChainId(this.chain),
       'app.kubernetes.io/id': getChainId(this.chain),
       'app.kubernetes.io/name': `${getHostname(this.chain)}-genesis`,
       'app.kubernetes.io/type': `${getChainId(this.chain)}-statefulset`
@@ -285,7 +294,11 @@ export class CosmosStatefulSetGenerator {
       kind: 'StatefulSet',
       metadata: {
         name: `${getHostname(this.chain)}-genesis`,
-        labels: this.labels()
+        labels: {
+          ...this.labels(),
+          'app.kubernetes.io/role': 'genesis',
+          'starship.io/chain-name': this.chain.name // For directory organization
+        }
       },
       spec: {
         serviceName: `${getHostname(this.chain)}-genesis`,
@@ -293,8 +306,7 @@ export class CosmosStatefulSetGenerator {
         revisionHistoryLimit: 3,
         selector: {
           matchLabels: {
-            'app.kubernetes.io/instance':
-              this.chain.name || getChainId(this.chain),
+            'app.kubernetes.io/instance': this.config.name,
             'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`
           }
         },
@@ -307,12 +319,12 @@ export class CosmosStatefulSetGenerator {
               tier: 'gateway'
             },
             labels: {
-              'app.kubernetes.io/instance':
-                this.chain.name || getChainId(this.chain),
+              'app.kubernetes.io/instance': this.config.name,
               'app.kubernetes.io/type': getChainId(this.chain),
               'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`,
               'app.kubernetes.io/rawname': getChainId(this.chain),
-              'app.kubernetes.io/version': this.config.version || '1.8.0'
+              'app.kubernetes.io/version': this.config.version || '1.8.0',
+              'app.kubernetes.io/role': 'genesis'
             }
           },
           spec: {
@@ -339,7 +351,11 @@ export class CosmosStatefulSetGenerator {
       kind: 'StatefulSet',
       metadata: {
         name: `${getHostname(this.chain)}-validator`,
-        labels: this.labels()
+        labels: {
+          ...this.labels(),
+          'app.kubernetes.io/role': 'validator',
+          'starship.io/chain-name': this.chain.name // For directory organization
+        }
       },
       spec: {
         serviceName: `${getHostname(this.chain)}-validator`,
@@ -348,8 +364,7 @@ export class CosmosStatefulSetGenerator {
         revisionHistoryLimit: 3,
         selector: {
           matchLabels: {
-            'app.kubernetes.io/instance':
-              this.chain.name || getChainId(this.chain),
+            'app.kubernetes.io/instance': this.config.name,
             'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`
           }
         },
@@ -362,11 +377,11 @@ export class CosmosStatefulSetGenerator {
               tier: 'gateway'
             },
             labels: {
-              'app.kubernetes.io/instance':
-                this.chain.name || getChainId(this.chain),
+              'app.kubernetes.io/instance': this.config.name,
               'app.kubernetes.io/type': getChainId(this.chain),
               'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`,
-              'app.kubernetes.io/version': this.config.version || '1.8.0'
+              'app.kubernetes.io/version': this.config.version || '1.8.0',
+              'app.kubernetes.io/role': 'validator'
             }
           },
           spec: {
@@ -889,7 +904,7 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
     };
   }
 
-  private starshipFaucetContainer(): any {
+  private starshipFaucetContainer(): Container {
     return {
       name: 'faucet',
       image: 'busybox:1.34.1',
@@ -940,188 +955,344 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
  * Orchestrates ConfigMap, Service, and StatefulSet generation and file output
  */
 export class CosmosBuilder {
-  private defaultsManager: DefaultsManager;
+  private config: StarshipConfig;
   private scriptManager: ScriptManager;
-  private context: GeneratorContext;
-  private outputDir?: string;
 
-  constructor(context: GeneratorContext, outputDir?: string) {
-    this.context = context;
-    this.outputDir = outputDir;
-    this.defaultsManager = new DefaultsManager();
+  constructor(config: StarshipConfig) {
+    this.config = config;
     this.scriptManager = new ScriptManager();
   }
 
-  /**
-   * Build all Kubernetes manifests for a Cosmos chain
-   */
-  buildManifests(chain: Chain): Array<ConfigMap | Service | StatefulSet> {
-    // Skip Ethereum chains
-    if (chain.name?.startsWith('ethereum')) {
-      return [];
+  buildManifests(): (ConfigMap | Service | StatefulSet)[] {
+    const manifests: (ConfigMap | Service | StatefulSet)[] = [];
+    if (!this.config.chains) {
+      return manifests;
     }
 
-    const manifests: Array<ConfigMap | Service | StatefulSet> = [];
-
-    // Create generators for this chain
-    const configMapGenerator = new CosmosConfigMapGenerator(
-      chain,
-      this.context.config,
-      this.scriptManager
-    );
-    const serviceGenerator = new CosmosServiceGenerator(
-      chain,
-      this.context.config
-    );
-    const statefulSetGenerator = new CosmosStatefulSetGenerator(
-      chain,
-      this.context.config,
-      this.scriptManager
+    // Filter out non-Cosmos chains (e.g., Ethereum)
+    const cosmosChains = this.config.chains.filter(
+      (chain) => chain.name !== 'ethereum' && typeof chain.id === 'string'
     );
 
-    // Build ConfigMaps
-    manifests.push(configMapGenerator.scriptsConfigMap());
-
-    const genesisPatch = configMapGenerator.genesisPatchConfigMap();
-    if (genesisPatch) manifests.push(genesisPatch);
-
-    const icsProposal = configMapGenerator.icsConsumerProposalConfigMap();
-    if (icsProposal) manifests.push(icsProposal);
-
-    // Build Services
-    manifests.push(serviceGenerator.genesisService());
-
-    if (chain.numValidators > 1) {
-      manifests.push(serviceGenerator.validatorService());
+    if (cosmosChains.length === 0) {
+      return manifests;
     }
 
-    // Build StatefulSets
-    manifests.push(statefulSetGenerator.genesisStatefulSet());
-
-    if (chain.numValidators > 1) {
-      manifests.push(statefulSetGenerator.validatorStatefulSet());
+    // Keys ConfigMap
+    const keysConfigMap = new KeysConfigMap(this.config);
+    const keysCm = keysConfigMap.configMap();
+    if (keysCm) {
+      manifests.push(keysCm);
     }
 
-    // Build cometmock if enabled
-    if (chain.cometmock?.enabled) {
-      manifests.push(...this.cometmockManifests(chain));
+    // Global Scripts ConfigMap
+    const globalScripts = new GlobalScriptsConfigMap(this.config);
+    const globalScriptsCm = globalScripts.configMap();
+    if (globalScriptsCm) {
+      manifests.push(globalScriptsCm);
     }
+
+    cosmosChains.forEach((chain) => {
+      // Use sophisticated service generator
+      const serviceGenerator = new CosmosServiceGenerator(chain, this.config);
+
+      // Genesis Service (always needed)
+      manifests.push(serviceGenerator.genesisService());
+
+      // Validator Service (only if numValidators > 1)
+      if ((chain.numValidators || 1) > 1) {
+        manifests.push(serviceGenerator.validatorService());
+      }
+
+      // Use sophisticated StatefulSet generator
+      const statefulSetGenerator = new CosmosStatefulSetGenerator(
+        chain,
+        this.config,
+        this.scriptManager
+      );
+
+      // Genesis StatefulSet (always needed)
+      manifests.push(statefulSetGenerator.genesisStatefulSet());
+
+      // Validator StatefulSet (only if numValidators > 1)
+      if ((chain.numValidators || 1) > 1) {
+        manifests.push(statefulSetGenerator.validatorStatefulSet());
+      }
+
+      // Setup Scripts ConfigMap
+      const setupScripts = new SetupScriptsConfigMap(this.config, chain);
+      const setupScriptsCm = setupScripts.configMap();
+      if (setupScriptsCm) {
+        manifests.push(setupScriptsCm);
+      }
+
+      // Genesis Patch ConfigMap (if needed)
+      if (chain.genesis) {
+        const patch = new GenesisPatchConfigMap(this.config, chain);
+        manifests.push(patch.configMap());
+      }
+
+      // ICS Consumer Proposal ConfigMap
+      const icsProposal = new IcsConsumerProposalConfigMap(
+        this.config,
+        chain,
+        cosmosChains
+      );
+      const icsCm = icsProposal.configMap();
+      if (icsCm) {
+        manifests.push(icsCm);
+      }
+    });
 
     return manifests;
   }
+}
 
-  /**
-   * Generate and write YAML files for a single chain
-   */
-  generateFiles(chain: Chain, outputDir?: string): void {
-    const targetDir = outputDir || this.outputDir;
-    if (!targetDir) {
-      throw new Error(
-        'Output directory must be provided either in constructor or method call'
+class KeysConfigMap {
+  constructor(
+    private config: StarshipConfig,
+    private projectRoot: string = process.cwd()
+  ) {}
+
+  configMap(): ConfigMap | null {
+    const keysFilePath = path.join(this.projectRoot, 'configs', 'keys.json');
+
+    if (!fs.existsSync(keysFilePath)) {
+      console.warn(
+        `Warning: 'configs/keys.json' not found. Skipping Keys ConfigMap.`
       );
+      return null;
     }
 
-    const manifests = this.buildManifests(chain);
-
-    // Skip if no manifests to write (e.g., Ethereum chains or other unsupported chains)
-    if (manifests.length === 0) {
-      return;
-    }
-
-    this.writeManifests(chain, manifests, targetDir);
-  }
-
-  /**
-   * Generate and write YAML files for all chains in the config
-   */
-  generateAllFiles(outputDir?: string): void {
-    const targetDir = outputDir || this.outputDir;
-    if (!targetDir) {
-      throw new Error(
-        'Output directory must be provided either in constructor or method call'
+    try {
+      const keysFileContent = fs.readFileSync(keysFilePath, 'utf-8');
+      return {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata: {
+          name: 'keys',
+          labels: {
+            ...TemplateHelpers.commonLabels(this.config),
+            'app.kubernetes.io/component': 'configmap',
+            'app.kubernetes.io/part-of': 'global'
+          }
+        },
+        data: {
+          'keys.json': keysFileContent
+        }
+      };
+    } catch (error) {
+      console.warn(
+        `Warning: Could not read 'configs/keys.json'. Error: ${(error as Error).message}. Skipping.`
       );
+      return null;
     }
-
-    for (const chain of this.context.config.chains) {
-      this.generateFiles(chain, targetDir);
-    }
-  }
-
-  /**
-   * Write manifests to the directory structure:
-   * <chain.name>/
-   *   genesis.yaml: genesis yaml file
-   *   validator.yaml: validator statefulset, if exists
-   *   service.yaml: services for deployments
-   *   configmap.yaml: configmaps for the chain
-   */
-  writeManifests(
-    chain: Chain,
-    manifests: Array<ConfigMap | Service | StatefulSet>,
-    outputDir: string
-  ): void {
-    const chainName = chain.name || String(chain.id);
-    const chainDir = path.join(outputDir, chainName);
-
-    // Create chain directory
-    fs.mkdirSync(chainDir, { recursive: true });
-
-    // Separate manifests by type
-    const configMaps = manifests.filter(
-      (m) => m.kind === 'ConfigMap'
-    ) as ConfigMap[];
-    const services = manifests.filter((m) => m.kind === 'Service') as Service[];
-    const statefulSets = manifests.filter(
-      (m) => m.kind === 'StatefulSet'
-    ) as StatefulSet[];
-
-    // Write ConfigMaps
-    if (configMaps.length > 0) {
-      const configMapYaml = configMaps.map((cm) => yaml.dump(cm)).join('---\n');
-      fs.writeFileSync(path.join(chainDir, 'configmap.yaml'), configMapYaml);
-    }
-
-    // Write Services
-    if (services.length > 0) {
-      const serviceYaml = services.map((svc) => yaml.dump(svc)).join('---\n');
-      fs.writeFileSync(path.join(chainDir, 'service.yaml'), serviceYaml);
-    }
-
-    // Write StatefulSets - separate genesis and validator
-    const genesisStatefulSets = statefulSets.filter((ss) =>
-      ss.metadata?.name?.includes('genesis')
-    );
-    const validatorStatefulSets = statefulSets.filter(
-      (ss) =>
-        ss.metadata?.name?.includes('validator') &&
-        !ss.metadata?.name?.includes('genesis')
-    );
-
-    if (genesisStatefulSets.length > 0) {
-      const genesisYaml = genesisStatefulSets
-        .map((ss) => yaml.dump(ss))
-        .join('---\n');
-      fs.writeFileSync(path.join(chainDir, 'genesis.yaml'), genesisYaml);
-    }
-
-    if (validatorStatefulSets.length > 0) {
-      const validatorYaml = validatorStatefulSets
-        .map((ss) => yaml.dump(ss))
-        .join('---\n');
-      fs.writeFileSync(path.join(chainDir, 'validator.yaml'), validatorYaml);
-    }
-  }
-
-  /**
-   * Build cometmock manifests (placeholder for now)
-   */
-  private cometmockManifests(
-    _chain: any
-  ): Array<ConfigMap | Service | StatefulSet> {
-    // TODO: Implement cometmock manifest generation
-    return [];
   }
 }
 
-// Backward compatibility export
-export const CosmosChainBuilder = CosmosBuilder;
+class GlobalScriptsConfigMap {
+  constructor(
+    private config: StarshipConfig,
+    private projectRoot: string = process.cwd()
+  ) {}
+
+  configMap(): ConfigMap | null {
+    const scriptsDir = path.join(this.projectRoot, 'scripts', 'default');
+    if (!fs.existsSync(scriptsDir)) {
+      return null; // No global scripts directory found
+    }
+
+    const data: { [key: string]: string } = {};
+    try {
+      const scriptFiles = fs
+        .readdirSync(scriptsDir)
+        .filter((file) => file.endsWith('.sh'));
+
+      if (scriptFiles.length === 0) {
+        return null;
+      }
+
+      scriptFiles.forEach((fileName) => {
+        const filePath = path.join(scriptsDir, fileName);
+        data[fileName] = fs.readFileSync(filePath, 'utf-8');
+      });
+    } catch (error) {
+      console.warn(
+        `Warning: Could not read global scripts directory. Error: ${(error as Error).message}. Skipping.`
+      );
+      return null;
+    }
+
+    return {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: 'setup-scripts',
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'configmap',
+          'app.kubernetes.io/part-of': 'global'
+        }
+      },
+      data
+    };
+  }
+}
+
+class SetupScriptsConfigMap {
+  constructor(
+    private config: StarshipConfig,
+    private chain: Chain
+  ) {}
+
+  configMap(): ConfigMap | null {
+    const scripts = this.chain.scripts;
+
+    if (!scripts || Object.keys(scripts).length === 0) {
+      return null;
+    }
+
+    const data: { [key: string]: string } = {};
+
+    Object.entries(scripts).forEach(([key, script]) => {
+      if (!script) return;
+
+      const scriptName = script.name || `${key}.sh`;
+
+      if (script.data) {
+        data[scriptName] = script.data;
+      } else if (script.file) {
+        try {
+          // Assuming file paths are relative to the current working directory
+          data[scriptName] = fs.readFileSync(script.file, 'utf-8');
+        } catch (error) {
+          console.warn(
+            `Warning: Could not read script file ${script.file}. Error: ${(error as Error).message}. Skipping.`
+          );
+        }
+      }
+    });
+
+    if (Object.keys(data).length === 0) {
+      return null;
+    }
+
+    return {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: `setup-scripts-${TemplateHelpers.chainName(String(this.chain.id))}`,
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'chain',
+          'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
+          'app.kubernetes.io/part-of': String(this.chain.id),
+          'app.kubernetes.io/role': 'setup-scripts'
+        }
+      },
+      data
+    };
+  }
+}
+
+class GenesisPatchConfigMap {
+  constructor(
+    private config: StarshipConfig,
+    private chain: Chain
+  ) {}
+
+  configMap(): ConfigMap {
+    // ConfigMap definition here...
+    return {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: `patch-${TemplateHelpers.chainName(String(this.chain.id))}`,
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'chain',
+          'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
+          'app.kubernetes.io/part-of': String(this.chain.id),
+          'app.kubernetes.io/role': 'genesis-patch'
+        }
+      },
+      data: {
+        'patch.json': JSON.stringify(this.chain.genesis, null, 2)
+      }
+    };
+  }
+}
+
+class IcsConsumerProposalConfigMap {
+  constructor(
+    private config: StarshipConfig,
+    private chain: Chain,
+    private allChains: Chain[]
+  ) {}
+
+  configMap(): ConfigMap | null {
+    if (
+      !this.chain.ics ||
+      !this.chain.ics.enabled ||
+      !this.chain.ics.provider
+    ) {
+      return null;
+    }
+
+    const providerChain = this.allChains.find(
+      (c) => c.id === this.chain.ics.provider
+    );
+    if (!providerChain) {
+      console.warn(
+        `Warning: ICS Provider chain '${this.chain.ics.provider}' not found. Skipping ICS proposal for '${this.chain.id}'.`
+      );
+      return null;
+    }
+
+    const proposal = {
+      title: `Add ${this.chain.name} consumer chain`,
+      summary: `Add ${this.chain.name} consumer chain with id ${this.chain.id}`,
+      chain_id: this.chain.id,
+      initial_height: {
+        revision_height: 1,
+        revision_number: 1
+      },
+      genesis_hash:
+        'd86d756e10118e66e6805e9cc476949da2e750098fcc7634fd0cc77f57a0b2b0', // placeholder
+      binary_hash:
+        '376cdbd3a222a3d5c730c9637454cd4dd925e2f9e2e0d0f3702fc922928583f1', // placeholder
+      spawn_time: '2023-02-28T20:40:00.000000Z', // placeholder
+      unbonding_period: 294000000000,
+      ccv_timeout_period: 259920000000,
+      transfer_timeout_period: 18000000000,
+      consumer_redistribution_fraction: '0.75',
+      blocks_per_distribution_transmission: 10,
+      historical_entries: 100,
+      distribution_transmission_channel: '',
+      top_N: 95,
+      validators_power_cap: 0,
+      validator_set_cap: 0,
+      allowlist: [] as string[],
+      denylist: [] as string[],
+      deposit: `10000${providerChain.denom}`
+    };
+
+    return {
+      apiVersion: 'v1',
+      kind: 'ConfigMap',
+      metadata: {
+        name: `consumer-proposal-${TemplateHelpers.chainName(String(this.chain.id))}`,
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'chain',
+          'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
+          'app.kubernetes.io/part-of': String(this.chain.id),
+          'app.kubernetes.io/role': 'ics-proposal'
+        }
+      },
+      data: {
+        'proposal.json': JSON.stringify(proposal, null, 2)
+      }
+    };
+  }
+}
