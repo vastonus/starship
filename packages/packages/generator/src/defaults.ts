@@ -2,11 +2,9 @@ import { Chain, FaucetConfig, Script, StarshipConfig } from '@starship-ci/types'
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
-import { merge } from 'lodash';
 
 import { TemplateHelpers } from './helpers';
 import { DefaultsConfig, ProcessedChain } from './types';
-import { DEFAULT_CHAIN_CONFIG } from './defaults-chain';
 
 export { ProcessedChain };
 
@@ -178,4 +176,18 @@ export class DefaultsManager {
   getAllDefaults(): DefaultsConfig {
     return this.defaultsData;
   }
+}
+
+/**
+ * Apply defaults to a StarshipConfig
+ * This is a standalone function that processes all chains and returns a fully configured StarshipConfig
+ */
+export function applyDefaults(config: StarshipConfig): StarshipConfig {
+  const defaultsManager = new DefaultsManager();
+  const processedChains = config.chains.map(chain => defaultsManager.processChain(chain));
+  
+  return {
+    ...config,
+    chains: processedChains
+  };
 }

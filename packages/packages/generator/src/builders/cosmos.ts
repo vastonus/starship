@@ -941,11 +941,11 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
  */
 export class CosmosBuilder {
   private config: StarshipConfig;
-  private defaultsManager: DefaultsManager;
+  private scriptManager: ScriptManager;
 
   constructor(config: StarshipConfig) {
     this.config = config;
-    this.defaultsManager = new DefaultsManager();
+    this.scriptManager = new ScriptManager();
   }
 
   buildManifests(): (ConfigMap | Service | StatefulSet)[] {
@@ -954,7 +954,14 @@ export class CosmosBuilder {
       return manifests;
     }
 
-    const chains: Chain[] = this.config.chains.map(chain => this.defaultsManager.processChain(chain));
+    // Filter out non-Cosmos chains (e.g., Ethereum)
+    const cosmosChains = this.config.chains.filter(chain => 
+      chain.name !== 'ethereum' && typeof chain.id === 'string'
+    );
+
+    if (cosmosChains.length === 0) {
+      return manifests;
+    }
 
     // Keys ConfigMap
     const keysConfigMap = new KeysConfigMap(this.config);
@@ -970,14 +977,28 @@ export class CosmosBuilder {
       manifests.push(globalScriptsCm);
     }
 
-    chains.forEach(chain => {
-      // Service
-      const service = new ChainService(this.config, chain);
-      manifests.push(service.service());
+    cosmosChains.forEach(chain => {
+      // Use sophisticated service generator
+      const serviceGenerator = new CosmosServiceGenerator(chain, this.config);
+      
+      // Genesis Service (always needed)
+      manifests.push(serviceGenerator.genesisService());
+      
+      // Validator Service (only if numValidators > 1)
+      if ((chain.numValidators || 1) > 1) {
+        manifests.push(serviceGenerator.validatorService());
+      }
 
-      // StatefulSet
-      const statefulSet = new ChainStatefulSet(this.config, chain);
-      manifests.push(statefulSet.statefulSet());
+      // Use sophisticated StatefulSet generator
+      const statefulSetGenerator = new CosmosStatefulSetGenerator(chain, this.config, this.scriptManager);
+      
+      // Genesis StatefulSet (always needed)
+      manifests.push(statefulSetGenerator.genesisStatefulSet());
+      
+      // Validator StatefulSet (only if numValidators > 1)
+      if ((chain.numValidators || 1) > 1) {
+        manifests.push(statefulSetGenerator.validatorStatefulSet());
+      }
 
       // Setup Scripts ConfigMap
       const setupScripts = new SetupScriptsConfigMap(this.config, chain);
@@ -993,7 +1014,7 @@ export class CosmosBuilder {
       }
 
       // ICS Consumer Proposal ConfigMap
-      const icsProposal = new IcsConsumerProposalConfigMap(this.config, chain, chains);
+      const icsProposal = new IcsConsumerProposalConfigMap(this.config, chain, cosmosChains);
       const icsCm = icsProposal.configMap();
       if (icsCm) {
         manifests.push(icsCm);
@@ -1067,81 +1088,6 @@ class GlobalScriptsConfigMap {
         name: 'setup-scripts'
       },
       data
-    };
-  }
-}
-
-class ChainService {
-  constructor(private config: StarshipConfig, private chain: Chain) {}
-
-  service(): Service {
-    const ports: ServicePort[] = [
-      { name: 'rpc', port: 26657, targetPort: '26657', protocol: 'TCP' },
-      { name: 'p2p', port: 26656, targetPort: '26656', protocol: 'TCP' },
-      { name: 'rest', port: 1317, targetPort: '1317', protocol: 'TCP' },
-      { name: 'grpc', port: 9090, targetPort: '9090', protocol: 'TCP' }
-    ];
-
-    return {
-      apiVersion: 'v1',
-      kind: 'Service',
-      metadata: {
-        name: `${this.chain.id}-genesis`,
-        labels: TemplateHelpers.commonLabels(this.config)
-      },
-      spec: {
-        ports,
-        selector: {
-          app: `${this.chain.id}-genesis`
-        }
-      }
-    };
-  }
-}
-
-class ChainStatefulSet {
-  constructor(private config: StarshipConfig, private chain: Chain) {}
-
-  statefulSet(): StatefulSet {
-    // StatefulSet definition here...
-    return {
-      apiVersion: 'apps/v1',
-      kind: 'StatefulSet',
-      metadata: {
-        name: `${this.chain.id}-genesis`,
-        labels: TemplateHelpers.commonLabels(this.config)
-      },
-      spec: {
-        serviceName: `${this.chain.id}-genesis`,
-        replicas: 1,
-        selector: {
-          matchLabels: {
-            app: `${this.chain.id}-genesis`
-          }
-        },
-        template: {
-          metadata: {
-            labels: {
-              app: `${this.chain.id}-genesis`,
-              ...TemplateHelpers.commonLabels(this.config)
-            }
-          },
-          spec: {
-            containers: [{
-              name: `${this.chain.id}-genesis-container`,
-              image: this.chain.image,
-              ports: [
-                { name: 'rpc', containerPort: 26657 },
-                { name: 'p2p', containerPort: 26656 },
-                { name: 'rest', containerPort: 1317 },
-                { name: 'grpc', containerPort: 9090 }
-              ],
-              volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
-            }],
-            volumes: TemplateHelpers.generateChainVolumes(this.chain)
-          }
-        }
-      }
     };
   }
 }

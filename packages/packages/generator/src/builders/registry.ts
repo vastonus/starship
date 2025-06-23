@@ -4,7 +4,6 @@ import * as yaml from 'js-yaml';
 import { ConfigMap, Service, Deployment } from 'kubernetesjs';
 import * as path from 'path';
 
-import { DefaultsManager } from '../defaults';
 import { TemplateHelpers } from '../helpers';
 import { GeneratorContext } from '../types';
 

@@ -182,7 +182,7 @@ export class TemplateHelpers {
     return chains
       .map(
         (chain) =>
-          `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:26657`
+          `http://${this.chainName(String(chain.id))}-genesis.$(NAMESPACE).svc.cluster.local:26657`
       )
       .join(',');
   }
@@ -205,7 +205,7 @@ export class TemplateHelpers {
           const host = ingress.host.replace('*.', '');
           return `https://rpc.${chain.id}-genesis.${host}`;
         } else {
-          return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:26657`;
+          return `http://${this.chainName(String(chain.id))}-genesis.$(NAMESPACE).svc.cluster.local:26657`;
         }
       })
       .join(',');
@@ -229,7 +229,7 @@ export class TemplateHelpers {
           const host = ingress.host.replace('*.', '');
           return `https://grpc.${chain.id}-genesis.${host}`;
         } else {
-          return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:9091`;
+          return `http://${this.chainName(String(chain.id))}-genesis.$(NAMESPACE).svc.cluster.local:9091`;
         }
       })
       .join(',');
@@ -253,7 +253,7 @@ export class TemplateHelpers {
           const host = ingress.host.replace('*.', '');
           return `https://rest.${chain.id}-genesis.${host}`;
         } else {
-          return `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:1317`;
+          return `http://${this.chainName(String(chain.id))}-genesis.$(NAMESPACE).svc.cluster.local:1317`;
         }
       })
       .join(',');
@@ -269,7 +269,7 @@ export class TemplateHelpers {
     return chains
       .map(
         (chain) =>
-          `http://${chain.hostname}-genesis.$(NAMESPACE).svc.cluster.local:${port}`
+          `http://${this.chainName(String(chain.id))}-genesis.$(NAMESPACE).svc.cluster.local:${port}`
       )
       .join(',');
   }
@@ -285,9 +285,9 @@ export class TemplateHelpers {
     const waitScript = chains
       .map(
         (chain) => `
-      while [ $(curl -sw '%{http_code}' http://${chain.hostname}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id -o /dev/null) -ne 200 ]; do
+      while [ $(curl -sw '%{http_code}' http://${this.chainName(String(chain.id))}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id -o /dev/null) -ne 200 ]; do
         echo "Genesis validator does not seem to be ready for: ${chain.id}. Waiting for it to start..."
-        echo "Checking: http://${chain.hostname}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id"
+        echo "Checking: http://${this.chainName(String(chain.id))}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id"
         sleep 10;
       done`
       )
@@ -380,7 +380,7 @@ export class TemplateHelpers {
       {
         name: 'scripts',
         configMap: {
-          name: `setup-scripts-${chain.hostname}`
+          name: `setup-scripts-${this.chainName(String(chain.id))}`
         }
       }
     ];
@@ -390,7 +390,7 @@ export class TemplateHelpers {
       volumes.push({
         name: 'patch',
         configMap: {
-          name: `patch-${chain.hostname}`
+          name: `patch-${this.chainName(String(chain.id))}`
         }
       });
     }
