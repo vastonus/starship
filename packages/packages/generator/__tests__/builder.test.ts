@@ -4,6 +4,10 @@ import { join } from 'path';
 
 import { BuilderManager } from '../src/builders';
 import {
+  buildChainConfig,
+  cometmockConfig,
+  cosmjsFaucetConfig,
+  ethereumConfig,
   outputDir,
   singleChainConfig,
   twoChainConfig
@@ -221,6 +225,200 @@ describe('BuilderManager Tests', () => {
       });
 
       expect(resourceCounts).toMatchSnapshot('resource-type-counts');
+    });
+  });
+
+  describe('Advanced Configuration Testing', () => {
+    it('should handle build-enabled chain configuration', () => {
+      const manager = new BuilderManager(buildChainConfig);
+      
+      const testSubDir = join(testOutputDir, 'build-chain');
+      manager.build(testSubDir);
+      
+      const yamlFiles = loadYamlFiles(testSubDir);
+      expect(yamlFiles).toMatchSnapshot('build-chain-yaml-files');
+      
+      // Verify StatefulSets have build-related init containers
+      Object.values(yamlFiles).forEach((content: any) => {
+        if (content.kind === 'StatefulSet') {
+          const initContainers = content.spec?.template?.spec?.initContainers || [];
+          const hasBuildContainer = initContainers.some((container: any) => 
+            container.name === 'init-build-images'
+          );
+          expect(hasBuildContainer).toBe(true);
+        }
+      });
+    });
+
+    it('should handle CosmJS faucet configuration', () => {
+      const manager = new BuilderManager(cosmjsFaucetConfig);
+      
+      const testSubDir = join(testOutputDir, 'cosmjs-faucet');
+      manager.build(testSubDir);
+      
+      const yamlFiles = loadYamlFiles(testSubDir);
+      expect(yamlFiles).toMatchSnapshot('cosmjs-faucet-yaml-files');
+      
+      // Verify StatefulSets have faucet containers
+      Object.values(yamlFiles).forEach((content: any) => {
+        if (content.kind === 'StatefulSet' && content.metadata.name.includes('genesis')) {
+          const containers = content.spec?.template?.spec?.containers || [];
+          const hasFaucetContainer = containers.some((container: any) => 
+            container.name === 'faucet'
+          );
+          expect(hasFaucetContainer).toBe(true);
+        }
+      });
+    });
+
+    it('should handle Cometmock configuration', () => {
+      const manager = new BuilderManager(cometmockConfig);
+      
+      const testSubDir = join(testOutputDir, 'cometmock');
+      manager.build(testSubDir);
+      
+      const yamlFiles = loadYamlFiles(testSubDir);
+      expect(yamlFiles).toMatchSnapshot('cometmock-yaml-files');
+      
+      // Verify cosmoshub chain is generated (cometmock config uses cosmoshub)
+      const hasCosmoshubResources = Object.keys(yamlFiles).some(filePath => 
+        filePath.includes('cosmoshub/')
+      );
+      expect(hasCosmoshubResources).toBe(true);
+    });
+
+    it('should skip Ethereum chains appropriately', () => {
+      const manager = new BuilderManager(ethereumConfig);
+      
+      const testSubDir = join(testOutputDir, 'ethereum-skip');
+      manager.build(testSubDir);
+      
+      const yamlFiles = loadYamlFiles(testSubDir);
+      expect(yamlFiles).toMatchSnapshot('ethereum-skip-yaml-files');
+
+      // only explorer and registry dir should exist
+      const directories = readdirSync(testSubDir, { withFileTypes: true })
+        .filter((item) => item.isDirectory())
+        .map((item) => item.name)
+        .sort();
+      expect(directories).toEqual(['explorer', 'registry']);
+    });
+  });
+
+  describe('Complex Configuration Scenarios', () => {
+
+    it('should handle configuration with all builders enabled', () => {
+      const fullConfig = {
+         name: 'full-testnet',
+         chains: [singleChainConfig.chains[0]],
+         registry: {
+           enabled: true,
+           image: 'registry:latest',
+           ports: { rest: 8080 }
+         },
+         explorer: {
+           enabled: true,
+           type: 'ping-pub' as const,
+           image: 'explorer:latest',
+           ports: { rest: 8081 }
+         }
+       };
+
+      const manager = new BuilderManager(fullConfig);
+      
+      const testSubDir = join(testOutputDir, 'full-builders');
+      manager.build(testSubDir);
+      
+      const yamlFiles = loadYamlFiles(testSubDir);
+      expect(yamlFiles).toMatchSnapshot('full-builders-yaml-files');
+      
+      // Verify all expected directories exist
+      const directories = readdirSync(testSubDir, { withFileTypes: true })
+        .filter((item) => item.isDirectory())
+        .map((item) => item.name)
+        .sort();
+      
+      expect(directories).toEqual(['configmaps', 'explorer', 'osmosis', 'registry']);
+      
+      // Verify each component has correct files
+      const registryFiles = Object.keys(yamlFiles).filter(f => f.startsWith('registry/'));
+      const explorerFiles = Object.keys(yamlFiles).filter(f => f.startsWith('explorer/'));
+      const osmosisFiles = Object.keys(yamlFiles).filter(f => f.startsWith('osmosis/'));
+      
+      expect(registryFiles.length).toBeGreaterThan(0);
+      expect(explorerFiles.length).toBeGreaterThan(0);
+      expect(osmosisFiles.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('File Organization Edge Cases', () => {
+    it('should handle chains with special characters in names', () => {
+      const specialConfig = {
+        name: 'special-testnet',
+        chains: [
+                     {
+             ...singleChainConfig.chains[0],
+             name: 'test-chain' as any,
+             id: 'test-chain-1'
+           }
+        ]
+      };
+
+      const manager = new BuilderManager(specialConfig);
+      
+      const testSubDir = join(testOutputDir, 'special-chars');
+      manager.build(testSubDir);
+      
+      const yamlFiles = loadYamlFiles(testSubDir);
+      expect(yamlFiles).toMatchSnapshot('special-chars-yaml-files');
+      
+      // Verify directory uses chain name correctly
+      const directories = readdirSync(testSubDir, { withFileTypes: true })
+        .filter((item) => item.isDirectory())
+        .map((item) => item.name);
+      
+      expect(directories).toContain('test-chain');
+    });
+
+    it('should validate file naming consistency across all configurations', () => {
+      const configs = [
+        { name: 'single', config: singleChainConfig },
+        { name: 'multi', config: twoChainConfig },
+        { name: 'build', config: buildChainConfig },
+        { name: 'cosmjs', config: cosmjsFaucetConfig },
+        { name: 'cometmock', config: cometmockConfig }
+      ];
+
+      const allFileStructures: Record<string, Record<string, string[]>> = {};
+
+      configs.forEach(({ name, config }) => {
+        const manager = new BuilderManager(config);
+        const testSubDir = join(testOutputDir, `consistency-${name}`);
+        manager.build(testSubDir);
+
+        const files = getAllYamlFiles(testSubDir);
+        const fileStructure: Record<string, string[]> = {};
+        
+        files.forEach((filePath) => {
+          const relativePath = filePath.replace(testSubDir + '/', '');
+          const parts = relativePath.split('/');
+          const directory = parts[0];
+          const fileName = parts[parts.length - 1];
+          
+          if (!fileStructure[directory]) {
+            fileStructure[directory] = [];
+          }
+          fileStructure[directory].push(fileName);
+        });
+
+        Object.keys(fileStructure).forEach((dir) => {
+          fileStructure[dir].sort();
+        });
+
+        allFileStructures[name] = fileStructure;
+      });
+
+      expect(allFileStructures).toMatchSnapshot('all-config-file-structures');
     });
   });
 });

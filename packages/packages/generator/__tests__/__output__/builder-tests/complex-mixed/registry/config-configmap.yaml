@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: registry-config
+  labels:
+    app.kubernetes.io/instance: complex-testnet
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/component: registry
+    app.kubernetes.io/part-of: starship
+data:
+  osmosis-build.json: >-
+    {"chain_name":"osmosis","assets":[{"base":"uosmo","description":"The native
+    token of
+    Osmosis","name":"Osmosis","display":"osmo","symbol":"OSMO","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.svg"},"denom_units":[{"denom":"uosmo","exponent":0},{"denom":"osmo","exponent":6}],"coingecko_id":"osmosis","keywords":["staking","dex"]},{"base":"uion","name":"Ion","display":"ion","symbol":"ION","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.svg"},"denom_units":[{"denom":"uion","exponent":0},{"denom":"ion","exponent":6}],"coingecko_id":"ion","keywords":["memecoin"]}]}
+  osmosis-cosmjs.json: >-
+    {"chain_name":"osmosis","assets":[{"base":"uosmo","description":"The native
+    token of
+    Osmosis","name":"Osmosis","display":"osmo","symbol":"OSMO","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.svg"},"denom_units":[{"denom":"uosmo","exponent":0},{"denom":"osmo","exponent":6}],"coingecko_id":"osmosis","keywords":["staking","dex"]},{"base":"uion","name":"Ion","display":"ion","symbol":"ION","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.svg"},"denom_units":[{"denom":"uion","exponent":0},{"denom":"ion","exponent":6}],"coingecko_id":"ion","keywords":["memecoin"]}]}
+  ethereum-1.json: >-
+    {"chain_name":"ethereum","assets":[{"base":"wei","name":"Ether","description":"The
+    native token of
+    Ethereum","display":"eth","symbol":"ETH","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/ethereum/images/eth-white.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/ethereum/images/eth-white.svg"},"denom_units":[{"denom":"wei","exponent":0},{"denom":"gwei","exponent":9},{"denom":"ether","exponent":18,"aliases":["ether"]}],"coingecko_id":"ethereum"}]}
