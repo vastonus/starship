@@ -307,6 +307,96 @@ describe('BuilderManager Tests', () => {
         .sort();
       expect(directories).toEqual(['explorer', 'registry']);
     });
+
+    it('should handle relayer configuration', () => {
+      const relayerConfig = {
+        name: 'relayer-testnet',
+        chains: [
+          {
+            id: 'osmosis-1',
+            name: 'osmosis' as const,
+            numValidators: 1,
+            prefix: 'osmo',
+            denom: 'uosmo'
+          },
+          {
+            id: 'cosmoshub-4',
+            name: 'cosmoshub' as const,
+            numValidators: 1,
+            prefix: 'cosmos',
+            denom: 'uatom'
+          }
+        ],
+        relayers: [
+          {
+            name: 'hermes-relay',
+            type: 'hermes' as const,
+            replicas: 1,
+            chains: ['osmosis-1', 'cosmoshub-4'],
+            config: {
+              global: { log_level: 'info' },
+              mode: {
+                clients: { enabled: true, refresh: true, misbehaviour: true },
+                connections: { enabled: true },
+                channels: { enabled: true },
+                packets: { enabled: true, clear_interval: 100, clear_on_start: true, tx_confirmation: true }
+              },
+              rest: { enabled: true, host: '0.0.0.0', port: 3000 },
+              telemetry: { enabled: true, host: '0.0.0.0', port: 3001 }
+            }
+          },
+          {
+            name: 'go-relay',
+            type: 'go-relayer' as const,
+            replicas: 1,
+            chains: ['osmosis-1', 'cosmoshub-4']
+          }
+        ]
+      };
+
+      const manager = new BuilderManager(relayerConfig);
+
+      const testSubDir = join(testOutputDir, 'relayers');
+      manager.build(testSubDir);
+
+      const yamlFiles = loadYamlFiles(testSubDir);
+      expect(yamlFiles).toMatchSnapshot('relayers-yaml-files');
+
+      // Verify relayer directory exists
+      const directories = readdirSync(testSubDir, { withFileTypes: true })
+        .filter((item) => item.isDirectory())
+        .map((item) => item.name)
+        .sort();
+      expect(directories).toContain('relayer');
+
+      // Verify relayer manifests are generated
+      const relayerFiles = Object.keys(yamlFiles).filter((f) =>
+        f.startsWith('relayer/')
+      );
+      expect(relayerFiles.length).toBeGreaterThan(0);
+
+      // Verify both relayers have their manifests
+      const hermesManifests = Object.keys(yamlFiles).filter((f) =>
+        f.includes('hermes-relay')
+      );
+      const goRelayerManifests = Object.keys(yamlFiles).filter((f) =>
+        f.includes('go-relay')
+      );
+
+      expect(hermesManifests.length).toBeGreaterThan(0);
+      expect(goRelayerManifests.length).toBeGreaterThan(0);
+
+      // Verify hermes has service (go-relayer should not)
+      const hermesServiceExists = Object.values(yamlFiles).some((content: any) =>
+        content.kind === 'Service' && content.metadata.name.includes('hermes-relay')
+      );
+      const goRelayerServiceExists = Object.values(yamlFiles).some((content: any) =>
+        content.kind === 'Service' && content.metadata.name.includes('go-relay')
+      );
+
+      expect(hermesServiceExists).toBe(true);
+      expect(goRelayerServiceExists).toBe(false);
+    });
   });
 
   describe('Complex Configuration Scenarios', () => {
