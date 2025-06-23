@@ -59,27 +59,6 @@ exports[`Cosmos Integration Tests Direct CosmosBuilder Integration should handle
 }
 `;
 
-exports[`Cosmos Integration Tests End-to-End Generation with BuilderManager should generate complete multi-chain setup using BuilderManager: complete-multi-chain-setup 1`] = `
-{
-  "cosmoshubManifests": 5,
-  "fileCount": 18,
-  "osmosisManifests": 5,
-  "testDirectory": "multi-chain-manager",
-  "totalManifests": 10,
-}
-`;
-
-exports[`Cosmos Integration Tests End-to-End Generation with BuilderManager should generate complete single-chain setup using BuilderManager: complete-single-chain-setup 1`] = `
-{
-  "fileCount": 12,
-  "hasConfigMaps": true,
-  "hasGenesisService": true,
-  "hasStatefulSet": true,
-  "manifestCount": 4,
-  "testDirectory": "single-chain-manager",
-}
-`;
-
 exports[`Cosmos Integration Tests Resource Content Verification should generate correct environment variables: environment-variables 1`] = `
 {
   "containerCount": 3,
