@@ -1,4 +1,4 @@
-import { StarshipConfig, Chain } from '@starship-ci/types';
+import { Chain, StarshipConfig } from '@starship-ci/types';
 
 import { EnvVar } from './types';
 
@@ -83,7 +83,10 @@ export class TemplateHelpers {
    */
   static genesisVars(chain: Chain, port: number): EnvVar[] {
     return [
-      { name: 'GENESIS_HOST', value: `${TemplateHelpers.chainName(String(chain.id))}-genesis` },
+      {
+        name: 'GENESIS_HOST',
+        value: `${TemplateHelpers.chainName(String(chain.id))}-genesis`
+      },
       { name: 'GENESIS_PORT', value: String(port) },
       {
         name: 'NAMESPACE',
@@ -190,10 +193,7 @@ export class TemplateHelpers {
   /**
    * Returns comma-separated list of RPC addresses
    */
-  static chainRpcAddrs(
-    chains: Chain[],
-    config: StarshipConfig
-  ): string {
+  static chainRpcAddrs(chains: Chain[], config: StarshipConfig): string {
     const localhost = config.registry?.localhost;
     const ingress = config.ingress;
 
@@ -214,10 +214,7 @@ export class TemplateHelpers {
   /**
    * Returns comma-separated list of GRPC addresses
    */
-  static chainGrpcAddrs(
-    chains: Chain[],
-    config: StarshipConfig
-  ): string {
+  static chainGrpcAddrs(chains: Chain[], config: StarshipConfig): string {
     const localhost = config.registry?.localhost;
     const ingress = config.ingress;
 
@@ -238,10 +235,7 @@ export class TemplateHelpers {
   /**
    * Returns comma-separated list of REST addresses
    */
-  static chainRestAddrs(
-    chains: Chain[],
-    config: StarshipConfig
-  ): string {
+  static chainRestAddrs(chains: Chain[], config: StarshipConfig): string {
     const localhost = config.registry?.localhost;
     const ingress = config.ingress;
 
@@ -262,10 +256,7 @@ export class TemplateHelpers {
   /**
    * Returns comma-separated list of exposer addresses
    */
-  static chainExposerAddrs(
-    chains: Chain[],
-    port: number = 8081
-  ): string {
+  static chainExposerAddrs(chains: Chain[], port: number = 8081): string {
     return chains
       .map(
         (chain) =>

@@ -1,4 +1,4 @@
-import { Service, Deployment, ConfigMap, StatefulSet } from 'kubernetesjs';
+import { ConfigMap, Deployment, Service, StatefulSet } from 'kubernetesjs';
 
 import { DefaultsManager } from '../defaults';
 import { GeneratorContext } from '../types';
@@ -31,4 +31,4 @@ export abstract class BaseBuilder implements IBuilder {
   }
 
   abstract generateFiles(outputDir?: string): Promise<void>;
-} 
+}

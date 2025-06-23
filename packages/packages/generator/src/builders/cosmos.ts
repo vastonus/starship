@@ -1,7 +1,6 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
 import * as fs from 'fs';
-import * as yaml from 'js-yaml';
-import { ConfigMap, Service, ServicePort, StatefulSet, Container } from 'kubernetesjs';
+import { ConfigMap, Container, Service, StatefulSet } from 'kubernetesjs';
 import * as path from 'path';
 
 import { DefaultsManager } from '../defaults';
@@ -971,8 +970,8 @@ export class CosmosBuilder {
     }
 
     // Filter out non-Cosmos chains (e.g., Ethereum)
-    const cosmosChains = this.config.chains.filter(chain => 
-      chain.name !== 'ethereum' && typeof chain.id === 'string'
+    const cosmosChains = this.config.chains.filter(
+      (chain) => chain.name !== 'ethereum' && typeof chain.id === 'string'
     );
 
     if (cosmosChains.length === 0) {
@@ -993,24 +992,28 @@ export class CosmosBuilder {
       manifests.push(globalScriptsCm);
     }
 
-    cosmosChains.forEach(chain => {
+    cosmosChains.forEach((chain) => {
       // Use sophisticated service generator
       const serviceGenerator = new CosmosServiceGenerator(chain, this.config);
-      
+
       // Genesis Service (always needed)
       manifests.push(serviceGenerator.genesisService());
-      
+
       // Validator Service (only if numValidators > 1)
       if ((chain.numValidators || 1) > 1) {
         manifests.push(serviceGenerator.validatorService());
       }
 
       // Use sophisticated StatefulSet generator
-      const statefulSetGenerator = new CosmosStatefulSetGenerator(chain, this.config, this.scriptManager);
-      
+      const statefulSetGenerator = new CosmosStatefulSetGenerator(
+        chain,
+        this.config,
+        this.scriptManager
+      );
+
       // Genesis StatefulSet (always needed)
       manifests.push(statefulSetGenerator.genesisStatefulSet());
-      
+
       // Validator StatefulSet (only if numValidators > 1)
       if ((chain.numValidators || 1) > 1) {
         manifests.push(statefulSetGenerator.validatorStatefulSet());
@@ -1030,7 +1033,11 @@ export class CosmosBuilder {
       }
 
       // ICS Consumer Proposal ConfigMap
-      const icsProposal = new IcsConsumerProposalConfigMap(this.config, chain, cosmosChains);
+      const icsProposal = new IcsConsumerProposalConfigMap(
+        this.config,
+        chain,
+        cosmosChains
+      );
       const icsCm = icsProposal.configMap();
       if (icsCm) {
         manifests.push(icsCm);
@@ -1042,13 +1049,18 @@ export class CosmosBuilder {
 }
 
 class KeysConfigMap {
-  constructor(private config: StarshipConfig, private projectRoot: string = process.cwd()) {}
+  constructor(
+    private config: StarshipConfig,
+    private projectRoot: string = process.cwd()
+  ) {}
 
   configMap(): ConfigMap | null {
     const keysFilePath = path.join(this.projectRoot, 'configs', 'keys.json');
 
     if (!fs.existsSync(keysFilePath)) {
-      console.warn(`Warning: 'configs/keys.json' not found. Skipping Keys ConfigMap.`);
+      console.warn(
+        `Warning: 'configs/keys.json' not found. Skipping Keys ConfigMap.`
+      );
       return null;
     }
 
@@ -1070,14 +1082,19 @@ class KeysConfigMap {
         }
       };
     } catch (error) {
-      console.warn(`Warning: Could not read 'configs/keys.json'. Error: ${(error as Error).message}. Skipping.`);
+      console.warn(
+        `Warning: Could not read 'configs/keys.json'. Error: ${(error as Error).message}. Skipping.`
+      );
       return null;
     }
   }
 }
 
 class GlobalScriptsConfigMap {
-  constructor(private config: StarshipConfig, private projectRoot: string = process.cwd()) {}
+  constructor(
+    private config: StarshipConfig,
+    private projectRoot: string = process.cwd()
+  ) {}
 
   configMap(): ConfigMap | null {
     const scriptsDir = path.join(this.projectRoot, 'scripts', 'default');
@@ -1087,18 +1104,22 @@ class GlobalScriptsConfigMap {
 
     const data: { [key: string]: string } = {};
     try {
-      const scriptFiles = fs.readdirSync(scriptsDir).filter(file => file.endsWith('.sh'));
+      const scriptFiles = fs
+        .readdirSync(scriptsDir)
+        .filter((file) => file.endsWith('.sh'));
 
       if (scriptFiles.length === 0) {
         return null;
       }
 
-      scriptFiles.forEach(fileName => {
+      scriptFiles.forEach((fileName) => {
         const filePath = path.join(scriptsDir, fileName);
         data[fileName] = fs.readFileSync(filePath, 'utf-8');
       });
     } catch (error) {
-      console.warn(`Warning: Could not read global scripts directory. Error: ${(error as Error).message}. Skipping.`);
+      console.warn(
+        `Warning: Could not read global scripts directory. Error: ${(error as Error).message}. Skipping.`
+      );
       return null;
     }
 
@@ -1119,7 +1140,10 @@ class GlobalScriptsConfigMap {
 }
 
 class SetupScriptsConfigMap {
-  constructor(private config: StarshipConfig, private chain: Chain) {}
+  constructor(
+    private config: StarshipConfig,
+    private chain: Chain
+  ) {}
 
   configMap(): ConfigMap | null {
     const scripts = this.chain.scripts;
@@ -1132,9 +1156,9 @@ class SetupScriptsConfigMap {
 
     Object.entries(scripts).forEach(([key, script]) => {
       if (!script) return;
-      
+
       const scriptName = script.name || `${key}.sh`;
-      
+
       if (script.data) {
         data[scriptName] = script.data;
       } else if (script.file) {
@@ -1142,7 +1166,9 @@ class SetupScriptsConfigMap {
           // Assuming file paths are relative to the current working directory
           data[scriptName] = fs.readFileSync(script.file, 'utf-8');
         } catch (error) {
-          console.warn(`Warning: Could not read script file ${script.file}. Error: ${(error as Error).message}. Skipping.`);
+          console.warn(
+            `Warning: Could not read script file ${script.file}. Error: ${(error as Error).message}. Skipping.`
+          );
         }
       }
     });
@@ -1170,7 +1196,10 @@ class SetupScriptsConfigMap {
 }
 
 class GenesisPatchConfigMap {
-  constructor(private config: StarshipConfig, private chain: Chain) {}
+  constructor(
+    private config: StarshipConfig,
+    private chain: Chain
+  ) {}
 
   configMap(): ConfigMap {
     // ConfigMap definition here...
@@ -1195,16 +1224,28 @@ class GenesisPatchConfigMap {
 }
 
 class IcsConsumerProposalConfigMap {
-  constructor(private config: StarshipConfig, private chain: Chain, private allChains: Chain[]) {}
+  constructor(
+    private config: StarshipConfig,
+    private chain: Chain,
+    private allChains: Chain[]
+  ) {}
 
   configMap(): ConfigMap | null {
-    if (!this.chain.ics || !this.chain.ics.enabled || !this.chain.ics.provider) {
+    if (
+      !this.chain.ics ||
+      !this.chain.ics.enabled ||
+      !this.chain.ics.provider
+    ) {
       return null;
     }
 
-    const providerChain = this.allChains.find(c => c.id === this.chain.ics.provider);
+    const providerChain = this.allChains.find(
+      (c) => c.id === this.chain.ics.provider
+    );
     if (!providerChain) {
-      console.warn(`Warning: ICS Provider chain '${this.chain.ics.provider}' not found. Skipping ICS proposal for '${this.chain.id}'.`);
+      console.warn(
+        `Warning: ICS Provider chain '${this.chain.ics.provider}' not found. Skipping ICS proposal for '${this.chain.id}'.`
+      );
       return null;
     }
 
@@ -1216,16 +1257,18 @@ class IcsConsumerProposalConfigMap {
         revision_height: 1,
         revision_number: 1
       },
-      genesis_hash: "d86d756e10118e66e6805e9cc476949da2e750098fcc7634fd0cc77f57a0b2b0", // placeholder
-      binary_hash: "376cdbd3a222a3d5c730c9637454cd4dd925e2f9e2e0d0f3702fc922928583f1", // placeholder
-      spawn_time: "2023-02-28T20:40:00.000000Z", // placeholder
+      genesis_hash:
+        'd86d756e10118e66e6805e9cc476949da2e750098fcc7634fd0cc77f57a0b2b0', // placeholder
+      binary_hash:
+        '376cdbd3a222a3d5c730c9637454cd4dd925e2f9e2e0d0f3702fc922928583f1', // placeholder
+      spawn_time: '2023-02-28T20:40:00.000000Z', // placeholder
       unbonding_period: 294000000000,
       ccv_timeout_period: 259920000000,
       transfer_timeout_period: 18000000000,
-      consumer_redistribution_fraction: "0.75",
+      consumer_redistribution_fraction: '0.75',
       blocks_per_distribution_transmission: 10,
       historical_entries: 100,
-      distribution_transmission_channel: "",
+      distribution_transmission_channel: '',
       top_N: 95,
       validators_power_cap: 0,
       validator_set_cap: 0,
@@ -1253,4 +1296,3 @@ class IcsConsumerProposalConfigMap {
     };
   }
 }
-

@@ -1,8 +1,4 @@
-import { StarshipConfig, Chain } from '@starship-ci/types';
-import * as fs from 'fs';
-import * as yaml from 'js-yaml';
-import { ConfigMap, Service, Deployment } from 'kubernetesjs';
-import * as path from 'path';
+import { StarshipConfig } from '@starship-ci/types';
 
 import { TemplateHelpers } from '../helpers';
 
@@ -29,9 +25,10 @@ export class ExplorerConfigMapGenerator {
       chainConfigs[`${chain.id}.json`] = JSON.stringify({
         chain_name: chain.id,
         coingecko: chain.name,
-        api: this.config.ingress?.enabled && this.config.ingress.host
-          ? `https://rest.${chain.id}-genesis.${this.config.ingress.host.replace('*.', '')}:443`
-          : `http://${host}:${chain.ports?.rest || 1317}`,
+        api:
+          this.config.ingress?.enabled && this.config.ingress.host
+            ? `https://rest.${chain.id}-genesis.${this.config.ingress.host.replace('*.', '')}:443`
+            : `http://${host}:${chain.ports?.rest || 1317}`,
         rpc: [
           this.config.ingress?.enabled && this.config.ingress.host
             ? `https://rpc.${chain.id}-genesis.${this.config.ingress.host.replace('*.', '')}:443`
@@ -152,7 +149,8 @@ export class ExplorerDeploymentGenerator {
             },
             labels: {
               'app.kubernetes.io/instance': 'explorer',
-              'app.kubernetes.io/type': this.config.explorer?.type || 'ping-pub',
+              'app.kubernetes.io/type':
+                this.config.explorer?.type || 'ping-pub',
               'app.kubernetes.io/name': 'explorer',
               'app.kubernetes.io/rawname': 'explorer',
               'app.kubernetes.io/version': this.config.version || '1.8.0'
@@ -162,19 +160,21 @@ export class ExplorerDeploymentGenerator {
             containers: [
               {
                 name: 'explorer',
-                image: this.config.explorer?.image || 'ghcr.io/cosmology-tech/starship/ping-pub:latest',
-                imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
-                env: [
-                  { name: 'CHAINS_CONFIG_PATH', value: '/explorer' }
-                ],
-                ports: [
-                  { name: 'http', containerPort: 8080, protocol: 'TCP' }
-                ],
+                image:
+                  this.config.explorer?.image ||
+                  'ghcr.io/cosmology-tech/starship/ping-pub:latest',
+                imagePullPolicy:
+                  this.config.images?.imagePullPolicy || 'IfNotPresent',
+                env: [{ name: 'CHAINS_CONFIG_PATH', value: '/explorer' }],
+                ports: [{ name: 'http', containerPort: 8080, protocol: 'TCP' }],
                 volumeMounts: [
                   { name: 'explorer-config', mountPath: '/explorer' }
                 ],
                 resources: TemplateHelpers.getResourceObject(
-                  this.config.explorer?.resources || { cpu: '0.2', memory: '200M' }
+                  this.config.explorer?.resources || {
+                    cpu: '0.2',
+                    memory: '200M'
+                  }
                 )
               }
             ],

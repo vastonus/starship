@@ -44,10 +44,10 @@ export interface DefaultsConfig {
 }
 
 export interface ProcessedChain extends Chain {
-    hostname: string;
-    accounts: Array<{
-        name: string;
-        mnemonic: string;
-        address: string;
-    }>;
+  hostname: string;
+  accounts: Array<{
+    name: string;
+    mnemonic: string;
+    address: string;
+  }>;
 }

@@ -1,8 +1,4 @@
 import { StarshipConfig } from '@starship-ci/types';
-import * as fs from 'fs';
-import * as yaml from 'js-yaml';
-import { Service, Deployment } from 'kubernetesjs';
-import * as path from 'path';
 
 import { TemplateHelpers } from '../helpers';
 
@@ -33,14 +29,16 @@ export class FrontendServiceGenerator {
       },
       spec: {
         clusterIP: 'None',
-        ports: this.frontend.ports?.rest ? [
-          {
-            name: 'http',
-            port: this.frontend.ports.rest,
-            protocol: 'TCP',
-            targetPort: 'http'
-          }
-        ] : [],
+        ports: this.frontend.ports?.rest
+          ? [
+              {
+                name: 'http',
+                port: this.frontend.ports.rest,
+                protocol: 'TCP',
+                targetPort: 'http'
+              }
+            ]
+          : [],
         selector: {
           'app.kubernetes.io/name': this.frontend.name
         }
@@ -103,14 +101,17 @@ export class FrontendDeploymentGenerator {
               {
                 name: this.frontend.name,
                 image: this.frontend.image,
-                imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
-                ports: this.frontend.ports?.rest ? [
-                  {
-                    name: 'http',
-                    containerPort: this.frontend.ports.rest,
-                    protocol: 'TCP'
-                  }
-                ] : [],
+                imagePullPolicy:
+                  this.config.images?.imagePullPolicy || 'IfNotPresent',
+                ports: this.frontend.ports?.rest
+                  ? [
+                      {
+                        name: 'http',
+                        containerPort: this.frontend.ports.rest,
+                        protocol: 'TCP'
+                      }
+                    ]
+                  : [],
                 env: this.frontend.env || [],
                 resources: TemplateHelpers.getResourceObject(
                   this.frontend.resources || { cpu: '0.2', memory: '200M' }
@@ -141,9 +142,15 @@ export class FrontendBuilder {
       return manifests;
     }
 
-    this.config.frontends.forEach(frontend => {
-      const serviceGenerator = new FrontendServiceGenerator(this.config, frontend);
-      const deploymentGenerator = new FrontendDeploymentGenerator(this.config, frontend);
+    this.config.frontends.forEach((frontend) => {
+      const serviceGenerator = new FrontendServiceGenerator(
+        this.config,
+        frontend
+      );
+      const deploymentGenerator = new FrontendDeploymentGenerator(
+        this.config,
+        frontend
+      );
 
       manifests.push(serviceGenerator.service());
       manifests.push(deploymentGenerator.deployment());

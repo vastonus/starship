@@ -1,5 +1,4 @@
-import { existsSync, mkdirSync, readFileSync } from 'fs';
-import * as yaml from 'js-yaml';
+import { mkdirSync } from 'fs';
 import { join } from 'path';
 
 import { CosmosBuilder } from '../src/builders/cosmos';
@@ -40,15 +39,19 @@ describe('Cosmos Generator Tests', () => {
       expect(manifests.length).toBeGreaterThan(0);
 
       const services = manifests.filter((m: any) => m.kind === 'Service');
-      const statefulSets = manifests.filter((m: any) => m.kind === 'StatefulSet');
+      const statefulSets = manifests.filter(
+        (m: any) => m.kind === 'StatefulSet'
+      );
       const configMaps = manifests.filter((m: any) => m.kind === 'ConfigMap');
 
       expect(services.length).toBeGreaterThan(0);
       expect(statefulSets.length).toBeGreaterThan(0);
       expect(configMaps.length).toBeGreaterThan(0);
 
-      const genesisService = services.find((s: any) => s.metadata.name.includes('genesis'));
-      const setupScriptsConfigMap = configMaps.find((cm: any) => 
+      const genesisService = services.find((s: any) =>
+        s.metadata.name.includes('genesis')
+      );
+      const setupScriptsConfigMap = configMaps.find((cm: any) =>
         cm.metadata.name.startsWith('setup-scripts')
       );
 
@@ -67,16 +70,26 @@ describe('Cosmos Generator Tests', () => {
       expect(manifests.length).toBeGreaterThan(0);
 
       const services = manifests.filter((m: any) => m.kind === 'Service');
-      const statefulSets = manifests.filter((m: any) => m.kind === 'StatefulSet');
+      const statefulSets = manifests.filter(
+        (m: any) => m.kind === 'StatefulSet'
+      );
 
       // Multi-validator should have both genesis and validator services/statefulsets
       expect(services.length).toBe(2); // Genesis + validator services
       expect(statefulSets.length).toBe(2); // Genesis + validator statefulsets
 
-      const genesisService = services.find((s: any) => s.metadata.name.includes('genesis'));
-      const validatorService = services.find((s: any) => s.metadata.name.includes('validator'));
-      const genesisStatefulSet = statefulSets.find((ss: any) => ss.metadata.name.includes('genesis'));
-      const validatorStatefulSet = statefulSets.find((ss: any) => ss.metadata.name.includes('validator'));
+      const genesisService = services.find((s: any) =>
+        s.metadata.name.includes('genesis')
+      );
+      const validatorService = services.find((s: any) =>
+        s.metadata.name.includes('validator')
+      );
+      const genesisStatefulSet = statefulSets.find((ss: any) =>
+        ss.metadata.name.includes('genesis')
+      );
+      const validatorStatefulSet = statefulSets.find((ss: any) =>
+        ss.metadata.name.includes('validator')
+      );
 
       expect(genesisService).toBeDefined();
       expect(validatorService).toBeDefined();
@@ -95,8 +108,10 @@ describe('Cosmos Generator Tests', () => {
       const builder = new CosmosBuilder(processedConfig);
       const manifests = builder.buildManifests();
 
-      const configMaps = manifests.filter((m: any) => m.kind === 'ConfigMap') as any[];
-      const patchConfigMap = configMaps.find((cm: any) => 
+      const configMaps = manifests.filter(
+        (m: any) => m.kind === 'ConfigMap'
+      ) as any[];
+      const patchConfigMap = configMaps.find((cm: any) =>
         cm.metadata.name.startsWith('patch-osmosis')
       );
 
@@ -115,8 +130,10 @@ describe('Cosmos Generator Tests', () => {
       const builder = new CosmosBuilder(multiValidatorConfig);
       const manifests = builder.buildManifests();
 
-      const configMaps = manifests.filter((m: any) => m.kind === 'ConfigMap') as any[];
-      const patchConfigMap = configMaps.find((cm: any) => 
+      const configMaps = manifests.filter(
+        (m: any) => m.kind === 'ConfigMap'
+      ) as any[];
+      const patchConfigMap = configMaps.find((cm: any) =>
         cm.metadata.name.startsWith('patch-')
       );
 
@@ -154,15 +171,19 @@ describe('Cosmos Generator Tests', () => {
       const builder = new CosmosBuilder(icsConfig);
       const manifests = builder.buildManifests();
 
-      const configMaps = manifests.filter((m: any) => m.kind === 'ConfigMap') as any[];
-      const icsConfigMap = configMaps.find((cm: any) => 
+      const configMaps = manifests.filter(
+        (m: any) => m.kind === 'ConfigMap'
+      ) as any[];
+      const icsConfigMap = configMaps.find((cm: any) =>
         cm.metadata.name.startsWith('consumer-proposal-osmosis')
       );
 
       expect(icsConfigMap).toBeDefined();
       expect(icsConfigMap?.kind).toBe('ConfigMap');
 
-      const proposalJsonString = icsConfigMap?.data?.['proposal.json'] as string;
+      const proposalJsonString = icsConfigMap?.data?.[
+        'proposal.json'
+      ] as string;
       const proposalData = JSON.parse(proposalJsonString || '{}');
       expect(proposalData.chain_id).toBe('osmosis-1');
       expect(proposalData.title).toContain('osmosis');
@@ -179,14 +200,18 @@ describe('Cosmos Generator Tests', () => {
       expect(buildManifests.length).toBeGreaterThan(0);
 
       // Find StatefulSet to verify build configuration
-      const statefulSets = buildManifests.filter((m: any) => m.kind === 'StatefulSet');
+      const statefulSets = buildManifests.filter(
+        (m: any) => m.kind === 'StatefulSet'
+      );
       expect(statefulSets.length).toBeGreaterThan(0);
-      
-      const genesisStatefulSet = statefulSets.find((ss: any) => ss.metadata.name.includes('genesis'));
+
+      const genesisStatefulSet = statefulSets.find((ss: any) =>
+        ss.metadata.name.includes('genesis')
+      );
       expect(genesisStatefulSet).toBeDefined();
       expect((genesisStatefulSet as any).metadata.name).toContain('core-1');
 
-      // Test with custom chain config  
+      // Test with custom chain config
       const processedCustomConfig = applyDefaults(customChainConfig);
       const customBuilder = new CosmosBuilder(processedCustomConfig);
       const customManifests = customBuilder.buildManifests();
@@ -212,8 +237,10 @@ describe('Cosmos Generator Tests', () => {
       expect(icsManifests.length).toBeGreaterThan(0);
 
       // Check for ICS consumer proposal ConfigMap
-      const icsConfigMaps = icsManifests.filter((m: any) => m.kind === 'ConfigMap');
-      const consumerProposal = icsConfigMaps.find((cm: any) => 
+      const icsConfigMaps = icsManifests.filter(
+        (m: any) => m.kind === 'ConfigMap'
+      );
+      const consumerProposal = icsConfigMaps.find((cm: any) =>
         cm.metadata.name.includes('consumer-proposal')
       );
       expect(consumerProposal).toBeDefined();
@@ -246,11 +273,13 @@ describe('Cosmos Generator Tests', () => {
       const builder = new CosmosBuilder(processedConfig);
       const manifests = builder.buildManifests();
 
-      const statefulSets = manifests.filter((m: any) => m.kind === 'StatefulSet');
+      const statefulSets = manifests.filter(
+        (m: any) => m.kind === 'StatefulSet'
+      );
       expect(statefulSets.length).toBeGreaterThan(0);
 
       // Check that readiness probe is handled for cometmock
-      const genesisStatefulSet = statefulSets.find((ss: any) => 
+      const genesisStatefulSet = statefulSets.find((ss: any) =>
         ss.metadata.name.includes('genesis')
       );
       expect(genesisStatefulSet).toBeDefined();
@@ -312,25 +341,39 @@ describe('Cosmos Generator Tests', () => {
       const builder = new CosmosBuilder(processedConfig);
       const manifests = builder.buildManifests();
 
-      const services = manifests.filter((m: any) => m.kind === 'Service') as any[];
-      const statefulSets = manifests.filter((m: any) => m.kind === 'StatefulSet') as any[];
-      const configMaps = manifests.filter((m: any) => m.kind === 'ConfigMap') as any[];
+      const services = manifests.filter(
+        (m: any) => m.kind === 'Service'
+      ) as any[];
+      const statefulSets = manifests.filter(
+        (m: any) => m.kind === 'StatefulSet'
+      ) as any[];
+      const configMaps = manifests.filter(
+        (m: any) => m.kind === 'ConfigMap'
+      ) as any[];
 
       expect(services.length).toBeGreaterThan(0);
       expect(statefulSets.length).toBeGreaterThan(0);
       expect(configMaps.length).toBeGreaterThan(0);
 
       // Check Service labels
-      const genesisService = services.find((s: any) => s.metadata.name.includes('genesis'));
+      const genesisService = services.find((s: any) =>
+        s.metadata.name.includes('genesis')
+      );
       expect(genesisService).toBeDefined();
       expect(genesisService.metadata.labels).toBeDefined();
-      expect(genesisService.metadata.labels['app.kubernetes.io/managed-by']).toBe('starship');
+      expect(
+        genesisService.metadata.labels['app.kubernetes.io/managed-by']
+      ).toBe('starship');
 
       // Check StatefulSet labels
-      const genesisStatefulSet = statefulSets.find((ss: any) => ss.metadata.name.includes('genesis'));
+      const genesisStatefulSet = statefulSets.find((ss: any) =>
+        ss.metadata.name.includes('genesis')
+      );
       expect(genesisStatefulSet).toBeDefined();
       expect(genesisStatefulSet.metadata.labels).toBeDefined();
-      expect(genesisStatefulSet.metadata.labels['app.kubernetes.io/managed-by']).toBe('starship');
+      expect(
+        genesisStatefulSet.metadata.labels['app.kubernetes.io/managed-by']
+      ).toBe('starship');
 
       // Snapshot test for labels
       expect({
@@ -345,8 +388,12 @@ describe('Cosmos Generator Tests', () => {
       const builder = new CosmosBuilder(singleChainConfig);
       const manifests = builder.buildManifests();
 
-      const services = manifests.filter((m: any) => m.kind === 'Service') as any[];
-      const genesisService = services.find((s: any) => s.metadata.name.includes('genesis'));
+      const services = manifests.filter(
+        (m: any) => m.kind === 'Service'
+      ) as any[];
+      const genesisService = services.find((s: any) =>
+        s.metadata.name.includes('genesis')
+      );
 
       const ports = genesisService?.spec?.ports || [];
       expect(ports.length).toBeGreaterThan(0);
@@ -368,24 +415,31 @@ describe('Cosmos Generator Tests', () => {
       const builder = new CosmosBuilder(singleChainConfig);
       const manifests = builder.buildManifests();
 
-      const statefulSets = manifests.filter((m: any) => m.kind === 'StatefulSet') as any[];
-      const genesisStatefulSet = statefulSets.find((ss: any) => 
+      const statefulSets = manifests.filter(
+        (m: any) => m.kind === 'StatefulSet'
+      ) as any[];
+      const genesisStatefulSet = statefulSets.find((ss: any) =>
         ss.metadata.name.includes('genesis')
       );
 
       expect(genesisStatefulSet).toBeDefined();
-      
-      const containers = genesisStatefulSet?.spec?.template?.spec?.containers || [];
+
+      const containers =
+        genesisStatefulSet?.spec?.template?.spec?.containers || [];
       expect(containers.length).toBeGreaterThan(0);
 
       // Check validator container environment
-      const validatorContainer = containers.find((c: any) => c.name === 'validator');
+      const validatorContainer = containers.find(
+        (c: any) => c.name === 'validator'
+      );
       if (validatorContainer) {
         expect(validatorContainer.env).toBeDefined();
         expect(validatorContainer.env.length).toBeGreaterThan(0);
 
         // Check specific environment variables exist
-        const chainIdEnv = validatorContainer.env.find((e: any) => e.name === 'CHAIN_ID');
+        const chainIdEnv = validatorContainer.env.find(
+          (e: any) => e.name === 'CHAIN_ID'
+        );
         expect(chainIdEnv).toBeDefined();
         expect(chainIdEnv.value).toBe('osmosis-1');
       }

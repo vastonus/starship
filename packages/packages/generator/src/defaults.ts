@@ -1,4 +1,9 @@
-import { Chain, FaucetConfig, Script, StarshipConfig } from '@starship-ci/types';
+import {
+  Chain,
+  FaucetConfig,
+  Script,
+  StarshipConfig
+} from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
@@ -184,8 +189,10 @@ export class DefaultsManager {
  */
 export function applyDefaults(config: StarshipConfig): StarshipConfig {
   const defaultsManager = new DefaultsManager();
-  const processedChains = config.chains.map(chain => defaultsManager.processChain(chain));
-  
+  const processedChains = config.chains.map((chain) =>
+    defaultsManager.processChain(chain)
+  );
+
   return {
     ...config,
     chains: processedChains

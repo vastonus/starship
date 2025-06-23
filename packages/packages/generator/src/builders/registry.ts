@@ -1,11 +1,10 @@
-import { StarshipConfig, Chain } from '@starship-ci/types';
+import { StarshipConfig } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
-import { ConfigMap, Service, Deployment } from 'kubernetesjs';
+import { ConfigMap, Deployment, Service } from 'kubernetesjs';
 import * as path from 'path';
 
 import { TemplateHelpers } from '../helpers';
-import { GeneratorContext } from '../types';
 
 /**
  * ConfigMap generator for Registry service
@@ -154,7 +153,9 @@ export class RegistryDeploymentGenerator {
             containers: [
               {
                 name: 'registry',
-                image: this.config.registry?.image || 'ghcr.io/cosmology-tech/starship/registry:latest',
+                image:
+                  this.config.registry?.image ||
+                  'ghcr.io/cosmology-tech/starship/registry:latest',
                 ports: [
                   {
                     name: 'http',
@@ -168,19 +169,31 @@ export class RegistryDeploymentGenerator {
                 env: [
                   {
                     name: 'REGISTRY_CHAIN_CLIENT_RPCS',
-                    value: TemplateHelpers.chainRpcAddrs(this.config.chains, this.config)
+                    value: TemplateHelpers.chainRpcAddrs(
+                      this.config.chains,
+                      this.config
+                    )
                   },
                   {
                     name: 'REGISTRY_CHAIN_API_RPCS',
-                    value: TemplateHelpers.chainRpcAddrs(this.config.chains, this.config)
+                    value: TemplateHelpers.chainRpcAddrs(
+                      this.config.chains,
+                      this.config
+                    )
                   },
                   {
                     name: 'REGISTRY_CHAIN_API_GRPCS',
-                    value: TemplateHelpers.chainGrpcAddrs(this.config.chains, this.config)
+                    value: TemplateHelpers.chainGrpcAddrs(
+                      this.config.chains,
+                      this.config
+                    )
                   },
                   {
                     name: 'REGISTRY_CHAIN_API_RESTS',
-                    value: TemplateHelpers.chainRestAddrs(this.config.chains, this.config)
+                    value: TemplateHelpers.chainRestAddrs(
+                      this.config.chains,
+                      this.config
+                    )
                   },
                   {
                     name: 'REGISTRY_CHAIN_CLIENT_EXPOSERS',
@@ -308,10 +321,11 @@ export class RegistryBuilder {
 
     // Write Deployments
     if (deployments.length > 0) {
-      const deploymentYaml = deployments
-        .map((d) => yaml.dump(d))
-        .join('---\n');
-      fs.writeFileSync(path.join(registryDir, 'deployment.yaml'), deploymentYaml);
+      const deploymentYaml = deployments.map((d) => yaml.dump(d)).join('---\n');
+      fs.writeFileSync(
+        path.join(registryDir, 'deployment.yaml'),
+        deploymentYaml
+      );
     }
   }
 }
