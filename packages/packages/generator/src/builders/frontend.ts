@@ -26,6 +26,8 @@ export class FrontendServiceGenerator {
         name: this.frontend.name,
         labels: {
           'app.kubernetes.io/name': this.frontend.name,
+          'app.kubernetes.io/component': 'frontend',
+          'app.kubernetes.io/part-of': 'starship',
           ...TemplateHelpers.commonLabels(this.config)
         }
       },
@@ -65,7 +67,11 @@ export class FrontendDeploymentGenerator {
       kind: 'Deployment',
       metadata: {
         name: this.frontend.name,
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: {
+          'app.kubernetes.io/component': 'frontend',
+          'app.kubernetes.io/part-of': 'starship',
+          ...TemplateHelpers.commonLabels(this.config)
+        }
       },
       spec: {
         replicas: this.frontend.replicas || 1,
@@ -98,20 +104,6 @@ export class FrontendDeploymentGenerator {
                 name: this.frontend.name,
                 image: this.frontend.image,
                 imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
-                env: [
-                  {
-                    name: 'NAMESPACE',
-                    valueFrom: {
-                      fieldRef: {
-                        fieldPath: 'metadata.namespace'
-                      }
-                    }
-                  },
-                  ...(this.frontend.env ? Object.entries(this.frontend.env).map(([key, value]) => ({
-                    name: key,
-                    value: String(value)
-                  })) : [])
-                ],
                 ports: this.frontend.ports?.rest ? [
                   {
                     name: 'http',
@@ -119,30 +111,10 @@ export class FrontendDeploymentGenerator {
                     protocol: 'TCP'
                   }
                 ] : [],
+                env: this.frontend.env || [],
                 resources: TemplateHelpers.getResourceObject(
-                  this.frontend.resources || {
-                    cpu: '0.1',
-                    memory: '128M'
-                  }
-                ),
-                readinessProbe: {
-                  tcpSocket: {
-                    port: 'http'
-                  },
-                  initialDelaySeconds: 20,
-                  periodSeconds: 10,
-                  timeoutSeconds: 5,
-                  failureThreshold: 3
-                },
-                livenessProbe: {
-                  tcpSocket: {
-                    port: 'http'
-                  },
-                  initialDelaySeconds: 20,
-                  periodSeconds: 10,
-                  timeoutSeconds: 5,
-                  failureThreshold: 3
-                }
+                  this.frontend.resources || { cpu: '0.2', memory: '200M' }
+                )
               }
             ]
           }

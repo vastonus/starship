@@ -7,11 +7,10 @@ import * as path from 'path';
 import { DefaultsManager } from '../defaults';
 import { TemplateHelpers } from '../helpers';
 import { ScriptManager } from '../scripts';
-import { GeneratorContext } from '../types';
 
 // Helper functions
 function getHostname(chain: Chain): string {
-  return chain.name || String(chain.id);
+  return TemplateHelpers.chainName(String(chain.id));
 }
 
 function getChainId(chain: Chain): string {
@@ -42,6 +41,8 @@ export class CosmosConfigMapGenerator {
   labels(): Record<string, string> {
     return {
       ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/component': 'chain',
+      'app.kubernetes.io/part-of': getChainId(this.chain),
       'app.kubernetes.io/id': getChainId(this.chain),
       'app.kubernetes.io/name': this.chain.name,
       'app.kubernetes.io/type': `${getChainId(this.chain)}-configmap`
@@ -159,8 +160,10 @@ export class CosmosServiceGenerator {
   labels(): Record<string, string> {
     return {
       ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/component': 'chain',
+      'app.kubernetes.io/part-of': getChainId(this.chain),
       'app.kubernetes.io/id': getChainId(this.chain),
-      'app.kubernetes.io/name': this.chain.name,
+      'app.kubernetes.io/name': `${getHostname(this.chain)}-genesis`,
       'app.kubernetes.io/type': `${getChainId(this.chain)}-service`
     };
   }
@@ -192,7 +195,11 @@ export class CosmosServiceGenerator {
       kind: 'Service',
       metadata: {
         name: `${getHostname(this.chain)}-genesis`,
-        labels: this.labels()
+        labels: {
+          ...this.labels(),
+          'app.kubernetes.io/role': 'genesis',
+          'starship.io/chain-name': this.chain.name // For consistent directory organization
+        }
       },
       spec: {
         clusterIP: 'None',
@@ -231,8 +238,9 @@ export class CosmosServiceGenerator {
       metadata: {
         name: `${getHostname(this.chain)}-validator`,
         labels: {
-          ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`
+          ...this.labels(),
+          'app.kubernetes.io/role': 'validator',
+          'starship.io/chain-name': this.chain.name // For consistent directory organization
         }
       },
       spec: {
@@ -270,6 +278,8 @@ export class CosmosStatefulSetGenerator {
   labels(): Record<string, string> {
     return {
       ...TemplateHelpers.commonLabels(this.config),
+      'app.kubernetes.io/component': 'chain',
+      'app.kubernetes.io/part-of': getChainId(this.chain),
       'app.kubernetes.io/id': getChainId(this.chain),
       'app.kubernetes.io/name': `${getHostname(this.chain)}-genesis`,
       'app.kubernetes.io/type': `${getChainId(this.chain)}-statefulset`
@@ -285,7 +295,11 @@ export class CosmosStatefulSetGenerator {
       kind: 'StatefulSet',
       metadata: {
         name: `${getHostname(this.chain)}-genesis`,
-        labels: this.labels()
+        labels: {
+          ...this.labels(),
+          'app.kubernetes.io/role': 'genesis',
+          'starship.io/chain-name': this.chain.name // For directory organization
+        }
       },
       spec: {
         serviceName: `${getHostname(this.chain)}-genesis`,
@@ -293,8 +307,7 @@ export class CosmosStatefulSetGenerator {
         revisionHistoryLimit: 3,
         selector: {
           matchLabels: {
-            'app.kubernetes.io/instance':
-              this.chain.name || getChainId(this.chain),
+            'app.kubernetes.io/instance': this.config.name,
             'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`
           }
         },
@@ -307,12 +320,12 @@ export class CosmosStatefulSetGenerator {
               tier: 'gateway'
             },
             labels: {
-              'app.kubernetes.io/instance':
-                this.chain.name || getChainId(this.chain),
+              'app.kubernetes.io/instance': this.config.name,
               'app.kubernetes.io/type': getChainId(this.chain),
               'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`,
               'app.kubernetes.io/rawname': getChainId(this.chain),
-              'app.kubernetes.io/version': this.config.version || '1.8.0'
+              'app.kubernetes.io/version': this.config.version || '1.8.0',
+              'app.kubernetes.io/role': 'genesis'
             }
           },
           spec: {
@@ -339,7 +352,11 @@ export class CosmosStatefulSetGenerator {
       kind: 'StatefulSet',
       metadata: {
         name: `${getHostname(this.chain)}-validator`,
-        labels: this.labels()
+        labels: {
+          ...this.labels(),
+          'app.kubernetes.io/role': 'validator',
+          'starship.io/chain-name': this.chain.name // For directory organization
+        }
       },
       spec: {
         serviceName: `${getHostname(this.chain)}-validator`,
@@ -348,8 +365,7 @@ export class CosmosStatefulSetGenerator {
         revisionHistoryLimit: 3,
         selector: {
           matchLabels: {
-            'app.kubernetes.io/instance':
-              this.chain.name || getChainId(this.chain),
+            'app.kubernetes.io/instance': this.config.name,
             'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`
           }
         },
@@ -362,11 +378,11 @@ export class CosmosStatefulSetGenerator {
               tier: 'gateway'
             },
             labels: {
-              'app.kubernetes.io/instance':
-                this.chain.name || getChainId(this.chain),
+              'app.kubernetes.io/instance': this.config.name,
               'app.kubernetes.io/type': getChainId(this.chain),
               'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`,
-              'app.kubernetes.io/version': this.config.version || '1.8.0'
+              'app.kubernetes.io/version': this.config.version || '1.8.0',
+              'app.kubernetes.io/role': 'validator'
             }
           },
           spec: {
@@ -971,7 +987,7 @@ export class CosmosBuilder {
     }
 
     // Global Scripts ConfigMap
-    const globalScripts = new GlobalScriptsConfigMap();
+    const globalScripts = new GlobalScriptsConfigMap(this.config);
     const globalScriptsCm = globalScripts.configMap();
     if (globalScriptsCm) {
       manifests.push(globalScriptsCm);
@@ -1042,7 +1058,12 @@ class KeysConfigMap {
         apiVersion: 'v1',
         kind: 'ConfigMap',
         metadata: {
-          name: 'keys'
+          name: 'keys',
+          labels: {
+            ...TemplateHelpers.commonLabels(this.config),
+            'app.kubernetes.io/component': 'configmap',
+            'app.kubernetes.io/part-of': 'global'
+          }
         },
         data: {
           'keys.json': keysFileContent
@@ -1056,7 +1077,7 @@ class KeysConfigMap {
 }
 
 class GlobalScriptsConfigMap {
-  constructor(private projectRoot: string = process.cwd()) {}
+  constructor(private config: StarshipConfig, private projectRoot: string = process.cwd()) {}
 
   configMap(): ConfigMap | null {
     const scriptsDir = path.join(this.projectRoot, 'scripts', 'default');
@@ -1085,7 +1106,12 @@ class GlobalScriptsConfigMap {
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
-        name: 'setup-scripts'
+        name: 'setup-scripts',
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'configmap',
+          'app.kubernetes.io/part-of': 'global'
+        }
       },
       data
     };
@@ -1096,21 +1122,25 @@ class SetupScriptsConfigMap {
   constructor(private config: StarshipConfig, private chain: Chain) {}
 
   configMap(): ConfigMap | null {
-    const scripts = this.chain.scripts as Array<{name: string, data?: string, file?: string}>;
+    const scripts = this.chain.scripts;
 
-    if (!scripts || scripts.length === 0) {
+    if (!scripts || Object.keys(scripts).length === 0) {
       return null;
     }
 
     const data: { [key: string]: string } = {};
 
-    scripts.forEach(script => {
+    Object.entries(scripts).forEach(([key, script]) => {
+      if (!script) return;
+      
+      const scriptName = script.name || `${key}.sh`;
+      
       if (script.data) {
-        data[script.name] = script.data;
+        data[scriptName] = script.data;
       } else if (script.file) {
         try {
           // Assuming file paths are relative to the current working directory
-          data[script.name] = fs.readFileSync(script.file, 'utf-8');
+          data[scriptName] = fs.readFileSync(script.file, 'utf-8');
         } catch (error) {
           console.warn(`Warning: Could not read script file ${script.file}. Error: ${(error as Error).message}. Skipping.`);
         }
@@ -1125,7 +1155,14 @@ class SetupScriptsConfigMap {
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
-        name: `setup-scripts-${TemplateHelpers.chainName(String(this.chain.id))}`
+        name: `setup-scripts-${TemplateHelpers.chainName(String(this.chain.id))}`,
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'chain',
+          'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
+          'app.kubernetes.io/part-of': String(this.chain.id),
+          'app.kubernetes.io/role': 'setup-scripts'
+        }
       },
       data
     };
@@ -1141,7 +1178,14 @@ class GenesisPatchConfigMap {
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
-        name: `patch-${TemplateHelpers.chainName(String(this.chain.id))}`
+        name: `patch-${TemplateHelpers.chainName(String(this.chain.id))}`,
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'chain',
+          'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
+          'app.kubernetes.io/part-of': String(this.chain.id),
+          'app.kubernetes.io/role': 'genesis-patch'
+        }
       },
       data: {
         'patch.json': JSON.stringify(this.chain.genesis, null, 2)
@@ -1194,7 +1238,14 @@ class IcsConsumerProposalConfigMap {
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
-        name: `consumer-proposal-${TemplateHelpers.chainName(String(this.chain.id))}`
+        name: `consumer-proposal-${TemplateHelpers.chainName(String(this.chain.id))}`,
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'chain',
+          'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
+          'app.kubernetes.io/part-of': String(this.chain.id),
+          'app.kubernetes.io/role': 'ics-proposal'
+        }
       },
       data: {
         'proposal.json': JSON.stringify(proposal, null, 2)

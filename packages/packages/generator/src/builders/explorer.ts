@@ -60,7 +60,11 @@ export class ExplorerConfigMapGenerator {
       kind: 'ConfigMap',
       metadata: {
         name: 'explorer',
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'explorer',
+          'app.kubernetes.io/part-of': 'starship'
+        }
       },
       data: chainConfigs
     };
@@ -83,7 +87,11 @@ export class ExplorerServiceGenerator {
       kind: 'Service',
       metadata: {
         name: 'explorer',
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'explorer',
+          'app.kubernetes.io/part-of': 'starship'
+        }
       },
       spec: {
         clusterIP: 'None',
@@ -119,7 +127,11 @@ export class ExplorerDeploymentGenerator {
       kind: 'Deployment',
       metadata: {
         name: 'explorer',
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'explorer',
+          'app.kubernetes.io/part-of': 'starship'
+        }
       },
       spec: {
         replicas: 1,
@@ -152,45 +164,24 @@ export class ExplorerDeploymentGenerator {
                 name: 'explorer',
                 image: this.config.explorer?.image || 'ghcr.io/cosmology-tech/starship/ping-pub:latest',
                 imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
-                command: [
-                  'bash',
-                  '-c',
-                  'yarn serve --host 0.0.0.0 --port 8080'
+                env: [
+                  { name: 'CHAINS_CONFIG_PATH', value: '/explorer' }
+                ],
+                ports: [
+                  { name: 'http', containerPort: 8080, protocol: 'TCP' }
+                ],
+                volumeMounts: [
+                  { name: 'explorer-config', mountPath: '/explorer' }
                 ],
                 resources: TemplateHelpers.getResourceObject(
-                  this.config.explorer?.resources || {
-                    cpu: '0.1',
-                    memory: '128M'
-                  }
-                ),
-                volumeMounts: [
-                  {
-                    mountPath: '/home/explorer/chains/mainnet',
-                    name: 'explorer-configs'
-                  }
-                ],
-                readinessProbe: {
-                  tcpSocket: {
-                    port: '8080'
-                  },
-                  initialDelaySeconds: 60,
-                  periodSeconds: 30
-                },
-                livenessProbe: {
-                  tcpSocket: {
-                    port: '8080'
-                  },
-                  initialDelaySeconds: 60,
-                  periodSeconds: 30
-                }
+                  this.config.explorer?.resources || { cpu: '0.2', memory: '200M' }
+                )
               }
             ],
             volumes: [
               {
-                name: 'explorer-configs',
-                configMap: {
-                  name: 'explorer'
-                }
+                name: 'explorer-config',
+                configMap: { name: 'explorer' }
               }
             ]
           }

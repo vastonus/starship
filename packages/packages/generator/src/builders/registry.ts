@@ -45,7 +45,11 @@ export class RegistryConfigMapGenerator {
       kind: 'ConfigMap',
       metadata: {
         name: 'registry-config',
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'registry',
+          'app.kubernetes.io/part-of': 'starship'
+        }
       },
       data: {
         ...chainConfigs,
@@ -71,7 +75,11 @@ export class RegistryServiceGenerator {
       kind: 'Service',
       metadata: {
         name: 'registry',
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'registry',
+          'app.kubernetes.io/part-of': 'starship'
+        }
       },
       spec: {
         selector: {
@@ -122,7 +130,11 @@ export class RegistryDeploymentGenerator {
       kind: 'Deployment',
       metadata: {
         name: 'registry',
-        labels: TemplateHelpers.commonLabels(this.config)
+        labels: {
+          ...TemplateHelpers.commonLabels(this.config),
+          'app.kubernetes.io/component': 'registry',
+          'app.kubernetes.io/part-of': 'starship'
+        }
       },
       spec: {
         replicas: 1,
