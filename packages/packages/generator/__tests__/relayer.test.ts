@@ -1,229 +1,456 @@
 import { RelayerBuilder } from '../src/builders/relayer';
-import { singleChainConfig } from './test-utils/config';
+import { 
+  singleChainConfig, 
+  twoChainWithHermesConfig, 
+  twoChainWithGoRelayerConfig,
+  neutronRelayerConfig
+} from './test-utils/config';
 
 describe('RelayerBuilder', () => {
-  it('should generate no manifests when no relayers are configured', () => {
-    const config = { ...singleChainConfig };
-    delete config.relayers;
+  describe('Basic Relayer Generation', () => {
+    it('should generate no manifests when no relayers are configured', () => {
+      const config = { ...singleChainConfig };
+      delete config.relayers;
 
-    const builder = new RelayerBuilder(config);
-    const manifests = builder.buildManifests();
+      const builder = new RelayerBuilder(config);
+      const manifests = builder.buildManifests();
 
-    expect(manifests).toEqual([]);
-  });
+      expect(manifests).toEqual([]);
+      
+      // Snapshot test
+      expect(manifests).toMatchSnapshot('no-relayers-empty-manifests');
+    });
 
-  it('should generate manifests for a hermes relayer', () => {
-    const config = {
-      ...singleChainConfig,
-      relayers: [
-        {
-          name: 'osmo-cosmos',
-          type: 'hermes' as const,
-          replicas: 1,
-          chains: ['osmosis-1', 'cosmoshub-4'],
-          config: {
-            global: { log_level: 'info' },
-            mode: {
-              clients: { enabled: true, refresh: true, misbehaviour: true },
-              connections: { enabled: true },
-              channels: { enabled: true },
-              packets: { enabled: true, clear_interval: 100, clear_on_start: true, tx_confirmation: true }
-            },
-            rest: { enabled: true, host: '0.0.0.0', port: 3000 },
-            telemetry: { enabled: true, host: '0.0.0.0', port: 3001 }
+    it('should generate manifests for a hermes relayer', () => {
+      const builder = new RelayerBuilder(twoChainWithHermesConfig);
+      const manifests = builder.buildManifests();
+
+      expect(manifests).toHaveLength(3); // ConfigMap, Service, StatefulSet
+
+      const configMap = manifests.find(m => m.kind === 'ConfigMap');
+      const service = manifests.find(m => m.kind === 'Service');
+      const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
+
+      expect(configMap).toBeDefined();
+      expect(configMap.metadata.name).toBe('hermes-osmos-cosmos');
+      expect(configMap.data['config.toml']).toContain('log_level = "info"');
+
+      expect(service).toBeDefined();
+      expect(service.metadata.name).toBe('hermes-osmos-cosmos');
+      expect(service.spec.ports).toHaveLength(2); // rest and exposer
+
+      expect(statefulSet).toBeDefined();
+      expect(statefulSet.metadata.name).toBe('hermes-osmos-cosmos');
+      expect(statefulSet.spec.replicas).toBe(1);
+
+      // Snapshot test
+      expect(manifests).toMatchSnapshot('hermes-relayer-manifests');
+    });
+
+    it('should generate manifests for a go-relayer', () => {
+      const builder = new RelayerBuilder(twoChainWithGoRelayerConfig);
+      const manifests = builder.buildManifests();
+
+      expect(manifests).toHaveLength(2); // ConfigMap, StatefulSet (no service)
+
+      const configMap = manifests.find(m => m.kind === 'ConfigMap');
+      const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
+
+      expect(configMap).toBeDefined();
+      expect(configMap.metadata.name).toBe('go-relayer-osmos-cosmos');
+      expect(configMap.data['path.json']).toContain('osmosis-1');
+
+      expect(statefulSet).toBeDefined();
+      expect(statefulSet.metadata.name).toBe('go-relayer-osmos-cosmos');
+
+      // Snapshot test
+      expect(manifests).toMatchSnapshot('go-relayer-manifests');
+    });
+
+    it('should generate manifests for a ts-relayer', () => {
+      // Create a simple ts-relayer config based on the go-relayer config
+      const tsRelayerConfig = {
+        ...twoChainWithGoRelayerConfig,
+        relayers: [
+          {
+            name: 'ts-rly',
+            type: 'ts-relayer' as const,
+            replicas: 1,
+            chains: ['osmosis-1', 'cosmoshub-4']
           }
-        }
-      ]
-    };
+        ]
+      };
 
-    const builder = new RelayerBuilder(config);
-    const manifests = builder.buildManifests();
+      const builder = new RelayerBuilder(tsRelayerConfig);
+      const manifests = builder.buildManifests();
 
-    expect(manifests).toHaveLength(3); // ConfigMap, Service, StatefulSet
+      expect(manifests).toHaveLength(2); // ConfigMap, StatefulSet (no service)
 
-    const configMap = manifests.find(m => m.kind === 'ConfigMap');
-    const service = manifests.find(m => m.kind === 'Service');
-    const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
+      const configMap = manifests.find(m => m.kind === 'ConfigMap');
+      const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
 
-    expect(configMap).toBeDefined();
-    expect(configMap.metadata.name).toBe('hermes-osmo-cosmos');
-    expect(configMap.data['config.toml']).toContain('log_level = "info"');
+      expect(configMap).toBeDefined();
+      expect(configMap.metadata.name).toBe('ts-relayer-ts-rly');
+      expect(configMap.data['template-app.yaml']).toContain('<SRC>');
+      expect(configMap.data['registry.yaml']).toContain('osmosis-1');
 
-    expect(service).toBeDefined();
-    expect(service.metadata.name).toBe('hermes-osmo-cosmos');
-    expect(service.spec.ports).toHaveLength(2); // rest and exposer
+      expect(statefulSet).toBeDefined();
+      expect(statefulSet.metadata.name).toBe('ts-relayer-ts-rly');
 
-    expect(statefulSet).toBeDefined();
-    expect(statefulSet.metadata.name).toBe('hermes-osmo-cosmos');
-    expect(statefulSet.spec.replicas).toBe(1);
+      // Snapshot test
+      expect(manifests).toMatchSnapshot('ts-relayer-manifests');
+    });
+
+    it('should generate manifests for a neutron-query-relayer', () => {
+      const builder = new RelayerBuilder(neutronRelayerConfig);
+      const manifests = builder.buildManifests();
+
+      expect(manifests).toHaveLength(3); // ConfigMap, Service, StatefulSet
+
+      const configMap = manifests.find(m => m.kind === 'ConfigMap');
+      const service = manifests.find(m => m.kind === 'Service');
+      const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
+
+      expect(configMap).toBeDefined();
+      expect(configMap.metadata.name).toBe('neutron-query-relayer-neutron-query');
+
+      expect(service).toBeDefined();
+      expect(service.metadata.name).toBe('neutron-query-relayer-neutron-query');
+
+      expect(statefulSet).toBeDefined();
+      expect(statefulSet.metadata.name).toBe('neutron-query-relayer-neutron-query');
+
+      // Snapshot test
+      expect(manifests).toMatchSnapshot('neutron-query-relayer-manifests');
+    });
   });
 
-  it('should generate manifests for a go-relayer', () => {
-    const config = {
-      ...singleChainConfig,
-      relayers: [
-        {
-          name: 'go-rly',
-          type: 'go-relayer' as const,
-          replicas: 1,
-          chains: ['osmosis-1', 'cosmoshub-4']
-        }
-      ]
-    };
-
-    const builder = new RelayerBuilder(config);
-    const manifests = builder.buildManifests();
-
-    expect(manifests).toHaveLength(2); // ConfigMap, StatefulSet (no service)
-
-    const configMap = manifests.find(m => m.kind === 'ConfigMap');
-    const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
-
-    expect(configMap).toBeDefined();
-    expect(configMap.metadata.name).toBe('go-relayer-go-rly');
-    expect(configMap.data['path.json']).toContain('osmosis-1');
-
-    expect(statefulSet).toBeDefined();
-    expect(statefulSet.metadata.name).toBe('go-relayer-go-rly');
-  });
-
-  it('should generate manifests for a ts-relayer', () => {
-    const config = {
-      ...singleChainConfig,
-      relayers: [
-        {
-          name: 'ts-rly',
-          type: 'ts-relayer' as const,
-          replicas: 1,
-          chains: ['osmosis-1', 'cosmoshub-4']
-        }
-      ]
-    };
-
-    const builder = new RelayerBuilder(config);
-    const manifests = builder.buildManifests();
-
-    expect(manifests).toHaveLength(2); // ConfigMap, StatefulSet (no service)
-
-    const configMap = manifests.find(m => m.kind === 'ConfigMap');
-    const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
-
-    expect(configMap).toBeDefined();
-    expect(configMap.metadata.name).toBe('ts-relayer-ts-rly');
-    expect(configMap.data['template-app.yaml']).toContain('<SRC>');
-    expect(configMap.data['registry.yaml']).toContain('osmosis-1');
-
-    expect(statefulSet).toBeDefined();
-    expect(statefulSet.metadata.name).toBe('ts-relayer-ts-rly');
-  });
-
-  it('should generate manifests for a neutron-query-relayer', () => {
-    const neutronConfig = {
-      ...singleChainConfig,
-      chains: [
-        ...singleChainConfig.chains,
-        {
-          id: 'neutron-1',
-          name: 'neutron' as const,
-          numValidators: 1,
-          prefix: 'neutron',
-          denom: 'untrn',
-          home: '/root/.neutrond'
-        }
-      ],
-      relayers: [
-        {
-          name: 'neutron-query',
-          type: 'neutron-query-relayer' as const,
-          replicas: 1,
-          chains: ['neutron-1', 'osmosis-1'],
-          config: {
-            RELAYER_NEUTRON_CHAIN_TIMEOUT: '1000s',
-            RELAYER_NEUTRON_CHAIN_GAS_PRICES: '0.5untrn'
+  describe('Advanced Relayer Configurations', () => {
+    it('should handle multiple relayers', () => {
+      // Create a config with multiple relayers
+      const multiRelayerConfig = {
+        ...twoChainWithHermesConfig,
+        relayers: [
+          ...twoChainWithHermesConfig.relayers!,
+          {
+            name: 'go-rly',
+            type: 'go-relayer' as const,
+            replicas: 1,
+            chains: ['osmosis-1', 'cosmoshub-4']
           }
-        }
-      ]
-    };
+        ]
+      };
 
-    const builder = new RelayerBuilder(neutronConfig);
-    const manifests = builder.buildManifests();
+      const builder = new RelayerBuilder(multiRelayerConfig);
+      const manifests = builder.buildManifests();
 
-    expect(manifests).toHaveLength(3); // ConfigMap, Service, StatefulSet
+      expect(manifests).toHaveLength(5); // hermes (3 manifests) + go-relayer (2 manifests)
 
-    const configMap = manifests.find(m => m.kind === 'ConfigMap');
-    const service = manifests.find(m => m.kind === 'Service');
-    const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
+      const hermesManifests = manifests.filter(m => 
+        m.metadata.name.includes('osmos-cosmos')
+      );
+      const goRelayerManifests = manifests.filter(m => 
+        m.metadata.name.includes('go-rly')
+      );
 
-    expect(configMap).toBeDefined();
-    expect(configMap.metadata.name).toBe('neutron-query-relayer-neutron-query');
+      expect(hermesManifests).toHaveLength(3);
+      expect(goRelayerManifests).toHaveLength(2);
 
-    expect(service).toBeDefined();
-    expect(service.metadata.name).toBe('neutron-query-relayer-neutron-query');
+      // Verify resource types
+      const configMaps = manifests.filter(m => m.kind === 'ConfigMap');
+      const services = manifests.filter(m => m.kind === 'Service');
+      const statefulSets = manifests.filter(m => m.kind === 'StatefulSet');
 
-    expect(statefulSet).toBeDefined();
-    expect(statefulSet.metadata.name).toBe('neutron-query-relayer-neutron-query');
+      expect(configMaps).toHaveLength(2); // One per relayer
+      expect(services).toHaveLength(1); // Only hermes has service
+      expect(statefulSets).toHaveLength(2); // One per relayer
+
+      // Snapshot test
+      expect(manifests).toMatchSnapshot('multiple-relayers-manifests');
+    });
+
+    it('should use custom image when provided', () => {
+      // Create a config with custom image
+      const customImageConfig = {
+        ...twoChainWithHermesConfig,
+        relayers: [
+          {
+            ...twoChainWithHermesConfig.relayers![0],
+            name: 'custom-hermes',
+            image: 'custom/hermes:latest'
+          }
+        ]
+      };
+
+      const builder = new RelayerBuilder(customImageConfig);
+      const manifests = builder.buildManifests();
+
+      const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
+      const initContainers = statefulSet.spec.template.spec.initContainers;
+      const containers = statefulSet.spec.template.spec.containers;
+
+      const relayerInitContainer = initContainers.find((c: any) => c.name === 'init-relayer');
+      const relayerContainer = containers.find((c: any) => c.name === 'relayer');
+
+      expect(relayerInitContainer.image).toBe('custom/hermes:latest');
+      expect(relayerContainer.image).toBe('custom/hermes:latest');
+
+      // Snapshot test
+      expect(manifests).toMatchSnapshot('custom-image-relayer-manifests');
+    });
+
+    it('should handle different relayer configurations', () => {
+      // Test all relayer types together
+      const allRelayersConfig = {
+        ...twoChainWithHermesConfig,
+        chains: [
+          ...twoChainWithHermesConfig.chains,
+          {
+            id: 'neutron-1',
+            name: 'neutron' as const,
+            numValidators: 1,
+            prefix: 'neutron',
+            denom: 'untrn',
+            home: '/root/.neutrond'
+          }
+        ],
+        relayers: [
+          {
+            name: 'hermes-relay',
+            type: 'hermes' as const,
+            replicas: 1,
+            chains: ['osmosis-1', 'cosmoshub-4'],
+            config: {
+              global: { log_level: 'debug' },
+              rest: { enabled: true, port: 3001 }
+            }
+          },
+          {
+            name: 'go-relay',
+            type: 'go-relayer' as const,
+            replicas: 2,
+            chains: ['osmosis-1', 'cosmoshub-4']
+          },
+          {
+            name: 'ts-relay',
+            type: 'ts-relayer' as const,
+            replicas: 1,
+            chains: ['osmosis-1', 'neutron-1']
+          },
+          {
+            name: 'neutron-query-relay',
+            type: 'neutron-query-relayer' as const,
+            replicas: 1,
+            chains: ['neutron-1', 'osmosis-1'],
+            config: {
+              RELAYER_NEUTRON_CHAIN_TIMEOUT: '2000s'
+            }
+          }
+        ]
+      };
+
+      const builder = new RelayerBuilder(allRelayersConfig);
+      const manifests = builder.buildManifests();
+
+      // Should have 4 ConfigMaps, 2 Services (hermes + neutron-query), 4 StatefulSets
+      const configMaps = manifests.filter(m => m.kind === 'ConfigMap');
+      const services = manifests.filter(m => m.kind === 'Service');
+      const statefulSets = manifests.filter(m => m.kind === 'StatefulSet');
+
+      expect(configMaps).toHaveLength(4);
+      expect(services).toHaveLength(2); // Only hermes and neutron-query expose services
+      expect(statefulSets).toHaveLength(4);
+
+      // Verify each relayer type exists
+      const hermesManifests = manifests.filter(m => m.metadata.name.includes('hermes-relay'));
+      const goRelayerManifests = manifests.filter(m => m.metadata.name.includes('go-relay'));
+      const tsRelayerManifests = manifests.filter(m => m.metadata.name.includes('ts-relay'));
+      const neutronManifests = manifests.filter(m => m.metadata.name.includes('neutron-query-relay'));
+
+      expect(hermesManifests).toHaveLength(3);
+      expect(goRelayerManifests).toHaveLength(2);
+      expect(tsRelayerManifests).toHaveLength(2);
+      expect(neutronManifests).toHaveLength(3);
+
+      // Snapshot test
+      expect(manifests).toMatchSnapshot('all-relayer-types-manifests');
+    });
   });
 
-  it('should handle multiple relayers', () => {
-    const config = {
-      ...singleChainConfig,
-      relayers: [
-        {
-          name: 'hermes-rly',
-          type: 'hermes' as const,
-          replicas: 1,
-          chains: ['osmosis-1', 'cosmoshub-4']
-        },
-        {
-          name: 'go-rly',
-          type: 'go-relayer' as const,
-          replicas: 1,
-          chains: ['osmosis-1', 'cosmoshub-4']
-        }
-      ]
-    };
+  describe('Resource Validation', () => {
+    it('should generate correct labels and metadata', () => {
+      const builder = new RelayerBuilder(twoChainWithHermesConfig);
+      const manifests = builder.buildManifests();
 
-    const builder = new RelayerBuilder(config);
-    const manifests = builder.buildManifests();
+      const configMap = manifests.find(m => m.kind === 'ConfigMap');
+      const service = manifests.find(m => m.kind === 'Service');
+      const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
 
-    expect(manifests).toHaveLength(5); // 2 relayers: hermes (3 manifests) + go-relayer (2 manifests)
+      // Check ConfigMap labels
+      expect(configMap.metadata.labels).toBeDefined();
+      expect(configMap.metadata.labels['app.kubernetes.io/component']).toBe('relayer');
+      expect(configMap.metadata.labels['app.kubernetes.io/part-of']).toBe('starship');
+      expect(configMap.metadata.labels['app.kubernetes.io/role']).toBe('hermes');
 
-    const hermesManifests = manifests.filter(m => 
-      m.metadata.name.includes('hermes-rly')
-    );
-    const goRelayerManifests = manifests.filter(m => 
-      m.metadata.name.includes('go-relayer-go-rly')
-    );
+      // Check Service labels
+      expect(service.metadata.labels).toBeDefined();
+      expect(service.metadata.labels['app.kubernetes.io/component']).toBe('relayer');
 
-    expect(hermesManifests).toHaveLength(3);
-    expect(goRelayerManifests).toHaveLength(2);
+      // Check StatefulSet labels and selectors
+      expect(statefulSet.metadata.labels).toBeDefined();
+      expect(statefulSet.spec.selector.matchLabels).toBeDefined();
+      expect(statefulSet.spec.selector.matchLabels['app.kubernetes.io/instance']).toBe('relayer');
+      expect(statefulSet.spec.selector.matchLabels['app.kubernetes.io/type']).toBe('hermes');
+
+      // Snapshot test for labels
+      expect({
+        configMapLabels: configMap.metadata.labels,
+        serviceLabels: service.metadata.labels,
+        statefulSetLabels: statefulSet.metadata.labels,
+        statefulSetSelector: statefulSet.spec.selector.matchLabels
+      }).toMatchSnapshot('relayer-labels-and-selectors');
+    });
+
+    it('should generate correct port configurations', () => {
+      const builder = new RelayerBuilder(twoChainWithHermesConfig);
+      const manifests = builder.buildManifests();
+
+      const service = manifests.find(m => m.kind === 'Service');
+      const ports = service.spec.ports;
+
+      expect(ports).toHaveLength(2);
+      
+      const restPort = ports.find((p: any) => p.name === 'rest');
+      const exposerPort = ports.find((p: any) => p.name === 'exposer');
+
+      expect(restPort).toBeDefined();
+      expect(restPort.port).toBe(3000);
+      expect(restPort.protocol).toBe('TCP');
+
+      expect(exposerPort).toBeDefined();
+      expect(exposerPort.protocol).toBe('TCP');
+
+      // Snapshot test for port configuration
+      expect(ports).toMatchSnapshot('hermes-service-ports');
+    });
+
+    it('should generate correct container configurations', () => {
+      const builder = new RelayerBuilder(twoChainWithHermesConfig);
+      const manifests = builder.buildManifests();
+
+      const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
+      const containers = statefulSet.spec.template.spec.containers;
+      const initContainers = statefulSet.spec.template.spec.initContainers;
+
+      // Should have relayer and exposer containers for hermes
+      expect(containers).toHaveLength(2);
+      const relayerContainer = containers.find((c: any) => c.name === 'relayer');
+      const exposerContainer = containers.find((c: any) => c.name === 'exposer');
+
+      expect(relayerContainer).toBeDefined();
+      expect(exposerContainer).toBeDefined();
+
+      // Should have init containers
+      expect(initContainers.length).toBeGreaterThan(0);
+      
+      const initExposerContainer = initContainers.find((c: any) => c.name === 'init-exposer');
+      const initRelayerContainer = initContainers.find((c: any) => c.name === 'init-relayer');
+
+      expect(initExposerContainer).toBeDefined();
+      expect(initRelayerContainer).toBeDefined();
+
+      // Snapshot test for container configuration
+      expect({
+        containerCount: containers.length,
+        initContainerCount: initContainers.length,
+        relayerContainerImage: relayerContainer.image,
+        hasExposerContainer: !!exposerContainer
+      }).toMatchSnapshot('hermes-container-configuration');
+    });
+
+    it('should generate correct volume configurations', () => {
+      const builder = new RelayerBuilder(twoChainWithHermesConfig);
+      const manifests = builder.buildManifests();
+
+      const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
+      const volumes = statefulSet.spec.template.spec.volumes;
+
+      expect(volumes.length).toBeGreaterThan(0);
+
+      // Check for required volumes
+      const relayerVolume = volumes.find((v: any) => v.name === 'relayer');
+      const configVolume = volumes.find((v: any) => v.name === 'relayer-config');
+      const keysVolume = volumes.find((v: any) => v.name === 'keys');
+      const scriptsVolume = volumes.find((v: any) => v.name === 'scripts');
+      const exposerVolume = volumes.find((v: any) => v.name === 'exposer');
+
+      expect(relayerVolume).toBeDefined();
+      expect(configVolume).toBeDefined();
+      expect(keysVolume).toBeDefined();
+      expect(scriptsVolume).toBeDefined();
+      expect(exposerVolume).toBeDefined(); // hermes specific
+
+      // Snapshot test for volume configuration
+      expect(volumes).toMatchSnapshot('hermes-volume-configuration');
+    });
   });
 
-  it('should use custom image when provided', () => {
-    const config = {
-      ...singleChainConfig,
-      relayers: [
-        {
-          name: 'custom-hermes',
-          type: 'hermes' as const,
-          image: 'custom/hermes:latest',
-          replicas: 1,
-          chains: ['osmosis-1', 'cosmoshub-4']
-        }
-      ]
-    };
+  describe('Configuration Content Validation', () => {
+    it('should generate correct hermes configuration', () => {
+      const builder = new RelayerBuilder(twoChainWithHermesConfig);
+      const manifests = builder.buildManifests();
 
-    const builder = new RelayerBuilder(config);
-    const manifests = builder.buildManifests();
+      const configMap = manifests.find(m => m.kind === 'ConfigMap');
+      const configToml = configMap.data['config.toml'];
 
-    const statefulSet = manifests.find(m => m.kind === 'StatefulSet');
-    const initContainers = statefulSet.spec.template.spec.initContainers;
-    const containers = statefulSet.spec.template.spec.containers;
+      // Verify configuration structure
+      expect(configToml).toContain('[global]');
+      expect(configToml).toContain('[mode]');
+      expect(configToml).toContain('[rest]');
+      expect(configToml).toContain('[telemetry]');
+      expect(configToml).toContain('[[chains]]');
 
-    const relayerInitContainer = initContainers.find((c: any) => c.name === 'init-relayer');
-    const relayerContainer = containers.find((c: any) => c.name === 'relayer');
+      // Verify chain configurations
+      expect(configToml).toContain('id = "osmosis-1"');
+      expect(configToml).toContain('id = "cosmoshub-4"');
+      expect(configToml).toContain('key_name = "osmosis-1"');
+      expect(configToml).toContain('key_name = "cosmoshub-4"');
 
-    expect(relayerInitContainer.image).toBe('custom/hermes:latest');
-    expect(relayerContainer.image).toBe('custom/hermes:latest');
+      // Verify RPC endpoints
+      expect(configToml).toContain('rpc_addr = "http://osmosis-genesis.$(NAMESPACE).svc.cluster.local:26657"');
+      expect(configToml).toContain('rpc_addr = "http://cosmoshub-genesis.$(NAMESPACE).svc.cluster.local:26657"');
+
+      // Snapshot test for configuration content
+      expect(configToml).toMatchSnapshot('hermes-config-toml-content');
+    });
+
+    it('should generate correct go-relayer configuration', () => {
+      const builder = new RelayerBuilder(twoChainWithGoRelayerConfig);
+      const manifests = builder.buildManifests();
+
+      const configMap = manifests.find(m => m.kind === 'ConfigMap');
+      const pathJson = JSON.parse(configMap.data['path.json']);
+
+      // Verify path configuration
+      expect(pathJson.src['chain-id']).toBe('osmosis-1');
+      expect(pathJson.dst['chain-id']).toBe('cosmoshub-4');
+      expect(pathJson['src-channel-filter']).toBeDefined();
+
+      // Verify chain configurations exist
+      expect(configMap.data['osmosis-1.json']).toBeDefined();
+      expect(configMap.data['cosmoshub-4.json']).toBeDefined();
+
+      const osmosisConfig = JSON.parse(configMap.data['osmosis-1.json']);
+      expect(osmosisConfig.type).toBe('cosmos');
+      expect(osmosisConfig.value['chain-id']).toBe('osmosis-1');
+      expect(osmosisConfig.value['rpc-addr']).toContain('osmosis-genesis');
+
+      // Snapshot test for configuration content
+      expect({
+        pathJson,
+        osmosisConfigExists: !!configMap.data['osmosis-1.json'],
+        cosmoshubConfigExists: !!configMap.data['cosmoshub-4.json']
+      }).toMatchSnapshot('go-relayer-config-content');
+    });
   });
 }); 

@@ -1,0 +1,193 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: go-relayer-go-relay
+  labels:
+    app.kubernetes.io/instance: relayer-testnet
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/component: relayer
+    app.kubernetes.io/part-of: starship
+    app.kubernetes.io/role: go-relayer
+    app.kubernetes.io/name: go-relayer-go-relay
+spec:
+  serviceName: go-relayer-go-relay
+  replicas: 1
+  podManagementPolicy: Parallel
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: relayer
+      app.kubernetes.io/type: go-relayer
+      app.kubernetes.io/name: go-relayer-go-relay
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
+      labels:
+        app.kubernetes.io/instance: relayer
+        app.kubernetes.io/type: go-relayer
+        app.kubernetes.io/name: go-relayer-go-relay
+        app.kubernetes.io/rawname: go-relay
+        app.kubernetes.io/version: 1.8.0
+    spec:
+      initContainers:
+        - name: init-osmosis-1
+          image: ghcr.io/cosmology-tech/starship/wait-for-service:v0.1.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - bash
+            - '-c'
+          args:
+            - >-
+              echo "Waiting for osmosis-1 service..."
+
+              wait-for-service
+              osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+        - name: init-cosmoshub-4
+          image: ghcr.io/cosmology-tech/starship/wait-for-service:v0.1.0
+          imagePullPolicy: IfNotPresent
+          command:
+            - bash
+            - '-c'
+          args:
+            - >-
+              echo "Waiting for cosmoshub-4 service..."
+
+              wait-for-service
+              cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657
+          env:
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+        - name: init-relayer
+          image: ghcr.io/cosmology-tech/starship/go-relayer:v2.4.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: KEYS_CONFIG
+              value: /keys/keys.json
+            - name: NAMESPACE
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
+            - name: RELAYER_DIR
+              value: /root
+          command:
+            - bash
+            - '-c'
+          args:
+            - |
+              set -ux
+
+              RLY_INDEX=${HOSTNAME##*-}
+              echo "Relayer Index: $RLY_INDEX"
+
+              mkdir -p $RELAYER_DIR/.relayer
+              cp /configs/path.json $RELAYER_DIR/.relayer/
+
+
+              cp /configs/osmosis-1.json $RELAYER_DIR/.relayer/chains/
+
+              echo "Adding key for osmosis-1..."
+              MNEMONIC=$(jq -r ".relayers[$RLY_INDEX].mnemonic" $KEYS_CONFIG)
+              echo $MNEMONIC | rly keys restore osmosis-1 default
+
+              DENOM="uosmo"
+              RLY_ADDR=$(rly keys show osmosis-1 default)
+
+              echo "Transfer tokens to address $RLY_ADDR"
+              bash -e /scripts/transfer-tokens.sh \
+                $RLY_ADDR \
+                $DENOM \
+                http://osmosis-1-genesis.$NAMESPACE.svc.cluster.local:8000/credit \
+                "true" || true
+
+              cp /configs/cosmoshub-4.json $RELAYER_DIR/.relayer/chains/
+
+              echo "Adding key for cosmoshub-4..."
+              MNEMONIC=$(jq -r ".relayers[$RLY_INDEX].mnemonic" $KEYS_CONFIG)
+              echo $MNEMONIC | rly keys restore cosmoshub-4 default
+
+              DENOM="uatom"
+              RLY_ADDR=$(rly keys show cosmoshub-4 default)
+
+              echo "Transfer tokens to address $RLY_ADDR"
+              bash -e /scripts/transfer-tokens.sh \
+                $RLY_ADDR \
+                $DENOM \
+                http://cosmoshub-4-genesis.$NAMESPACE.svc.cluster.local:8000/credit \
+                "true" || true
+
+              if [ $RLY_INDEX -eq 0 ]; then
+                echo "Creating path and initializing light clients"
+                rly paths new osmosis-1 cosmoshub-4 path
+                rly light init osmosis-1 -f
+                rly light init cosmoshub-4 -f
+              fi
+          resources:
+            limits:
+              cpu: '0.2'
+              memory: 200M
+            requests:
+              cpu: '0.2'
+              memory: 200M
+          volumeMounts:
+            - mountPath: /root
+              name: relayer
+            - mountPath: /configs
+              name: relayer-config
+            - mountPath: /keys
+              name: keys
+            - mountPath: /scripts
+              name: scripts
+      containers:
+        - name: relayer
+          image: ghcr.io/cosmology-tech/starship/go-relayer:v2.4.1
+          imagePullPolicy: IfNotPresent
+          env:
+            - name: RELAYER_DIR
+              value: /root
+          command:
+            - bash
+            - '-c'
+          args:
+            - rly start
+          resources:
+            limits:
+              cpu: '0.2'
+              memory: 200M
+            requests:
+              cpu: '0.2'
+              memory: 200M
+          securityContext:
+            allowPrivilegeEscalation: false
+            runAsUser: 0
+          volumeMounts:
+            - mountPath: /root
+              name: relayer
+            - mountPath: /configs
+              name: relayer-config
+            - mountPath: /keys
+              name: keys
+            - mountPath: /scripts
+              name: scripts
+      volumes:
+        - name: relayer
+          emptyDir: {}
+        - name: relayer-config
+          configMap:
+            name: go-relayer-go-relay
+        - name: keys
+          configMap:
+            name: keys
+        - name: scripts
+          configMap:
+            name: setup-scripts

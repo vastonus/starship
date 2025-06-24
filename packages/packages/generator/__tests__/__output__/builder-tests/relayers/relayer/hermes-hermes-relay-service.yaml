@@ -1,0 +1,24 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: hermes-hermes-relay
+  labels:
+    app.kubernetes.io/instance: relayer-testnet
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/component: relayer
+    app.kubernetes.io/part-of: starship
+    app.kubernetes.io/role: hermes
+    app.kubernetes.io/name: hermes-hermes-relay
+spec:
+  clusterIP: None
+  ports:
+    - name: rest
+      port: 3000
+      protocol: TCP
+      targetPort: 3000
+    - name: exposer
+      port: 8081
+      protocol: TCP
+      targetPort: 8081
+  selector:
+    app.kubernetes.io/name: hermes-hermes-relay

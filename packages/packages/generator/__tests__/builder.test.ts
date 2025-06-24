@@ -10,7 +10,8 @@ import {
   ethereumConfig,
   outputDir,
   singleChainConfig,
-  twoChainConfig
+  twoChainConfig,
+  twoChainWithHermesConfig
 } from './test-utils/config';
 
 describe('BuilderManager Tests', () => {
@@ -309,52 +310,7 @@ describe('BuilderManager Tests', () => {
     });
 
     it('should handle relayer configuration', () => {
-      const relayerConfig = {
-        name: 'relayer-testnet',
-        chains: [
-          {
-            id: 'osmosis-1',
-            name: 'osmosis' as const,
-            numValidators: 1,
-            prefix: 'osmo',
-            denom: 'uosmo'
-          },
-          {
-            id: 'cosmoshub-4',
-            name: 'cosmoshub' as const,
-            numValidators: 1,
-            prefix: 'cosmos',
-            denom: 'uatom'
-          }
-        ],
-        relayers: [
-          {
-            name: 'hermes-relay',
-            type: 'hermes' as const,
-            replicas: 1,
-            chains: ['osmosis-1', 'cosmoshub-4'],
-            config: {
-              global: { log_level: 'info' },
-              mode: {
-                clients: { enabled: true, refresh: true, misbehaviour: true },
-                connections: { enabled: true },
-                channels: { enabled: true },
-                packets: { enabled: true, clear_interval: 100, clear_on_start: true, tx_confirmation: true }
-              },
-              rest: { enabled: true, host: '0.0.0.0', port: 3000 },
-              telemetry: { enabled: true, host: '0.0.0.0', port: 3001 }
-            }
-          },
-          {
-            name: 'go-relay',
-            type: 'go-relayer' as const,
-            replicas: 1,
-            chains: ['osmosis-1', 'cosmoshub-4']
-          }
-        ]
-      };
-
-      const manager = new BuilderManager(relayerConfig);
+      const manager = new BuilderManager(twoChainWithHermesConfig);
 
       const testSubDir = join(testOutputDir, 'relayers');
       manager.build(testSubDir);
@@ -375,27 +331,19 @@ describe('BuilderManager Tests', () => {
       );
       expect(relayerFiles.length).toBeGreaterThan(0);
 
-      // Verify both relayers have their manifests
+      // Verify hermes relayer manifests exist
       const hermesManifests = Object.keys(yamlFiles).filter((f) =>
-        f.includes('hermes-relay')
-      );
-      const goRelayerManifests = Object.keys(yamlFiles).filter((f) =>
-        f.includes('go-relay')
+        f.includes('osmos-cosmos')
       );
 
       expect(hermesManifests.length).toBeGreaterThan(0);
-      expect(goRelayerManifests.length).toBeGreaterThan(0);
 
-      // Verify hermes has service (go-relayer should not)
+      // Verify hermes has service
       const hermesServiceExists = Object.values(yamlFiles).some((content: any) =>
-        content.kind === 'Service' && content.metadata.name.includes('hermes-relay')
-      );
-      const goRelayerServiceExists = Object.values(yamlFiles).some((content: any) =>
-        content.kind === 'Service' && content.metadata.name.includes('go-relay')
+        content.kind === 'Service' && content.metadata.name.includes('osmos-cosmos')
       );
 
       expect(hermesServiceExists).toBe(true);
-      expect(goRelayerServiceExists).toBe(false);
     });
   });
 
