@@ -186,7 +186,7 @@ describe('DefaultsManager', () => {
 
       const processedConfig = applyDefaults(config);
 
-      expect(processedConfig.relayers).toEqual([]);
+      expect(processedConfig.relayers).toBeUndefined();
     });
   });
 

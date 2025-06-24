@@ -234,14 +234,17 @@ export function applyDefaults(config: StarshipConfig): StarshipConfig {
     defaultsManager.processChain(chain)
   );
 
-  // Process relayers with defaults
-  const processedRelayers = config.relayers?.map((relayer) =>
-    defaultsManager.processRelayer(relayer)
-  ) || [];
-
-  return {
+  const processedConfig: StarshipConfig = {
     ...config,
     chains: processedChains,
-    relayers: processedRelayers
   };
+
+  if (config.relayers && config.relayers?.length > 0) {
+    const processedRelayers = config.relayers.map((relayer) =>
+      defaultsManager.processRelayer(relayer)
+    );
+    processedConfig.relayers = processedRelayers;
+  }
+
+  return processedConfig;
 }
