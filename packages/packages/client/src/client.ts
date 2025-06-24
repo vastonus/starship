@@ -372,14 +372,7 @@ export class StarshipClient implements StarshipClientI {
     });
     this.exec(['helm', 'repo', 'update'], { ignoreError: false });
     this.exec(
-      [
-        'helm',
-        'search',
-        'repo',
-        this.ctx.chart,
-        '--version',
-        this.ctx.version
-      ],
+      ['helm', 'search', 'repo', this.ctx.chart, '--version', this.ctx.version],
       { ignoreError: false }
     );
   }
