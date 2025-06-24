@@ -82,6 +82,38 @@ export type ChainName =
   | 'xpla'
   | 'ethereum';
 
+export interface ChainScripts {
+  createGenesis?: Script;
+  updateGenesis?: Script;
+  updateConfig?: Script;
+  createValidator?: Script;
+  transferTokens?: Script;
+  buildChain?: Script;
+  chainRpcReady?: Script;
+  ibcConnection?: Script;
+  createICS?: Script;
+}
+
+export interface Env {
+  name: string;
+  value: string;
+}
+
+export interface Balance {
+  address: string;
+  amount: string;
+}
+
+export interface Upgrade {
+  enabled: boolean;
+  type?: 'build';
+  genesis?: string;
+  upgrades?: {
+    name: string;
+    version: string;
+  }[];
+}
+
 export interface Chain {
   id: string | number;
   name: ChainName;
@@ -98,15 +130,7 @@ export interface Chain {
   metrics?: boolean;
   repo?: string;
   assets?: Asset[];
-  upgrade?: {
-    enabled: boolean;
-    type?: 'build';
-    genesis?: string;
-    upgrades?: {
-      name: string;
-      version: string;
-    }[];
-  };
+  upgrade?: Upgrade;
   faucet?: FaucetConfig;
   ports?: Ports;
   build?: {
@@ -114,34 +138,11 @@ export interface Chain {
     source: string;
   };
   genesis?: Record<string, any>;
-  scripts?: {
-    createGenesis?: Script;
-    updateGenesis?: Script;
-    updateConfig?: Script;
-    createValidator?: Script;
-    transferTokens?: Script;
-    buildChain?: Script;
-    chainRpcReady?: Script;
-    ibcConnection?: Script;
-    createICS?: Script;
-  };
-  env?: Array<{
-    name: string;
-    value: string;
-  }>;
-  ics?: {
-    enabled: boolean;
-    image?: string;
-    provider: string;
-  };
-  cometmock?: {
-    enabled: boolean;
-    image?: string;
-  };
-  balances?: Array<{
-    address: string;
-    amount: string;
-  }>;
+  scripts?: ChainScripts;
+  env?: Env[];
+  ics?: Ics;
+  cometmock?: Cometmock;
+  balances?: Balance[];
   readinessProbe?: Record<string, any>;
   config?: Record<string, any>;
   resources?: Resources;
@@ -153,6 +154,28 @@ export interface Script {
   data?: string;
 }
 
+export interface Channel {
+  'a-chain': string;
+  'b-chain'?: string;
+  'a-port': string;
+  'b-port': string;
+  'a-connection'?: string;
+  'new-connection'?: boolean;
+  'channel-version'?: number;
+  order?: string;
+}
+
+export interface Ics {
+  enabled: boolean;
+  provider: string;
+  consumer: string;
+}
+
+export interface Cometmock {
+  enabled: boolean;
+  image?: string;
+}
+
 export interface Relayer {
   name: string;
   type: 'go-relayer' | 'hermes' | 'ts-relayer' | 'neutron-query-relayer';
@@ -160,21 +183,8 @@ export interface Relayer {
   replicas: number;
   chains: string[];
   config?: Record<string, any>;
-  channels?: {
-    'a-chain': string;
-    'b-chain'?: string;
-    'a-port': string;
-    'b-port': string;
-    'a-connection'?: string;
-    'new-connection'?: boolean;
-    'channel-version'?: number;
-    order?: string;
-  }[];
-  ics?: {
-    enabled: boolean;
-    provider: string;
-    consumer: string;
-  };
+  channels?: Channel[];
+  ics?: Ics;
   resources?: Resources;
   ports?: Ports;
 }
@@ -222,7 +232,13 @@ export interface Frontend {
   image: string;
   replicas?: number;
   ports?: Ports;
-  env?: Record<string, string>;
+  env?: Env[];
+  resources?: Resources;
+}
+
+export interface Exposer {
+  image?: string;
+  ports?: Ports;
   resources?: Resources;
 }
 
@@ -234,11 +250,7 @@ export interface StarshipConfig {
     node?: Resources;
     wait?: Resources;
   };
-  exposer?: {
-    image?: string;
-    ports?: Ports;
-    resources?: Resources;
-  };
+  exposer?: Exposer;
   faucet?: FaucetConfig;
   timeouts?: TimeoutConfig;
   chains: Chain[];
