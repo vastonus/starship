@@ -8,7 +8,7 @@ import { CosmosBuilder } from './cosmos';
 import { ExplorerBuilder } from './explorer';
 import { FrontendBuilder } from './frontend';
 import { RegistryBuilder } from './registry';
-import { RelayerBuilder } from './relayer';
+import { RelayerBuilder } from './relayers';
 
 export class BuilderManager {
   private config: StarshipConfig;
