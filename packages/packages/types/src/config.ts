@@ -140,7 +140,7 @@ export interface Chain {
   genesis?: Record<string, any>;
   scripts?: ChainScripts;
   env?: Env[];
-  ics?: Ics;
+  ics?: ICS;
   cometmock?: Cometmock;
   balances?: Balance[];
   readinessProbe?: Record<string, any>;
@@ -165,7 +165,7 @@ export interface Channel {
   order?: string;
 }
 
-export interface Ics {
+export interface ICS {
   enabled: boolean;
   provider?: string;
   consumer?: string;
@@ -184,7 +184,7 @@ export interface Relayer {
   chains: string[];
   config?: Record<string, any>;
   channels?: Channel[];
-  ics?: Ics;
+  ics?: ICS;
   resources?: Resources;
   ports?: Ports;
 }
