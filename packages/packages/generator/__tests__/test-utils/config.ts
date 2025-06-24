@@ -248,7 +248,6 @@ export const ethereumConfig: StarshipConfig = {
 // Based on starship/tests/e2e/configs/two-chain.yaml
 export const twoChainWithHermesConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 'osmosis-1',
@@ -320,7 +319,6 @@ export const twoChainWithHermesConfig: StarshipConfig = {
 // Based on starship/tests/e2e/configs/two-chain-gorelayer.yaml
 export const twoChainWithGoRelayerConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 'osmosis-1',
@@ -365,7 +363,6 @@ export const twoChainWithGoRelayerConfig: StarshipConfig = {
 // Config for testing neutron query relayer
 export const neutronRelayerConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 'neutron-1',

@@ -8,6 +8,7 @@ import {
   IRelayerServiceGenerator,
   IRelayerStatefulSetGenerator
 } from './base';
+import { getGeneratorVersion } from '../../version';
 
 /**
  * ConfigMap generator for Neutron Query Relayer
@@ -210,7 +211,7 @@ export class NeutronQueryStatefulSetGenerator implements IRelayerStatefulSetGene
               'app.kubernetes.io/type': this.relayer.type,
               'app.kubernetes.io/name': fullname,
               'app.kubernetes.io/rawname': this.relayer.name,
-              'app.kubernetes.io/version': this.config.version || '1.8.0'
+              'app.kubernetes.io/version': getGeneratorVersion()
             }
           },
           spec: {

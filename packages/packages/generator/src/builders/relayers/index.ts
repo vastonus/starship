@@ -1,6 +1,7 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
 
+import { DefaultsManager } from '../../defaults';
 import { IRelayerBuilder } from './base';
 import { HermesRelayerBuilder } from './hermes';
 import { GoRelayerBuilder } from './go-relayer';
@@ -40,10 +41,16 @@ export class RelayerBuilderFactory {
 export class RelayerBuilder {
   private config: StarshipConfig;
   private relayers: Relayer[];
+  private defaultsManager: DefaultsManager;
 
   constructor(config: StarshipConfig) {
     this.config = config;
-    this.relayers = config.relayers || [];
+    this.defaultsManager = new DefaultsManager();
+    
+    // Process relayers with defaults
+    this.relayers = (config.relayers || []).map(relayer => 
+      this.defaultsManager.processRelayer(relayer)
+    );
   }
 
   /**

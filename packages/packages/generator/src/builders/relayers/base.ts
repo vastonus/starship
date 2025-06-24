@@ -73,28 +73,13 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
   }
 
   /**
-   * Get default image for relayer type
-   */
-  protected getDefaultImage(): string {
-    switch (this.relayer.type) {
-      case 'hermes':
-        return 'ghcr.io/cosmology-tech/starship/hermes:1.10.0';
-      case 'go-relayer':
-        return 'ghcr.io/cosmology-tech/starship/go-relayer:v2.4.1';
-      case 'ts-relayer':
-        return 'ghcr.io/cosmology-tech/starship/ts-relayer:0.9.0';
-      case 'neutron-query-relayer':
-        return 'ghcr.io/cosmology-tech/starship/neutron-query-relayer:v0.2.0';
-      default:
-        throw new Error(`Unknown relayer type: ${this.relayer.type}`);
-    }
-  }
-
-  /**
    * Get image for relayer (custom or default)
    */
   protected getImage(): string {
-    return this.relayer.image || this.getDefaultImage();
+    if (!this.relayer.image) {
+      throw new Error(`No image configured for relayer ${this.relayer.name} of type ${this.relayer.type}`);
+    }
+    return this.relayer.image;
   }
 
   /**

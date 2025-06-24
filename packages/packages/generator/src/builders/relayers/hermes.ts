@@ -9,6 +9,7 @@ import {
   IRelayerStatefulSetGenerator,
   RelayerHelpers
 } from './base';
+import { getGeneratorVersion } from '../../version';
 
 /**
  * ConfigMap generator for Hermes relayer
@@ -49,56 +50,43 @@ export class HermesConfigMapGenerator implements IRelayerConfigMapGenerator {
 
   private generateHermesConfig(): string {
     const relayerConfig = this.relayer.config || {};
-    const globalConfig = relayerConfig.global || { log_level: 'info' };
-    const modeConfig = relayerConfig.mode || {
-      clients: { enabled: true, refresh: true, misbehaviour: true },
-      connections: { enabled: true },
-      channels: { enabled: true },
-      packets: { enabled: true, clear_interval: 100, clear_on_start: true, tx_confirmation: true }
-    };
-    const restConfig = relayerConfig.rest || {
-      enabled: true,
-      host: '0.0.0.0',
-      port: 3000
-    };
-    const telemetryConfig = relayerConfig.telemetry || {
-      enabled: true,
-      host: '0.0.0.0',
-      port: 3001
-    };
-    const eventSourceConfig = relayerConfig.event_source || { mode: 'push' };
+    const globalConfig = relayerConfig.global || {};
+    const modeConfig = relayerConfig.mode || {};
+    const restConfig = relayerConfig.rest || {};
+    const telemetryConfig = relayerConfig.telemetry || {};
+    const eventSourceConfig = relayerConfig.event_source || {};
 
     let configToml = `# The global section has parameters that apply globally to the relayer operation.
 [global]
-log_level = "${globalConfig.log_level}"
+log_level = "${globalConfig.log_level || 'info'}"
 
 [mode]
 [mode.clients]
-enabled = ${modeConfig.clients.enabled}
-refresh = ${modeConfig.clients.refresh}
-misbehaviour = ${modeConfig.clients.misbehaviour}
+enabled = ${modeConfig.clients?.enabled ?? true}
+refresh = ${modeConfig.clients?.refresh ?? true}
+misbehaviour = ${modeConfig.clients?.misbehaviour ?? true}
 
 [mode.connections]
-enabled = ${modeConfig.connections.enabled}
+enabled = ${modeConfig.connections?.enabled ?? true}
 
 [mode.channels]
-enabled = ${modeConfig.channels.enabled}
+enabled = ${modeConfig.channels?.enabled ?? true}
 
 [mode.packets]
-enabled = ${modeConfig.packets.enabled}
-clear_interval = ${modeConfig.packets.clear_interval}
-clear_on_start = ${modeConfig.packets.clear_on_start}
-tx_confirmation = ${modeConfig.packets.tx_confirmation}
+enabled = ${modeConfig.packets?.enabled ?? true}
+clear_interval = ${modeConfig.packets?.clear_interval ?? 100}
+clear_on_start = ${modeConfig.packets?.clear_on_start ?? true}
+tx_confirmation = ${modeConfig.packets?.tx_confirmation ?? true}
 
 [rest]
-enabled = ${restConfig.enabled}
-host = "${restConfig.host}"
-port = ${restConfig.port}
+enabled = ${restConfig.enabled ?? true}
+host = "${restConfig.host || '0.0.0.0'}"
+port = ${restConfig.port || 3000}
 
 [telemetry]
-enabled = ${telemetryConfig.enabled}
-host = "${telemetryConfig.host}"
-port = ${telemetryConfig.port}
+enabled = ${telemetryConfig.enabled ?? true}
+host = "${telemetryConfig.host || '0.0.0.0'}"
+port = ${telemetryConfig.port || 3001}
 
 `;
 
@@ -255,7 +243,7 @@ export class HermesStatefulSetGenerator implements IRelayerStatefulSetGenerator 
               'app.kubernetes.io/type': this.relayer.type,
               'app.kubernetes.io/name': fullname,
               'app.kubernetes.io/rawname': this.relayer.name,
-              'app.kubernetes.io/version': this.config.version || '1.8.0'
+              'app.kubernetes.io/version': getGeneratorVersion()
             }
           },
           spec: {
