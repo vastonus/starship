@@ -167,8 +167,8 @@ export interface Channel {
 
 export interface Ics {
   enabled: boolean;
-  provider: string;
-  consumer: string;
+  provider?: string;
+  consumer?: string;
 }
 
 export interface Cometmock {
