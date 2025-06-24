@@ -8,6 +8,7 @@ import { CosmosBuilder } from './cosmos';
 import { ExplorerBuilder } from './explorer';
 import { FrontendBuilder } from './frontend';
 import { RegistryBuilder } from './registry';
+import { RelayerBuilder } from './relayers';
 
 export class BuilderManager {
   private config: StarshipConfig;
@@ -73,7 +74,8 @@ export class BuilderManager {
       new CosmosBuilder(this.config),
       new RegistryBuilder(this.config),
       new ExplorerBuilder(this.config),
-      new FrontendBuilder(this.config)
+      new FrontendBuilder(this.config),
+      new RelayerBuilder(this.config)
     ];
 
     let allManifests: any[] = [];

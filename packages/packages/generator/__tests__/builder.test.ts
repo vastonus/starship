@@ -10,7 +10,8 @@ import {
   ethereumConfig,
   outputDir,
   singleChainConfig,
-  twoChainConfig
+  twoChainConfig,
+  twoChainWithHermesConfig
 } from './test-utils/config';
 
 describe('BuilderManager Tests', () => {
@@ -306,6 +307,45 @@ describe('BuilderManager Tests', () => {
         .map((item) => item.name)
         .sort();
       expect(directories).toEqual(['explorer', 'registry']);
+    });
+
+    it('should handle relayer configuration', () => {
+      const manager = new BuilderManager(twoChainWithHermesConfig);
+
+      const testSubDir = join(testOutputDir, 'relayers');
+      manager.build(testSubDir);
+
+      const yamlFiles = loadYamlFiles(testSubDir);
+      expect(yamlFiles).toMatchSnapshot('relayers-yaml-files');
+
+      // Verify relayer directory exists
+      const directories = readdirSync(testSubDir, { withFileTypes: true })
+        .filter((item) => item.isDirectory())
+        .map((item) => item.name)
+        .sort();
+      expect(directories).toContain('relayer');
+
+      // Verify relayer manifests are generated
+      const relayerFiles = Object.keys(yamlFiles).filter((f) =>
+        f.startsWith('relayer/')
+      );
+      expect(relayerFiles.length).toBeGreaterThan(0);
+
+      // Verify hermes relayer manifests exist
+      const hermesManifests = Object.keys(yamlFiles).filter((f) =>
+        f.includes('osmos-cosmos')
+      );
+
+      expect(hermesManifests.length).toBeGreaterThan(0);
+
+      // Verify hermes has service
+      const hermesServiceExists = Object.values(yamlFiles).some(
+        (content: any) =>
+          content.kind === 'Service' &&
+          content.metadata.name.includes('osmos-cosmos')
+      );
+
+      expect(hermesServiceExists).toBe(true);
     });
   });
 

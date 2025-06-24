@@ -7194,6 +7194,4775 @@ echo "Validator initialization completed"",
 }
 `;
 
+exports[`BuilderManager Tests Advanced Configuration Testing should handle relayer configuration: relayers-yaml-files 1`] = `
+{
+  "configmaps/keys.yaml": {
+    "apiVersion": "v1",
+    "data": {
+      "keys.json": "{
+  "genesis": [
+    {
+      "name": "genesis",
+      "type": "local",
+      "mnemonic": "razor dog gown public private couple ecology paper flee connect local robot diamond stay rude join sound win ribbon soup kidney glass robot vehicle"
+    }
+  ],
+  "validators": [
+    {
+      "name": "validator",
+      "type": "local",
+      "mnemonic": "issue have volume expire shoe year finish poem alien urban license undo rural endless food host opera fix forum crack wide example firm learn"
+    }
+  ],
+  "faucet": [
+    {
+      "name": "faucet",
+      "type": "local",
+      "mnemonic": "chimney become stuff spoil resource supply picture divorce casual curve check web valid survey zebra various pet sphere timber friend faint blame mansion film"
+    }
+  ],
+  "keys": [
+    {
+      "name": "test1",
+      "type": "local",
+      "mnemonic": "opinion knife other balcony surge more bamboo canoe romance ask argue teach anxiety adjust spike mystery wolf alone torch tail six decide wash alley"
+    },
+    {
+      "name": "test2",
+      "type": "local",
+      "mnemonic": "logic help only text door wealth hurt always remove glory viable income agent olive trial female couch old offer crash menu zero pencil thrive"
+    },
+    {
+      "name": "test3",
+      "type": "local",
+      "mnemonic": "middle weather hip ghost quick oxygen awful library broken chicken tackle animal crunch appear fee indoor fitness enough orphan trend tackle faint eyebrow all"
+    }
+  ],
+  "relayers": [
+    {
+      "name": "relayer1",
+      "type": "local",
+      "mnemonic": "pen quit web pill hunt hobby tonight base wine black era cereal veteran trouble december method diet orbit copper nephew into badge olympic repair"
+    },
+    {
+      "name": "relayer2",
+      "type": "local",
+      "mnemonic": "spatial major zebra crew space file thunder fatigue wool viable cry kiss wedding dumb eager dream soon north coral suffer salt mutual kitten surface"
+    },
+    {
+      "name": "relayer3",
+      "type": "local",
+      "mnemonic": "cruise topic shrug relax update slot marble valid chat upset offer cruise list frog machine fossil help dentist hard thunder dial wink light long"
+    },
+    {
+      "name": "relayer4",
+      "type": "local",
+      "mnemonic": "carpet maid isolate side tonight crash doctor awkward balcony lift brand can affair address cube box print senior organ city ride argue board depth"
+    },
+    {
+      "name": "relayer5",
+      "type": "local",
+      "mnemonic": "dad rural bridge own habit menu balance loan height rotate suit gym antenna convince traffic carry orphan service tower fatigue lady van prepare glide"
+    }
+  ],
+  "relayers_cli": [
+    {
+      "name": "relayer-cli-1",
+      "type": "local",
+      "mnemonic": "marine suspect wood vague vast pet cargo tenant oyster tuna news river follow chicken shoulder ceiling guess never help dismiss grape scheme oyster produce"
+    },
+    {
+      "name": "relayer-cli-2",
+      "type": "local",
+      "mnemonic": "resemble pear bulb portion refuse off hundred kit flame hurry evidence fringe fetch kite strike actual naive stamp burden oak punch fault approve message"
+    },
+    {
+      "name": "relayer-cli-3",
+      "type": "local",
+      "mnemonic": "cycle opinion segment gas season exclude artist cliff believe seminar salute bicycle math puzzle wreck minor country rough choose escape access warm expect february"
+    },
+    {
+      "name": "relayer-cli-4",
+      "type": "local",
+      "mnemonic": "essay lobster image grain faculty vocal glass merry fish resist hub game suffer rose fence vocal network absurd demise demise repair museum envelope abstract"
+    },
+    {
+      "name": "relayer-cli-5",
+      "type": "local",
+      "mnemonic": "adjust stove name refuse vehicle hip alpha steel dynamic alley ride segment exhibit pony abuse figure type close direct animal bomb food glass seed"
+    }
+  ]
+}
+",
+    },
+    "kind": "ConfigMap",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "configmap",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/part-of": "global",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "keys",
+    },
+  },
+  "configmaps/setup-scripts.yaml": {
+    "apiVersion": "v1",
+    "data": {
+      "build-chain.sh": "#!/bin/bash
+
+set -euxo pipefail
+
+mkdir -p /tmp/chains $UPGRADE_DIR
+
+echo "Fetching code from tag"
+mkdir -p /tmp/chains/$CHAIN_NAME
+cd /tmp/chains/$CHAIN_NAME
+
+if [[ $CODE_TAG =~ ^[0-9a-fA-F]{40}$ ]]; then
+  echo "Trying to fetch code from commit hash"
+  curl -LO $CODE_REPO/archive/$CODE_TAG.zip
+  unzip $CODE_TAG.zip
+  code_dir=\${CODE_REPO##*/}-\${CODE_TAG}
+elif [[ $CODE_TAG = v* ]]; then
+  echo "Trying to fetch code from tag with 'v' prefix"
+  curl -LO $CODE_REPO/archive/refs/tags/$CODE_TAG.zip
+  unzip $CODE_TAG.zip
+  code_dir=\${CODE_REPO##*/}-\${CODE_TAG#"v"}
+else
+  echo "Trying to fetch code from tag or branch"
+  if curl -fsLO $CODE_REPO/archive/refs/tags/$CODE_TAG.zip; then
+    unzip $CODE_TAG.zip
+    code_dir=\${CODE_REPO##*/}-$CODE_TAG
+  elif curl -fsLO $CODE_REPO/archive/refs/heads/$CODE_TAG.zip; then
+    unzip $(echo $CODE_TAG | rev | cut -d "/" -f 1 | rev).zip
+    code_dir=\${CODE_REPO##*/}-\${CODE_TAG/\\//-}
+  else
+    echo "Tag or branch '$CODE_TAG' not found"
+    exit 1
+  fi
+fi
+
+echo "Fetch wasmvm if needed"
+cd /tmp/chains/$CHAIN_NAME/$code_dir
+WASM_VERSION=$(cat go.mod | grep -oe "github.com/CosmWasm/wasmvm v[0-9.]*" | cut -d ' ' -f 2)
+if [[ WASM_VERSION != "" ]]; then
+  mkdir -p /tmp/chains/libwasmvm_muslc
+  cd /tmp/chains/libwasmvm_muslc
+  curl -LO https://github.com/CosmWasm/wasmvm/releases/download/$WASM_VERSION/libwasmvm_muslc.x86_64.a
+  cp libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
+fi
+
+echo "Build chain binary"
+cd /tmp/chains/$CHAIN_NAME/$code_dir
+CGO_ENABLED=1 BUILD_TAGS="muslc linkstatic" LINK_STATICALLY=true LEDGER_ENABLED=false make install
+
+echo "Copy created binary to the upgrade directories"
+if [[ $UPGRADE_NAME == "genesis" ]]; then
+  mkdir -p $UPGRADE_DIR/genesis/bin
+  cp $GOBIN/$CHAIN_BIN $UPGRADE_DIR/genesis/bin
+else
+  mkdir -p $UPGRADE_DIR/upgrades/$UPGRADE_NAME/bin
+  cp $GOBIN/$CHAIN_BIN $UPGRADE_DIR/upgrades/$UPGRADE_NAME/bin
+fi
+
+echo "Cleanup"
+rm -rf /tmp/chains/$CHAIN_NAME
+",
+      "chain-rpc-ready.sh": "#!/bin/bash
+# chain-rpc-ready.sh - Check if a CometBFT or Tendermint RPC service is ready
+# Usage: chain-rpc-ready.sh [RPC_URL]
+
+set -euo pipefail
+
+RPC_URL=\${1:-"http://localhost:26657"}
+
+echo 1>&2 "Checking if $RPC_URL is ready..."
+
+# Check if the RPC URL is reachable,
+json=$(curl -s --connect-timeout 2 "$RPC_URL/status")
+
+# and the bootstrap block state has been validated,
+if [ "$(echo "$json" | jq -r '.result.sync_info | (.earliest_block_height < .latest_block_height)')" != true ]; then
+  echo 1>&2 "$RPC_URL is not ready: bootstrap block state has not been validated"
+  exit 1
+fi
+
+# and the node is not catching up.
+if [ "$(echo "$json" | jq -r .result.sync_info.catching_up)" != false ]; then
+  echo 1>&2 "$RPC_URL is not ready: node is catching up"
+  exit 1
+fi
+
+echo "$json" | jq -r .result
+exit 0
+",
+      "create-genesis.sh": "#!/bin/bash
+
+set -eux
+
+DENOM="\${DENOM:=uosmo}"
+COINS="\${COINS:=100000000000000000uosmo}"
+CHAIN_ID="\${CHAIN_ID:=osmosis}"
+CHAIN_BIN="\${CHAIN_BIN:=osmosisd}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+
+FAUCET_ENABLED="\${FAUCET_ENABLED:=true}"
+NUM_VALIDATORS="\${NUM_VALIDATORS:=1}"
+NUM_RELAYERS="\${NUM_RELAYERS:=0}"
+
+# check if the binary has genesis subcommand or not, if not, set CHAIN_GENESIS_CMD to empty
+CHAIN_GENESIS_CMD=$($CHAIN_BIN 2>&1 | grep -q "genesis-related subcommands" && echo "genesis" || echo "")
+
+CHAIN_INIT_ID="$CHAIN_ID"
+if [ "$CHAIN_BIN" == "osmosisd" ]; then
+  CHAIN_INIT_ID="test-1"
+fi
+jq -r ".genesis[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN init $CHAIN_ID --chain-id $CHAIN_INIT_ID --recover
+sed -i -e "s/$CHAIN_INIT_ID/$CHAIN_ID/g" $CHAIN_DIR/config/genesis.json
+
+# Add genesis keys to the keyring and self delegate initial coins
+echo "Adding key...." $(jq -r ".genesis[0].name" $KEYS_CONFIG)
+jq -r ".genesis[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $(jq -r ".genesis[0].name" $KEYS_CONFIG) --recover --keyring-backend="test"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $(jq -r .genesis[0].name $KEYS_CONFIG) --keyring-backend="test") $COINS --keyring-backend="test"
+
+# Add faucet key to the keyring and self delegate initial coins
+echo "Adding key...." $(jq -r ".faucet[0].name" $KEYS_CONFIG)
+jq -r ".faucet[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $(jq -r ".faucet[0].name" $KEYS_CONFIG) --recover --keyring-backend="test"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $(jq -r .faucet[0].name $KEYS_CONFIG) --keyring-backend="test") $COINS --keyring-backend="test"
+
+# Add test keys to the keyring and self delegate initial coins
+echo "Adding key...." $(jq -r ".keys[0].name" $KEYS_CONFIG)
+jq -r ".keys[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $(jq -r ".keys[0].name" $KEYS_CONFIG) --recover --keyring-backend="test"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $(jq -r .keys[0].name $KEYS_CONFIG) --keyring-backend="test") $COINS --keyring-backend="test"
+
+if [[ $FAUCET_ENABLED == "false" && $NUM_RELAYERS -gt "-1" ]];
+then
+  ## Add relayers keys and delegate tokens
+  for i in $(seq 0 $NUM_RELAYERS);
+  do
+    # Add relayer key and delegate tokens
+    RELAYER_KEY_NAME="$(jq -r ".relayers[$i].name" $KEYS_CONFIG)"
+    echo "Adding relayer key.... $RELAYER_KEY_NAME"
+    jq -r ".relayers[$i].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $RELAYER_KEY_NAME --recover --keyring-backend="test"
+    $CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $RELAYER_KEY_NAME --keyring-backend="test") $COINS --keyring-backend="test"
+    # Add relayer-cli key and delegate tokens
+    RELAYER_CLI_KEY_NAME="$(jq -r ".relayers_cli[$i].name" $KEYS_CONFIG)"
+    echo "Adding relayer-cli key.... $RELAYER_CLI_KEY_NAME"
+    jq -r ".relayers_cli[$i].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $RELAYER_CLI_KEY_NAME --recover --keyring-backend="test"
+    $CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $RELAYER_CLI_KEY_NAME --keyring-backend="test") $COINS --keyring-backend="test"
+  done
+fi
+
+## if faucet not enabled then add validator and relayer with index as keys and into gentx
+if [[ $FAUCET_ENABLED == "false" && $NUM_VALIDATORS -gt "1" ]];
+then
+  ## Add validators key and delegate tokens
+  for i in $(seq 0 $NUM_VALIDATORS);
+  do
+    VAL_KEY_NAME="$(jq -r '.validators[0].name' $KEYS_CONFIG)-$i"
+    echo "Adding validator key.... $VAL_KEY_NAME"
+    jq -r ".validators[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $VAL_KEY_NAME --index $i --recover --keyring-backend="test"
+    $CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $VAL_KEY_NAME --keyring-backend="test") $COINS --keyring-backend="test"
+  done
+fi
+
+echo "Creating gentx..."
+COIN=$(echo $COINS | cut -d ',' -f1)
+AMT=$(echo \${COIN//[!0-9]/} | sed -e "s/0000$//")
+$CHAIN_BIN $CHAIN_GENESIS_CMD gentx $(jq -r ".genesis[0].name" $KEYS_CONFIG) $AMT$DENOM --keyring-backend="test" --chain-id $CHAIN_ID
+
+echo "Output of gentx"
+cat $CHAIN_DIR/config/gentx/*.json | jq
+
+echo "Running collect-gentxs"
+$CHAIN_BIN $CHAIN_GENESIS_CMD collect-gentxs
+
+ls $CHAIN_DIR/config
+",
+      "create-ics.sh": "#!/bin/bash
+
+set -euxo pipefail
+
+DENOM="\${DENOM:=uatom}"
+CHAIN_ID="\${CHAIN_ID:=cosmoshub-1}"
+CHAIN_BIN="\${CHAIN_BIN:=gaiad}"
+NODE_URL="\${NODE_URL:=http://0.0.0.0:26657}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+
+PROPOSAL_FILE="\${PROPOSAL_FILE}"
+KEY_NAME="ics-setup"
+MAX_RETRIES=3
+RETRY_INTERVAL=30
+SUBMIT_PROPOSAL_CMD=""
+
+add_key() {
+  # Add test keys to the keyring and self delegate initial coins
+  echo "Adding key...." $(jq -r ".keys[0].name" $KEYS_CONFIG)
+  jq -r ".keys[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $KEY_NAME --recover --keyring-backend="test"
+  echo $($CHAIN_BIN keys show -a $KEY_NAME --keyring-backend="test")
+}
+
+get_validator_address() {
+  echo "Getting validator address..."
+  VALIDATOR_ADDRESS=$($CHAIN_BIN q staking validators --node $NODE_URL --output json | jq -r '.validators[0].operator_address')
+  echo "Selected validator address: $VALIDATOR_ADDRESS"
+}
+
+stake_tokens() {
+  COINS="10000000$DENOM"
+  echo "Staking tokens..."
+  $CHAIN_BIN tx staking delegate $VALIDATOR_ADDRESS $COINS \\
+    --from $KEY_NAME \\
+    --chain-id $CHAIN_ID \\
+    --node $NODE_URL \\
+    --keyring-backend="test" \\
+    --gas auto --gas-adjustment 2 \\
+    --output json \\
+    --yes
+  sleep 5
+}
+
+determine_proposal_command() {
+  echo "Determining the correct command to submit proposals..."
+  HELP_OUTPUT=$($CHAIN_BIN tx gov --help)
+  if echo "$HELP_OUTPUT" | grep -q "submit-legacy-proposal"; then
+    SUBMIT_PROPOSAL_CMD="submit-legacy-proposal"
+  else
+    SUBMIT_PROPOSAL_CMD="submit-proposal"
+  fi
+  echo "Using $SUBMIT_PROPOSAL_CMD for submitting proposals."
+}
+
+submit_proposal() {
+  echo "Get all proposals"
+  PROPOSALS_OUTPUT=$($CHAIN_BIN query gov proposals --output json --node $NODE_URL 2>&1 || true)
+  if echo "$PROPOSALS_OUTPUT" | grep -q "no proposals found"; then
+    echo "No existing proposals found. Proceeding to submit a new proposal."
+  else
+    echo "Existing proposals: $PROPOSALS_OUTPUT"
+  fi
+
+  echo "Submit gov proposal on chain"
+  PROPOSAL_TX=$($CHAIN_BIN tx gov $SUBMIT_PROPOSAL_CMD consumer-addition $PROPOSAL_FILE \\
+    --from $KEY_NAME \\
+    --chain-id $CHAIN_ID \\
+    --node $NODE_URL \\
+    --keyring-backend="test" \\
+    --gas auto --gas-adjustment 2 \\
+    --output json \\
+    --yes)
+  echo $PROPOSAL_TX
+
+  # Extract JSON part from the output
+  TX_HASH=$(echo "$PROPOSAL_TX" | grep -o '{.*}' | jq -r '.txhash')
+  if [ -n "$TX_HASH" ]; then
+    echo "Transaction hash: $TX_HASH"
+  else
+    echo "Failed to submit proposal. Output was not as expected."
+    exit 1
+  fi
+
+  sleep 5
+}
+
+get_proposal_id() {
+  echo "Getting proposal ID"
+  PROPOSAL_QUERY=$(gaiad query tx $TX_HASH --node $NODE_URL --output json)
+  LOGS=$(echo $PROPOSAL_QUERY | jq -r '.logs')
+  if [ "$LOGS" != "null" ] && [ "$LOGS" != "[]" ]; then
+    PROPOSAL_ID=$(echo $PROPOSAL_QUERY | jq -r '.logs[0].events[] | select(.type=="submit_proposal").attributes[] | select(.key=="proposal_id").value')
+    if [ -n "$PROPOSAL_ID" ]; then
+      echo "Proposal ID: $PROPOSAL_ID"
+      return 0
+    fi
+  fi
+  echo "Failed to retrieve proposal ID from transaction logs. Logs might be empty."
+  exit 1
+}
+
+vote_proposal() {
+  echo "Voting on proposal"
+  $CHAIN_BIN tx gov vote $PROPOSAL_ID yes \\
+    --from $KEY_NAME \\
+    --chain-id $CHAIN_ID \\
+    --node $NODE_URL \\
+    --keyring-backend="test" \\
+    --gas auto --gas-adjustment 2 \\
+    --output json \\
+    --yes
+  sleep 5
+}
+
+wait_for_proposal_to_pass() {
+  echo "Waiting for proposal to pass"
+  for ((i=1; i<=$MAX_RETRIES; i++)); do
+    STATUS=$($CHAIN_BIN query gov proposal $PROPOSAL_ID --node $NODE_URL --output json | jq -r '.status')
+    if [ "$STATUS" == "PROPOSAL_STATUS_PASSED" ]; then
+      echo "Proposal has passed!"
+      return 0
+    else
+      echo "Current status: $STATUS. Attempt $i/$MAX_RETRIES. Waiting..."
+      sleep $RETRY_INTERVAL
+    fi
+  done
+  echo "Proposal did not pass after $MAX_RETRIES attempts."
+  exit 1
+}
+
+main() {
+  add_key
+  get_validator_address
+  stake_tokens
+  determine_proposal_command
+  submit_proposal
+  get_proposal_id
+  vote_proposal
+  wait_for_proposal_to_pass
+}
+
+main
+",
+      "create-validator.sh": "#!/bin/bash
+
+DENOM="\${DENOM:=uosmo}"
+CHAIN_BIN="\${CHAIN_BIN:=osmosisd}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+VAL_NAME="\${VAL_NAME:=osmosis}"
+NODE_URL="\${NODE_URL:=http://0.0.0.0:26657}"
+NODE_ARGS="\${NODE_ARGS}"
+GAS="\${GAS:=auto}"
+
+set -eux
+
+# Wait for the node to be synced
+max_tries=10
+while [[ $($CHAIN_BIN status --output json --node $NODE_URL 2>&1 | jq ".SyncInfo.catching_up") == true ]]
+do
+  if [[ max_tries -lt 0 ]]; then echo "Not able to sync with genesis node"; exit 1; fi
+  echo "Still syncing... Sleeping for 15 secs. Tries left $max_tries"
+  ((max_tries--))
+  sleep 30
+done
+
+# Function to compare version numbers
+version_compare() {
+    version1="$1"
+    version2="$2"
+    if [[ "$(printf '%s\\n' "$version1" "$version2" | sort -V | head -n 1)" == "$version1" ]]; then
+        return 1 # version1 is greater
+    else
+        return 0 # version2 is greater or equal
+    fi
+}
+
+# Check if cosmos_sdk_version is greater than a specified version
+is_greater() {
+    version_compare "$1" "$2"
+    return $?
+}
+
+function cosmos-sdk-version-v50() {
+  # Content for the validator.json file
+  json_content='{
+    "pubkey": '$($CHAIN_BIN tendermint show-validator $NODE_ARGS)',
+    "amount": "5000000000'$DENOM'",
+    "moniker": "'$VAL_NAME'",
+    "commission-rate": "0.1",
+    "commission-max-rate": "0.2",
+    "commission-max-change-rate": "0.01",
+    "min-self-delegation": "1000000"
+  }'
+  echo "$json_content" > /validator.json
+  cat /validator.json
+
+  # Run create validator tx command
+  echo "Running txn for create-validator"
+  $CHAIN_BIN tx staking create-validator /validator.json \\
+    --node $NODE_URL \\
+    --chain-id $CHAIN_ID \\
+    --from $VAL_NAME \\
+    --fees 100000$DENOM \\
+    --keyring-backend="test" \\
+    --output json \\
+    --gas $GAS \\
+    --gas-adjustment 1.5 $NODE_ARGS --yes > /validator.log
+
+  cat /validator.log | jq
+}
+
+function cosmos-sdk-version-default() {
+  # Run create validator tx command
+  echo "Running txn for create-validator"
+  args=''
+  if [[ $($CHAIN_BIN tx staking create-validator --help | grep -c "min-self-delegation") -gt 0 ]];
+  then
+    args+='--min-self-delegation=1000000'
+  fi
+  $CHAIN_BIN keys list --keyring-backend test --output json --home $CHAIN_DIR | jq
+  $CHAIN_BIN tx staking create-validator \\
+    --node $NODE_URL \\
+    --pubkey=$($CHAIN_BIN tendermint show-validator $NODE_ARGS) \\
+    --moniker $VAL_NAME \\
+    --amount 5000000000$DENOM \\
+    --chain-id $CHAIN_ID \\
+    --from $VAL_NAME \\
+    --commission-rate="0.10" \\
+    --commission-max-rate="0.20" \\
+    --commission-max-change-rate="0.01" \\
+    --keyring-backend test \\
+    --home $CHAIN_DIR \\
+    --fees 100000$DENOM \\
+    --gas $GAS \\
+    --output json \\
+    --gas-adjustment 1.5 $args $NODE_ARGS --yes > /validator.log
+
+  cat /validator.log | jq
+}
+
+set +e
+# Fetch the cosmos-sdk version to be able to perform the create-validator tx
+cosmos_sdk_version=$($CHAIN_BIN version --long | sed -n 's/cosmos_sdk_version: \\(.*\\)/\\1/p')
+echo "cosmos_sdk_version: $cosmos_sdk_version"
+set -e
+
+if is_greater "$cosmos_sdk_version" "v0.50.0"; then
+  echo "cosmos_sdk_version is greater than v0.50.0, running create-validator tx with new format"
+  cosmos-sdk-version-v50
+else
+  echo "cosmos_sdk_version is less than v0.50.0, running create-validator tx with old format"
+  cosmos-sdk-version-default
+fi
+",
+      "ibc-connection.sh": "#!/bin/bash
+
+REGISTRY_URL="$1"
+CHAIN_1="$2"
+CHAIN_2="$3"
+
+set -eux
+
+function connection_id() {
+  CONNECTION_ID=$(curl -s $REGISTRY_URL/ibc/$CHAIN_1/$CHAIN_2 | jq -r ".chain_1.connection_id")
+  echo $CONNECTION_ID
+}
+
+echo "Try to get connection id, if failed, wait for 2 seconds and try again"
+max_tries=20
+while [[ max_tries -gt 0 ]]
+do
+  id=$(connection_id)
+  if [[ -n "$id" ]]; then
+    echo "Found connection id: $id"
+    exit 0
+  fi
+  echo "Failed to get connection id. Sleeping for 2 secs. Tries left $max_tries"
+  ((max_tries--))
+  sleep 10
+done
+",
+      "transfer-tokens.sh": "#!/bin/bash
+
+ADDRESS="$1"
+DENOM="$2"
+FAUCET_URL="$3"
+FAUCET_ENABLED="$4"
+
+set -eux
+
+function transfer_token() {
+  status_code=$(curl --header "Content-Type: application/json" \\
+    --request POST --write-out %{http_code} --silent --output /dev/null \\
+    --data '{"denom":"'"$DENOM"'","address":"'"$ADDRESS"'"}' \\
+    $FAUCET_URL)
+  echo $status_code
+}
+
+if [[ $FAUCET_ENABLED == "false" ]];
+then
+  echo "Faucet not enabled... skipping transfer token from faucet"
+  exit 0
+fi
+
+echo "Try to send tokens, if failed, wait for 5 seconds and try again"
+max_tries=5
+while [[ max_tries -gt 0 ]]
+do
+  status_code=$(transfer_token)
+  if [[ "$status_code" -eq 200 ]]; then
+    echo "Successfully sent tokens"
+    exit 0
+  fi
+  echo "Failed to send tokens. Sleeping for 2 secs. Tries left $max_tries"
+  ((max_tries--))
+  sleep 2
+done
+",
+      "update-config.sh": "#!/bin/bash
+
+CHAIN_ID="\${CHAIN_ID:=osmosis}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+
+set -eux
+
+ls $CHAIN_DIR
+
+
+echo "Update config.toml file"
+sed -i -e 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $CHAIN_DIR/config/config.toml
+sed -i -e 's/index_all_keys = false/index_all_keys = true/g' $CHAIN_DIR/config/config.toml
+sed -i -e 's/seeds = ".*"/seeds = ""/g' $CHAIN_DIR/config/config.toml
+sed -i -e 's#cors_allowed_origins = \\[\\]#cors_allowed_origins = \\["*"\\]#g' $CHAIN_DIR/config/config.toml
+sed -i -e 's/index_all_keys = false/index_all_keys = true/g' $CHAIN_DIR/config/config.toml
+
+echo "Update client.toml file"
+sed -i -e 's#keyring-backend = "os"#keyring-backend = "test"#g' $CHAIN_DIR/config/client.toml
+sed -i -e 's#output = "text"#output = "json"#g' $CHAIN_DIR/config/client.toml
+sed -i -e "s#chain-id = \\"\\"#chain-id = \\"$CHAIN_ID\\"#g" $CHAIN_DIR/config/client.toml
+
+
+echo "Update app.toml file"
+sed -i -e "s#minimum-gas-prices = \\".*\\"#minimum-gas-prices = \\"0$DENOM\\"#g" $CHAIN_DIR/config/app.toml
+sed -i -e "s#pruning = \\".*\\"#pruning = \\"default\\"#g" $CHAIN_DIR/config/app.toml
+sed -i -e 's/enable-unsafe-cors = false/enable-unsafe-cors = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enabled-unsafe-cors = false/enabled-unsafe-cors = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enable = false/enable = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/swagger = false/swagger = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enable = false/enable = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enabled = false/enabled = true/g' $CHAIN_DIR/config/app.toml
+
+
+function get_next_line_number() {
+  local txt=$1
+  local file=$2
+  local line_number=$(grep -n "$txt" $file | cut -d: -f1 | head -1)
+  echo $((line_number + 1))
+}
+
+line_number=$(get_next_line_number "Address defines the API server to listen on." $CHAIN_DIR/config/app.toml)
+sed -i -e "\${line_number}s#address = \\".*\\"#address = \\"tcp://0.0.0.0:1317\\"#g" $CHAIN_DIR/config/app.toml
+
+line_number=$(get_next_line_number "Address defines the gRPC server address to bind to." $CHAIN_DIR/config/app.toml)
+sed -i -e "\${line_number}s#address = \\".*\\"#address = \\"0.0.0.0:9090\\"#g" $CHAIN_DIR/config/app.toml
+
+line_number=$(get_next_line_number "Address defines the gRPC-web server address to bind to." $CHAIN_DIR/config/app.toml)
+sed -i -e "\${line_number}s#address = \\".*\\"#address = \\"0.0.0.0:9091\\"#g" $CHAIN_DIR/config/app.toml
+
+if [ "$METRICS" == "true" ]; then
+  sed -i -e "s/prometheus = false/prometheus = true/g" $CHAIN_DIR/config/config.toml
+
+  line_number=$(get_next_line_number "PrometheusRetentionTime, when positive, enables a Prometheus metrics sink." $CHAIN_DIR/config/app.toml)
+  sed -i -e "\${line_number}s/prometheus-retention-time = 0/prometheus-retention-time = 3600/g" $CHAIN_DIR/config/app.toml
+fi
+
+echo "Update consensus params in config.toml"
+sed -i -e "s#timeout_propose = \\".*\\"#timeout_propose = \\"$TIMEOUT_PROPOSE\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_propose_delta = \\".*\\"#timeout_propose_delta = \\"$TIMEOUT_PROPOSE_DELTA\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_prevote = \\".*\\"#timeout_prevote = \\"$TIMEOUT_PREVOTE\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_prevote_delta = \\".*\\"#timeout_prevote_delta = \\"$TIMEOUT_PREVOTE_DELTA\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_precommit = \\".*\\"#timeout_precommit = \\"$TIMEOUT_PRECOMMIT\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_precommit_delta = \\".*\\"#timeout_precommit_delta = \\"$TIMEOUT_PRECOMMIT_DELTA\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_commit = \\".*\\"#timeout_commit = \\"$TIMEOUT_COMMIT\\"#g" $CHAIN_DIR/config/config.toml
+",
+      "update-genesis.sh": "#!/bin/bash
+
+DENOM="\${DENOM:=uosmo}"
+CHAIN_BIN="\${CHAIN_BIN:=osmosisd}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+
+set -eux
+
+ls $CHAIN_DIR/config
+
+echo "Update genesis.json file with updated local params"
+sed -i -e "s/\\"stake\\"/\\"$DENOM\\"/g" $CHAIN_DIR/config/genesis.json
+sed -i "s/\\"time_iota_ms\\": \\".*\\"/\\"time_iota_ms\\": \\"$TIME_IOTA_MS\\"/" $CHAIN_DIR/config/genesis.json
+
+echo "Update max gas param"
+jq -r '.consensus_params.block.max_gas |= "100000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+
+echo "Update staking unbonding time and slashing jail time"
+jq -r '.app_state.staking.params.unbonding_time |= "300s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+jq -r '.app_state.slashing.params.downtime_jail_duration |= "60s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+
+# overrides for older sdk versions, before 0.47
+function gov_overrides_sdk_v46() {
+  jq -r '.app_state.gov.deposit_params.max_deposit_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.deposit_params.min_deposit[0].amount |= "10"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.voting_params.voting_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.tally_params.quorum |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.tally_params.threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.tally_params.veto_threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+}
+
+# overrides for newer sdk versions, post 0.47
+function gov_overrides_sdk_v47() {
+  jq -r '.app_state.gov.params.max_deposit_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.min_deposit[0].amount |= "10"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.voting_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.quorum |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.veto_threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+}
+
+if [ "$(jq -r '.app_state.feemarket.params' $CHAIN_DIR/config/genesis.json)" != "null" ]; then
+  jq -r '.app_state.feemarket.params.min_base_gas_price |= "0"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.feemarket.params.beta |= "0"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.feemarket.state.base_gas_price |= "0.0025"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+fi
+
+if [ "$(jq -r '.app_state.gov.params' $CHAIN_DIR/config/genesis.json)" == "null" ]; then
+  gov_overrides_sdk_v46
+else
+  gov_overrides_sdk_v47
+fi
+
+$CHAIN_BIN tendermint show-node-id
+",
+    },
+    "kind": "ConfigMap",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "configmap",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/part-of": "global",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "setup-scripts",
+    },
+  },
+  "cosmoshub/genesis-service.yaml": {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "chain",
+        "app.kubernetes.io/id": "cosmoshub-4",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "cosmoshub-4-genesis",
+        "app.kubernetes.io/part-of": "cosmoshub-4",
+        "app.kubernetes.io/role": "genesis",
+        "app.kubernetes.io/type": "cosmoshub-4-service",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-name": "cosmoshub",
+      },
+      "name": "cosmoshub-4-genesis",
+    },
+    "spec": {
+      "clusterIP": "None",
+      "ports": [
+        {
+          "name": "p2p",
+          "port": 26656,
+          "protocol": "TCP",
+          "targetPort": "26656",
+        },
+        {
+          "name": "address",
+          "port": 26658,
+          "protocol": "TCP",
+          "targetPort": "26658",
+        },
+        {
+          "name": "grpc",
+          "port": 9090,
+          "protocol": "TCP",
+          "targetPort": "9090",
+        },
+        {
+          "name": "grpc-web",
+          "port": 9091,
+          "protocol": "TCP",
+          "targetPort": "9091",
+        },
+        {
+          "name": "rest",
+          "port": 1317,
+          "protocol": "TCP",
+          "targetPort": "1317",
+        },
+        {
+          "name": "rpc",
+          "port": 26657,
+          "protocol": "TCP",
+          "targetPort": "26657",
+        },
+        {
+          "name": "metrics",
+          "port": 26660,
+          "protocol": "TCP",
+          "targetPort": "26660",
+        },
+        {
+          "name": "exposer",
+          "port": 8081,
+          "protocol": "TCP",
+          "targetPort": "8081",
+        },
+        {
+          "name": "faucet",
+          "port": 8000,
+          "protocol": "TCP",
+          "targetPort": "8000",
+        },
+      ],
+      "selector": {
+        "app.kubernetes.io/name": "cosmoshub-4-genesis",
+      },
+    },
+  },
+  "cosmoshub/genesis-statefulset.yaml": {
+    "apiVersion": "apps/v1",
+    "kind": "StatefulSet",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "chain",
+        "app.kubernetes.io/id": "cosmoshub-4",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "cosmoshub-4-genesis",
+        "app.kubernetes.io/part-of": "cosmoshub-4",
+        "app.kubernetes.io/role": "genesis",
+        "app.kubernetes.io/type": "cosmoshub-4-statefulset",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-name": "cosmoshub",
+      },
+      "name": "cosmoshub-4-genesis",
+    },
+    "spec": {
+      "replicas": 1,
+      "revisionHistoryLimit": 3,
+      "selector": {
+        "matchLabels": {
+          "app.kubernetes.io/instance": "starship-generator-test",
+          "app.kubernetes.io/name": "cosmoshub-4-genesis",
+        },
+      },
+      "serviceName": "cosmoshub-4-genesis",
+      "template": {
+        "metadata": {
+          "annotations": {
+            "quality": "release",
+            "role": "api-gateway",
+            "sla": "high",
+            "tier": "gateway",
+          },
+          "labels": {
+            "app.kubernetes.io/instance": "starship-generator-test",
+            "app.kubernetes.io/name": "cosmoshub-4-genesis",
+            "app.kubernetes.io/rawname": "cosmoshub-4",
+            "app.kubernetes.io/role": "genesis",
+            "app.kubernetes.io/type": "cosmoshub-4",
+            "app.kubernetes.io/version": "4.0.0-alpha.0",
+          },
+        },
+        "spec": {
+          "containers": [
+            {
+              "command": [
+                "bash",
+                "-c",
+                "#!/bin/bash
+set -euo pipefail
+
+echo "Starting gaiad validator..."
+exec gaiad start --home /root/.gaia --log_level info",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uatom",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uatom",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/cosmos/gaia",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "cosmoshub-4",
+                },
+                {
+                  "name": "FAUCET_ENABLED",
+                  "value": "false",
+                },
+                {
+                  "name": "SLOGFILE",
+                  "value": "slog.slog",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/gaia:v18.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "validator",
+              "readinessProbe": {
+                "exec": {
+                  "command": [
+                    "bash",
+                    "-e",
+                    "/scripts/chain-rpc-ready.sh",
+                    "http://localhost:26657",
+                  ],
+                },
+                "initialDelaySeconds": 10,
+                "periodSeconds": 10,
+                "timeoutSeconds": 15,
+              },
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.gaia",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+            {
+              "command": [
+                "exposer",
+              ],
+              "env": [
+                {
+                  "name": "GENESIS_HOST",
+                  "value": "cosmoshub-4-genesis",
+                },
+                {
+                  "name": "GENESIS_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "NAMESPACE",
+                  "value": {
+                    "valueFrom": {
+                      "fieldRef": {
+                        "fieldPath": "metadata.namespace",
+                      },
+                    },
+                  },
+                },
+                {
+                  "name": "EXPOSER_HTTP_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "EXPOSER_GRPC_PORT",
+                  "value": "9099",
+                },
+                {
+                  "name": "EXPOSER_GENESIS_FILE",
+                  "value": "/root/.gaia/config/genesis.json",
+                },
+                {
+                  "name": "EXPOSER_MNEMONIC_FILE",
+                  "value": "/configs/keys.json",
+                },
+                {
+                  "name": "EXPOSER_PRIV_VAL_FILE",
+                  "value": "/root/.gaia/config/priv_validator_key.json",
+                },
+                {
+                  "name": "EXPOSER_NODE_KEY_FILE",
+                  "value": "/root/.gaia/config/node_key.json",
+                },
+                {
+                  "name": "EXPOSER_NODE_ID_FILE",
+                  "value": "/root/.gaia/config/node_id.json",
+                },
+                {
+                  "name": "EXPOSER_PRIV_VAL_STATE_FILE",
+                  "value": "/root/.gaia/data/priv_validator_state.json",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/exposer:latest",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "exposer",
+              "resources": {
+                "limits": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+                "requests": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.gaia",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+              ],
+            },
+          ],
+          "initContainers": [
+            {
+              "command": [
+                "bash",
+                "-c",
+                "/scripts/create-genesis.sh",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uatom",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uatom",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/cosmos/gaia",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "cosmoshub-4",
+                },
+                {
+                  "name": "KEYS_CONFIG",
+                  "value": "/configs/keys.json",
+                },
+                {
+                  "name": "FAUCET_ENABLED",
+                  "value": "false",
+                },
+                {
+                  "name": "NUM_VALIDATORS",
+                  "value": "2",
+                },
+                {
+                  "name": "NUM_RELAYERS",
+                  "value": "1",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/gaia:v18.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-genesis",
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.gaia",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+            {
+              "command": [
+                "bash",
+                "-c",
+                "/scripts/update-config.sh",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uatom",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uatom",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/cosmos/gaia",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "cosmoshub-4",
+                },
+                {
+                  "name": "KEYS_CONFIG",
+                  "value": "/configs/keys.json",
+                },
+                {
+                  "name": "METRICS",
+                  "value": "false",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/gaia:v18.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-config",
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.gaia",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+          ],
+          "volumes": [
+            {
+              "emptyDir": {},
+              "name": "node",
+            },
+            {
+              "configMap": {
+                "name": "keys",
+              },
+              "name": "addresses",
+            },
+            {
+              "configMap": {
+                "name": "setup-scripts-cosmoshub-4",
+              },
+              "name": "scripts",
+            },
+          ],
+        },
+      },
+    },
+  },
+  "cosmoshub/setup-scripts-configmap.yaml": {
+    "apiVersion": "v1",
+    "data": {
+      "build-chain.sh": "#!/bin/bash
+
+set -euxo pipefail
+
+mkdir -p /tmp/chains $UPGRADE_DIR
+
+echo "Fetching code from tag"
+mkdir -p /tmp/chains/$CHAIN_NAME
+cd /tmp/chains/$CHAIN_NAME
+
+if [[ $CODE_TAG =~ ^[0-9a-fA-F]{40}$ ]]; then
+  echo "Trying to fetch code from commit hash"
+  curl -LO $CODE_REPO/archive/$CODE_TAG.zip
+  unzip $CODE_TAG.zip
+  code_dir=\${CODE_REPO##*/}-\${CODE_TAG}
+elif [[ $CODE_TAG = v* ]]; then
+  echo "Trying to fetch code from tag with 'v' prefix"
+  curl -LO $CODE_REPO/archive/refs/tags/$CODE_TAG.zip
+  unzip $CODE_TAG.zip
+  code_dir=\${CODE_REPO##*/}-\${CODE_TAG#"v"}
+else
+  echo "Trying to fetch code from tag or branch"
+  if curl -fsLO $CODE_REPO/archive/refs/tags/$CODE_TAG.zip; then
+    unzip $CODE_TAG.zip
+    code_dir=\${CODE_REPO##*/}-$CODE_TAG
+  elif curl -fsLO $CODE_REPO/archive/refs/heads/$CODE_TAG.zip; then
+    unzip $(echo $CODE_TAG | rev | cut -d "/" -f 1 | rev).zip
+    code_dir=\${CODE_REPO##*/}-\${CODE_TAG/\\//-}
+  else
+    echo "Tag or branch '$CODE_TAG' not found"
+    exit 1
+  fi
+fi
+
+echo "Fetch wasmvm if needed"
+cd /tmp/chains/$CHAIN_NAME/$code_dir
+WASM_VERSION=$(cat go.mod | grep -oe "github.com/CosmWasm/wasmvm v[0-9.]*" | cut -d ' ' -f 2)
+if [[ WASM_VERSION != "" ]]; then
+  mkdir -p /tmp/chains/libwasmvm_muslc
+  cd /tmp/chains/libwasmvm_muslc
+  curl -LO https://github.com/CosmWasm/wasmvm/releases/download/$WASM_VERSION/libwasmvm_muslc.x86_64.a
+  cp libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
+fi
+
+echo "Build chain binary"
+cd /tmp/chains/$CHAIN_NAME/$code_dir
+CGO_ENABLED=1 BUILD_TAGS="muslc linkstatic" LINK_STATICALLY=true LEDGER_ENABLED=false make install
+
+echo "Copy created binary to the upgrade directories"
+if [[ $UPGRADE_NAME == "genesis" ]]; then
+  mkdir -p $UPGRADE_DIR/genesis/bin
+  cp $GOBIN/$CHAIN_BIN $UPGRADE_DIR/genesis/bin
+else
+  mkdir -p $UPGRADE_DIR/upgrades/$UPGRADE_NAME/bin
+  cp $GOBIN/$CHAIN_BIN $UPGRADE_DIR/upgrades/$UPGRADE_NAME/bin
+fi
+
+echo "Cleanup"
+rm -rf /tmp/chains/$CHAIN_NAME
+",
+      "chain-rpc-ready.sh": "#!/bin/bash
+# chain-rpc-ready.sh - Check if a CometBFT or Tendermint RPC service is ready
+# Usage: chain-rpc-ready.sh [RPC_URL]
+
+set -euo pipefail
+
+RPC_URL=\${1:-"http://localhost:26657"}
+
+echo 1>&2 "Checking if $RPC_URL is ready..."
+
+# Check if the RPC URL is reachable,
+json=$(curl -s --connect-timeout 2 "$RPC_URL/status")
+
+# and the bootstrap block state has been validated,
+if [ "$(echo "$json" | jq -r '.result.sync_info | (.earliest_block_height < .latest_block_height)')" != true ]; then
+  echo 1>&2 "$RPC_URL is not ready: bootstrap block state has not been validated"
+  exit 1
+fi
+
+# and the node is not catching up.
+if [ "$(echo "$json" | jq -r .result.sync_info.catching_up)" != false ]; then
+  echo 1>&2 "$RPC_URL is not ready: node is catching up"
+  exit 1
+fi
+
+echo "$json" | jq -r .result
+exit 0
+",
+      "create-genesis.sh": "#!/bin/bash
+
+set -eux
+
+DENOM="\${DENOM:=uosmo}"
+COINS="\${COINS:=100000000000000000uosmo}"
+CHAIN_ID="\${CHAIN_ID:=osmosis}"
+CHAIN_BIN="\${CHAIN_BIN:=osmosisd}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+
+FAUCET_ENABLED="\${FAUCET_ENABLED:=true}"
+NUM_VALIDATORS="\${NUM_VALIDATORS:=1}"
+NUM_RELAYERS="\${NUM_RELAYERS:=0}"
+
+# check if the binary has genesis subcommand or not, if not, set CHAIN_GENESIS_CMD to empty
+CHAIN_GENESIS_CMD=$($CHAIN_BIN 2>&1 | grep -q "genesis-related subcommands" && echo "genesis" || echo "")
+
+CHAIN_INIT_ID="$CHAIN_ID"
+if [ "$CHAIN_BIN" == "osmosisd" ]; then
+  CHAIN_INIT_ID="test-1"
+fi
+jq -r ".genesis[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN init $CHAIN_ID --chain-id $CHAIN_INIT_ID --recover
+sed -i -e "s/$CHAIN_INIT_ID/$CHAIN_ID/g" $CHAIN_DIR/config/genesis.json
+
+# Add genesis keys to the keyring and self delegate initial coins
+echo "Adding key...." $(jq -r ".genesis[0].name" $KEYS_CONFIG)
+jq -r ".genesis[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $(jq -r ".genesis[0].name" $KEYS_CONFIG) --recover --keyring-backend="test"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $(jq -r .genesis[0].name $KEYS_CONFIG) --keyring-backend="test") $COINS --keyring-backend="test"
+
+# Add faucet key to the keyring and self delegate initial coins
+echo "Adding key...." $(jq -r ".faucet[0].name" $KEYS_CONFIG)
+jq -r ".faucet[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $(jq -r ".faucet[0].name" $KEYS_CONFIG) --recover --keyring-backend="test"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $(jq -r .faucet[0].name $KEYS_CONFIG) --keyring-backend="test") $COINS --keyring-backend="test"
+
+# Add test keys to the keyring and self delegate initial coins
+echo "Adding key...." $(jq -r ".keys[0].name" $KEYS_CONFIG)
+jq -r ".keys[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $(jq -r ".keys[0].name" $KEYS_CONFIG) --recover --keyring-backend="test"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $(jq -r .keys[0].name $KEYS_CONFIG) --keyring-backend="test") $COINS --keyring-backend="test"
+
+if [[ $FAUCET_ENABLED == "false" && $NUM_RELAYERS -gt "-1" ]];
+then
+  ## Add relayers keys and delegate tokens
+  for i in $(seq 0 $NUM_RELAYERS);
+  do
+    # Add relayer key and delegate tokens
+    RELAYER_KEY_NAME="$(jq -r ".relayers[$i].name" $KEYS_CONFIG)"
+    echo "Adding relayer key.... $RELAYER_KEY_NAME"
+    jq -r ".relayers[$i].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $RELAYER_KEY_NAME --recover --keyring-backend="test"
+    $CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $RELAYER_KEY_NAME --keyring-backend="test") $COINS --keyring-backend="test"
+    # Add relayer-cli key and delegate tokens
+    RELAYER_CLI_KEY_NAME="$(jq -r ".relayers_cli[$i].name" $KEYS_CONFIG)"
+    echo "Adding relayer-cli key.... $RELAYER_CLI_KEY_NAME"
+    jq -r ".relayers_cli[$i].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $RELAYER_CLI_KEY_NAME --recover --keyring-backend="test"
+    $CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $RELAYER_CLI_KEY_NAME --keyring-backend="test") $COINS --keyring-backend="test"
+  done
+fi
+
+## if faucet not enabled then add validator and relayer with index as keys and into gentx
+if [[ $FAUCET_ENABLED == "false" && $NUM_VALIDATORS -gt "1" ]];
+then
+  ## Add validators key and delegate tokens
+  for i in $(seq 0 $NUM_VALIDATORS);
+  do
+    VAL_KEY_NAME="$(jq -r '.validators[0].name' $KEYS_CONFIG)-$i"
+    echo "Adding validator key.... $VAL_KEY_NAME"
+    jq -r ".validators[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $VAL_KEY_NAME --index $i --recover --keyring-backend="test"
+    $CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $VAL_KEY_NAME --keyring-backend="test") $COINS --keyring-backend="test"
+  done
+fi
+
+echo "Creating gentx..."
+COIN=$(echo $COINS | cut -d ',' -f1)
+AMT=$(echo \${COIN//[!0-9]/} | sed -e "s/0000$//")
+$CHAIN_BIN $CHAIN_GENESIS_CMD gentx $(jq -r ".genesis[0].name" $KEYS_CONFIG) $AMT$DENOM --keyring-backend="test" --chain-id $CHAIN_ID
+
+echo "Output of gentx"
+cat $CHAIN_DIR/config/gentx/*.json | jq
+
+echo "Running collect-gentxs"
+$CHAIN_BIN $CHAIN_GENESIS_CMD collect-gentxs
+
+ls $CHAIN_DIR/config
+",
+      "create-ics.sh": "#!/bin/bash
+
+set -euxo pipefail
+
+DENOM="\${DENOM:=uatom}"
+CHAIN_ID="\${CHAIN_ID:=cosmoshub-1}"
+CHAIN_BIN="\${CHAIN_BIN:=gaiad}"
+NODE_URL="\${NODE_URL:=http://0.0.0.0:26657}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+
+PROPOSAL_FILE="\${PROPOSAL_FILE}"
+KEY_NAME="ics-setup"
+MAX_RETRIES=3
+RETRY_INTERVAL=30
+SUBMIT_PROPOSAL_CMD=""
+
+add_key() {
+  # Add test keys to the keyring and self delegate initial coins
+  echo "Adding key...." $(jq -r ".keys[0].name" $KEYS_CONFIG)
+  jq -r ".keys[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $KEY_NAME --recover --keyring-backend="test"
+  echo $($CHAIN_BIN keys show -a $KEY_NAME --keyring-backend="test")
+}
+
+get_validator_address() {
+  echo "Getting validator address..."
+  VALIDATOR_ADDRESS=$($CHAIN_BIN q staking validators --node $NODE_URL --output json | jq -r '.validators[0].operator_address')
+  echo "Selected validator address: $VALIDATOR_ADDRESS"
+}
+
+stake_tokens() {
+  COINS="10000000$DENOM"
+  echo "Staking tokens..."
+  $CHAIN_BIN tx staking delegate $VALIDATOR_ADDRESS $COINS \\
+    --from $KEY_NAME \\
+    --chain-id $CHAIN_ID \\
+    --node $NODE_URL \\
+    --keyring-backend="test" \\
+    --gas auto --gas-adjustment 2 \\
+    --output json \\
+    --yes
+  sleep 5
+}
+
+determine_proposal_command() {
+  echo "Determining the correct command to submit proposals..."
+  HELP_OUTPUT=$($CHAIN_BIN tx gov --help)
+  if echo "$HELP_OUTPUT" | grep -q "submit-legacy-proposal"; then
+    SUBMIT_PROPOSAL_CMD="submit-legacy-proposal"
+  else
+    SUBMIT_PROPOSAL_CMD="submit-proposal"
+  fi
+  echo "Using $SUBMIT_PROPOSAL_CMD for submitting proposals."
+}
+
+submit_proposal() {
+  echo "Get all proposals"
+  PROPOSALS_OUTPUT=$($CHAIN_BIN query gov proposals --output json --node $NODE_URL 2>&1 || true)
+  if echo "$PROPOSALS_OUTPUT" | grep -q "no proposals found"; then
+    echo "No existing proposals found. Proceeding to submit a new proposal."
+  else
+    echo "Existing proposals: $PROPOSALS_OUTPUT"
+  fi
+
+  echo "Submit gov proposal on chain"
+  PROPOSAL_TX=$($CHAIN_BIN tx gov $SUBMIT_PROPOSAL_CMD consumer-addition $PROPOSAL_FILE \\
+    --from $KEY_NAME \\
+    --chain-id $CHAIN_ID \\
+    --node $NODE_URL \\
+    --keyring-backend="test" \\
+    --gas auto --gas-adjustment 2 \\
+    --output json \\
+    --yes)
+  echo $PROPOSAL_TX
+
+  # Extract JSON part from the output
+  TX_HASH=$(echo "$PROPOSAL_TX" | grep -o '{.*}' | jq -r '.txhash')
+  if [ -n "$TX_HASH" ]; then
+    echo "Transaction hash: $TX_HASH"
+  else
+    echo "Failed to submit proposal. Output was not as expected."
+    exit 1
+  fi
+
+  sleep 5
+}
+
+get_proposal_id() {
+  echo "Getting proposal ID"
+  PROPOSAL_QUERY=$(gaiad query tx $TX_HASH --node $NODE_URL --output json)
+  LOGS=$(echo $PROPOSAL_QUERY | jq -r '.logs')
+  if [ "$LOGS" != "null" ] && [ "$LOGS" != "[]" ]; then
+    PROPOSAL_ID=$(echo $PROPOSAL_QUERY | jq -r '.logs[0].events[] | select(.type=="submit_proposal").attributes[] | select(.key=="proposal_id").value')
+    if [ -n "$PROPOSAL_ID" ]; then
+      echo "Proposal ID: $PROPOSAL_ID"
+      return 0
+    fi
+  fi
+  echo "Failed to retrieve proposal ID from transaction logs. Logs might be empty."
+  exit 1
+}
+
+vote_proposal() {
+  echo "Voting on proposal"
+  $CHAIN_BIN tx gov vote $PROPOSAL_ID yes \\
+    --from $KEY_NAME \\
+    --chain-id $CHAIN_ID \\
+    --node $NODE_URL \\
+    --keyring-backend="test" \\
+    --gas auto --gas-adjustment 2 \\
+    --output json \\
+    --yes
+  sleep 5
+}
+
+wait_for_proposal_to_pass() {
+  echo "Waiting for proposal to pass"
+  for ((i=1; i<=$MAX_RETRIES; i++)); do
+    STATUS=$($CHAIN_BIN query gov proposal $PROPOSAL_ID --node $NODE_URL --output json | jq -r '.status')
+    if [ "$STATUS" == "PROPOSAL_STATUS_PASSED" ]; then
+      echo "Proposal has passed!"
+      return 0
+    else
+      echo "Current status: $STATUS. Attempt $i/$MAX_RETRIES. Waiting..."
+      sleep $RETRY_INTERVAL
+    fi
+  done
+  echo "Proposal did not pass after $MAX_RETRIES attempts."
+  exit 1
+}
+
+main() {
+  add_key
+  get_validator_address
+  stake_tokens
+  determine_proposal_command
+  submit_proposal
+  get_proposal_id
+  vote_proposal
+  wait_for_proposal_to_pass
+}
+
+main
+",
+      "create-validator.sh": "#!/bin/bash
+
+DENOM="\${DENOM:=uosmo}"
+CHAIN_BIN="\${CHAIN_BIN:=osmosisd}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+VAL_NAME="\${VAL_NAME:=osmosis}"
+NODE_URL="\${NODE_URL:=http://0.0.0.0:26657}"
+NODE_ARGS="\${NODE_ARGS}"
+GAS="\${GAS:=auto}"
+
+set -eux
+
+# Wait for the node to be synced
+max_tries=10
+while [[ $($CHAIN_BIN status --output json --node $NODE_URL 2>&1 | jq ".SyncInfo.catching_up") == true ]]
+do
+  if [[ max_tries -lt 0 ]]; then echo "Not able to sync with genesis node"; exit 1; fi
+  echo "Still syncing... Sleeping for 15 secs. Tries left $max_tries"
+  ((max_tries--))
+  sleep 30
+done
+
+# Function to compare version numbers
+version_compare() {
+    version1="$1"
+    version2="$2"
+    if [[ "$(printf '%s\\n' "$version1" "$version2" | sort -V | head -n 1)" == "$version1" ]]; then
+        return 1 # version1 is greater
+    else
+        return 0 # version2 is greater or equal
+    fi
+}
+
+# Check if cosmos_sdk_version is greater than a specified version
+is_greater() {
+    version_compare "$1" "$2"
+    return $?
+}
+
+function cosmos-sdk-version-v50() {
+  # Content for the validator.json file
+  json_content='{
+    "pubkey": '$($CHAIN_BIN tendermint show-validator $NODE_ARGS)',
+    "amount": "5000000000'$DENOM'",
+    "moniker": "'$VAL_NAME'",
+    "commission-rate": "0.1",
+    "commission-max-rate": "0.2",
+    "commission-max-change-rate": "0.01",
+    "min-self-delegation": "1000000"
+  }'
+  echo "$json_content" > /validator.json
+  cat /validator.json
+
+  # Run create validator tx command
+  echo "Running txn for create-validator"
+  $CHAIN_BIN tx staking create-validator /validator.json \\
+    --node $NODE_URL \\
+    --chain-id $CHAIN_ID \\
+    --from $VAL_NAME \\
+    --fees 100000$DENOM \\
+    --keyring-backend="test" \\
+    --output json \\
+    --gas $GAS \\
+    --gas-adjustment 1.5 $NODE_ARGS --yes > /validator.log
+
+  cat /validator.log | jq
+}
+
+function cosmos-sdk-version-default() {
+  # Run create validator tx command
+  echo "Running txn for create-validator"
+  args=''
+  if [[ $($CHAIN_BIN tx staking create-validator --help | grep -c "min-self-delegation") -gt 0 ]];
+  then
+    args+='--min-self-delegation=1000000'
+  fi
+  $CHAIN_BIN keys list --keyring-backend test --output json --home $CHAIN_DIR | jq
+  $CHAIN_BIN tx staking create-validator \\
+    --node $NODE_URL \\
+    --pubkey=$($CHAIN_BIN tendermint show-validator $NODE_ARGS) \\
+    --moniker $VAL_NAME \\
+    --amount 5000000000$DENOM \\
+    --chain-id $CHAIN_ID \\
+    --from $VAL_NAME \\
+    --commission-rate="0.10" \\
+    --commission-max-rate="0.20" \\
+    --commission-max-change-rate="0.01" \\
+    --keyring-backend test \\
+    --home $CHAIN_DIR \\
+    --fees 100000$DENOM \\
+    --gas $GAS \\
+    --output json \\
+    --gas-adjustment 1.5 $args $NODE_ARGS --yes > /validator.log
+
+  cat /validator.log | jq
+}
+
+set +e
+# Fetch the cosmos-sdk version to be able to perform the create-validator tx
+cosmos_sdk_version=$($CHAIN_BIN version --long | sed -n 's/cosmos_sdk_version: \\(.*\\)/\\1/p')
+echo "cosmos_sdk_version: $cosmos_sdk_version"
+set -e
+
+if is_greater "$cosmos_sdk_version" "v0.50.0"; then
+  echo "cosmos_sdk_version is greater than v0.50.0, running create-validator tx with new format"
+  cosmos-sdk-version-v50
+else
+  echo "cosmos_sdk_version is less than v0.50.0, running create-validator tx with old format"
+  cosmos-sdk-version-default
+fi
+",
+      "ibc-connection.sh": "#!/bin/bash
+
+REGISTRY_URL="$1"
+CHAIN_1="$2"
+CHAIN_2="$3"
+
+set -eux
+
+function connection_id() {
+  CONNECTION_ID=$(curl -s $REGISTRY_URL/ibc/$CHAIN_1/$CHAIN_2 | jq -r ".chain_1.connection_id")
+  echo $CONNECTION_ID
+}
+
+echo "Try to get connection id, if failed, wait for 2 seconds and try again"
+max_tries=20
+while [[ max_tries -gt 0 ]]
+do
+  id=$(connection_id)
+  if [[ -n "$id" ]]; then
+    echo "Found connection id: $id"
+    exit 0
+  fi
+  echo "Failed to get connection id. Sleeping for 2 secs. Tries left $max_tries"
+  ((max_tries--))
+  sleep 10
+done
+",
+      "transfer-tokens.sh": "#!/bin/bash
+
+ADDRESS="$1"
+DENOM="$2"
+FAUCET_URL="$3"
+FAUCET_ENABLED="$4"
+
+set -eux
+
+function transfer_token() {
+  status_code=$(curl --header "Content-Type: application/json" \\
+    --request POST --write-out %{http_code} --silent --output /dev/null \\
+    --data '{"denom":"'"$DENOM"'","address":"'"$ADDRESS"'"}' \\
+    $FAUCET_URL)
+  echo $status_code
+}
+
+if [[ $FAUCET_ENABLED == "false" ]];
+then
+  echo "Faucet not enabled... skipping transfer token from faucet"
+  exit 0
+fi
+
+echo "Try to send tokens, if failed, wait for 5 seconds and try again"
+max_tries=5
+while [[ max_tries -gt 0 ]]
+do
+  status_code=$(transfer_token)
+  if [[ "$status_code" -eq 200 ]]; then
+    echo "Successfully sent tokens"
+    exit 0
+  fi
+  echo "Failed to send tokens. Sleeping for 2 secs. Tries left $max_tries"
+  ((max_tries--))
+  sleep 2
+done
+",
+      "update-config.sh": "#!/bin/bash
+
+CHAIN_ID="\${CHAIN_ID:=osmosis}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+
+set -eux
+
+ls $CHAIN_DIR
+
+
+echo "Update config.toml file"
+sed -i -e 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $CHAIN_DIR/config/config.toml
+sed -i -e 's/index_all_keys = false/index_all_keys = true/g' $CHAIN_DIR/config/config.toml
+sed -i -e 's/seeds = ".*"/seeds = ""/g' $CHAIN_DIR/config/config.toml
+sed -i -e 's#cors_allowed_origins = \\[\\]#cors_allowed_origins = \\["*"\\]#g' $CHAIN_DIR/config/config.toml
+sed -i -e 's/index_all_keys = false/index_all_keys = true/g' $CHAIN_DIR/config/config.toml
+
+echo "Update client.toml file"
+sed -i -e 's#keyring-backend = "os"#keyring-backend = "test"#g' $CHAIN_DIR/config/client.toml
+sed -i -e 's#output = "text"#output = "json"#g' $CHAIN_DIR/config/client.toml
+sed -i -e "s#chain-id = \\"\\"#chain-id = \\"$CHAIN_ID\\"#g" $CHAIN_DIR/config/client.toml
+
+
+echo "Update app.toml file"
+sed -i -e "s#minimum-gas-prices = \\".*\\"#minimum-gas-prices = \\"0$DENOM\\"#g" $CHAIN_DIR/config/app.toml
+sed -i -e "s#pruning = \\".*\\"#pruning = \\"default\\"#g" $CHAIN_DIR/config/app.toml
+sed -i -e 's/enable-unsafe-cors = false/enable-unsafe-cors = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enabled-unsafe-cors = false/enabled-unsafe-cors = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enable = false/enable = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/swagger = false/swagger = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enable = false/enable = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enabled = false/enabled = true/g' $CHAIN_DIR/config/app.toml
+
+
+function get_next_line_number() {
+  local txt=$1
+  local file=$2
+  local line_number=$(grep -n "$txt" $file | cut -d: -f1 | head -1)
+  echo $((line_number + 1))
+}
+
+line_number=$(get_next_line_number "Address defines the API server to listen on." $CHAIN_DIR/config/app.toml)
+sed -i -e "\${line_number}s#address = \\".*\\"#address = \\"tcp://0.0.0.0:1317\\"#g" $CHAIN_DIR/config/app.toml
+
+line_number=$(get_next_line_number "Address defines the gRPC server address to bind to." $CHAIN_DIR/config/app.toml)
+sed -i -e "\${line_number}s#address = \\".*\\"#address = \\"0.0.0.0:9090\\"#g" $CHAIN_DIR/config/app.toml
+
+line_number=$(get_next_line_number "Address defines the gRPC-web server address to bind to." $CHAIN_DIR/config/app.toml)
+sed -i -e "\${line_number}s#address = \\".*\\"#address = \\"0.0.0.0:9091\\"#g" $CHAIN_DIR/config/app.toml
+
+if [ "$METRICS" == "true" ]; then
+  sed -i -e "s/prometheus = false/prometheus = true/g" $CHAIN_DIR/config/config.toml
+
+  line_number=$(get_next_line_number "PrometheusRetentionTime, when positive, enables a Prometheus metrics sink." $CHAIN_DIR/config/app.toml)
+  sed -i -e "\${line_number}s/prometheus-retention-time = 0/prometheus-retention-time = 3600/g" $CHAIN_DIR/config/app.toml
+fi
+
+echo "Update consensus params in config.toml"
+sed -i -e "s#timeout_propose = \\".*\\"#timeout_propose = \\"$TIMEOUT_PROPOSE\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_propose_delta = \\".*\\"#timeout_propose_delta = \\"$TIMEOUT_PROPOSE_DELTA\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_prevote = \\".*\\"#timeout_prevote = \\"$TIMEOUT_PREVOTE\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_prevote_delta = \\".*\\"#timeout_prevote_delta = \\"$TIMEOUT_PREVOTE_DELTA\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_precommit = \\".*\\"#timeout_precommit = \\"$TIMEOUT_PRECOMMIT\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_precommit_delta = \\".*\\"#timeout_precommit_delta = \\"$TIMEOUT_PRECOMMIT_DELTA\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_commit = \\".*\\"#timeout_commit = \\"$TIMEOUT_COMMIT\\"#g" $CHAIN_DIR/config/config.toml
+",
+      "update-genesis.sh": "#!/bin/bash
+
+DENOM="\${DENOM:=uosmo}"
+CHAIN_BIN="\${CHAIN_BIN:=osmosisd}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+
+set -eux
+
+ls $CHAIN_DIR/config
+
+echo "Update genesis.json file with updated local params"
+sed -i -e "s/\\"stake\\"/\\"$DENOM\\"/g" $CHAIN_DIR/config/genesis.json
+sed -i "s/\\"time_iota_ms\\": \\".*\\"/\\"time_iota_ms\\": \\"$TIME_IOTA_MS\\"/" $CHAIN_DIR/config/genesis.json
+
+echo "Update max gas param"
+jq -r '.consensus_params.block.max_gas |= "100000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+
+echo "Update staking unbonding time and slashing jail time"
+jq -r '.app_state.staking.params.unbonding_time |= "300s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+jq -r '.app_state.slashing.params.downtime_jail_duration |= "60s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+
+# overrides for older sdk versions, before 0.47
+function gov_overrides_sdk_v46() {
+  jq -r '.app_state.gov.deposit_params.max_deposit_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.deposit_params.min_deposit[0].amount |= "10"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.voting_params.voting_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.tally_params.quorum |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.tally_params.threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.tally_params.veto_threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+}
+
+# overrides for newer sdk versions, post 0.47
+function gov_overrides_sdk_v47() {
+  jq -r '.app_state.gov.params.max_deposit_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.min_deposit[0].amount |= "10"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.voting_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.quorum |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.veto_threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+}
+
+if [ "$(jq -r '.app_state.feemarket.params' $CHAIN_DIR/config/genesis.json)" != "null" ]; then
+  jq -r '.app_state.feemarket.params.min_base_gas_price |= "0"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.feemarket.params.beta |= "0"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.feemarket.state.base_gas_price |= "0.0025"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+fi
+
+if [ "$(jq -r '.app_state.gov.params' $CHAIN_DIR/config/genesis.json)" == "null" ]; then
+  gov_overrides_sdk_v46
+else
+  gov_overrides_sdk_v47
+fi
+
+$CHAIN_BIN tendermint show-node-id
+",
+    },
+    "kind": "ConfigMap",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "chain",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "cosmoshub",
+        "app.kubernetes.io/part-of": "cosmoshub-4",
+        "app.kubernetes.io/role": "setup-scripts",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "setup-scripts-cosmoshub-4",
+    },
+  },
+  "cosmoshub/validator-service.yaml": {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "chain",
+        "app.kubernetes.io/id": "cosmoshub-4",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "cosmoshub-4-genesis",
+        "app.kubernetes.io/part-of": "cosmoshub-4",
+        "app.kubernetes.io/role": "validator",
+        "app.kubernetes.io/type": "cosmoshub-4-service",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-name": "cosmoshub",
+      },
+      "name": "cosmoshub-4-validator",
+    },
+    "spec": {
+      "clusterIP": "None",
+      "ports": [
+        {
+          "name": "p2p",
+          "port": 26656,
+          "protocol": "TCP",
+          "targetPort": "26656",
+        },
+        {
+          "name": "address",
+          "port": 26658,
+          "protocol": "TCP",
+          "targetPort": "26658",
+        },
+        {
+          "name": "grpc",
+          "port": 9090,
+          "protocol": "TCP",
+          "targetPort": "9090",
+        },
+        {
+          "name": "grpc-web",
+          "port": 9091,
+          "protocol": "TCP",
+          "targetPort": "9091",
+        },
+        {
+          "name": "rest",
+          "port": 1317,
+          "protocol": "TCP",
+          "targetPort": "1317",
+        },
+        {
+          "name": "rpc",
+          "port": 26657,
+          "protocol": "TCP",
+          "targetPort": "26657",
+        },
+        {
+          "name": "metrics",
+          "port": 26660,
+          "protocol": "TCP",
+          "targetPort": "26660",
+        },
+        {
+          "name": "exposer",
+          "port": 8081,
+          "protocol": "TCP",
+          "targetPort": "8081",
+        },
+        {
+          "name": "faucet",
+          "port": 8000,
+          "protocol": "TCP",
+          "targetPort": "8000",
+        },
+      ],
+      "selector": {
+        "app.kubernetes.io/name": "cosmoshub-4-validator",
+      },
+    },
+  },
+  "cosmoshub/validator-statefulset.yaml": {
+    "apiVersion": "apps/v1",
+    "kind": "StatefulSet",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "chain",
+        "app.kubernetes.io/id": "cosmoshub-4",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "cosmoshub-4-genesis",
+        "app.kubernetes.io/part-of": "cosmoshub-4",
+        "app.kubernetes.io/role": "validator",
+        "app.kubernetes.io/type": "cosmoshub-4-statefulset",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-name": "cosmoshub",
+      },
+      "name": "cosmoshub-4-validator",
+    },
+    "spec": {
+      "podManagementPolicy": "Parallel",
+      "replicas": 1,
+      "revisionHistoryLimit": 3,
+      "selector": {
+        "matchLabels": {
+          "app.kubernetes.io/instance": "starship-generator-test",
+          "app.kubernetes.io/name": "cosmoshub-4-validator",
+        },
+      },
+      "serviceName": "cosmoshub-4-validator",
+      "template": {
+        "metadata": {
+          "annotations": {
+            "quality": "release",
+            "role": "api-gateway",
+            "sla": "high",
+            "tier": "gateway",
+          },
+          "labels": {
+            "app.kubernetes.io/instance": "starship-generator-test",
+            "app.kubernetes.io/name": "cosmoshub-4-validator",
+            "app.kubernetes.io/role": "validator",
+            "app.kubernetes.io/type": "cosmoshub-4",
+            "app.kubernetes.io/version": "4.0.0-alpha.0",
+          },
+        },
+        "spec": {
+          "containers": [
+            {
+              "command": [
+                "bash",
+                "-c",
+                "#!/bin/bash
+set -euo pipefail
+
+echo "Starting gaiad validator..."
+exec gaiad start --home /root/.gaia --log_level info",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uatom",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uatom",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/cosmos/gaia",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "cosmoshub-4",
+                },
+                {
+                  "name": "SLOGFILE",
+                  "value": "slog.slog",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/gaia:v18.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "lifecycle": {
+                "postStart": {
+                  "exec": {
+                    "command": [
+                      "bash",
+                      "-c",
+                      "#!/bin/bash
+echo "Validator post-start hook for cosmoshub-4"
+# Add any post-start logic here",
+                    ],
+                  },
+                },
+              },
+              "name": "validator",
+              "readinessProbe": {
+                "exec": {
+                  "command": [
+                    "bash",
+                    "-e",
+                    "/scripts/chain-rpc-ready.sh",
+                    "http://localhost:26657",
+                  ],
+                },
+                "initialDelaySeconds": 10,
+                "periodSeconds": 10,
+                "timeoutSeconds": 15,
+              },
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.gaia",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+          ],
+          "initContainers": [
+            {
+              "command": [
+                "bash",
+                "-c",
+                "#!/bin/bash
+set -euo pipefail
+
+echo "Initializing validator node for cosmoshub-4..."
+gaiad init validator-\${HOSTNAME##*-} --chain-id cosmoshub-4 --home /root/.gaia
+echo "Validator initialization completed"",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uatom",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uatom",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/cosmos/gaia",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "cosmoshub-4",
+                },
+                {
+                  "name": "KEYS_CONFIG",
+                  "value": "/configs/keys.json",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/gaia:v18.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-validator",
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.gaia",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+            {
+              "command": [
+                "bash",
+                "-c",
+                "/scripts/update-config.sh",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uatom",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uatom",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/cosmos/gaia",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.gaia",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "gaiad",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "cosmoshub-4",
+                },
+                {
+                  "name": "KEYS_CONFIG",
+                  "value": "/configs/keys.json",
+                },
+                {
+                  "name": "METRICS",
+                  "value": "false",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/gaia:v18.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-validator-config",
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.gaia",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+          ],
+          "volumes": [
+            {
+              "emptyDir": {},
+              "name": "node",
+            },
+            {
+              "configMap": {
+                "name": "keys",
+              },
+              "name": "addresses",
+            },
+            {
+              "configMap": {
+                "name": "setup-scripts-cosmoshub-4",
+              },
+              "name": "scripts",
+            },
+          ],
+        },
+      },
+    },
+  },
+  "explorer/configmap.yaml": {
+    "apiVersion": "v1",
+    "data": {
+      "cosmoshub-4.json": "{"chain_name":"cosmoshub-4","coingecko":"cosmoshub","api":"http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:1317","rpc":["http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"cosmos","logo":"","assets":[{"base":"uatom","symbol":"COSMOS","exponent":"6","coingecko_id":"cosmoshub-4","logo":""}]}",
+      "osmosis-1.json": "{"chain_name":"osmosis-1","coingecko":"osmosis","api":"http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1313","rpc":["http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26653"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"osmo","logo":"","assets":[{"base":"uosmo","symbol":"OSMO","exponent":"6","coingecko_id":"osmosis-1","logo":""}]}",
+    },
+    "kind": "ConfigMap",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "explorer",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/part-of": "starship",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "explorer",
+    },
+  },
+  "explorer/deployment.yaml": {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "explorer",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/part-of": "starship",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "explorer",
+    },
+    "spec": {
+      "replicas": 1,
+      "revisionHistoryLimit": 3,
+      "selector": {
+        "matchLabels": {
+          "app.kubernetes.io/instance": "explorer",
+          "app.kubernetes.io/name": "explorer",
+        },
+      },
+      "template": {
+        "metadata": {
+          "annotations": {
+            "quality": "release",
+            "role": "api-gateway",
+            "sla": "high",
+            "tier": "gateway",
+          },
+          "labels": {
+            "app.kubernetes.io/instance": "explorer",
+            "app.kubernetes.io/name": "explorer",
+            "app.kubernetes.io/rawname": "explorer",
+            "app.kubernetes.io/type": "ping-pub",
+            "app.kubernetes.io/version": "4.0.0-alpha.0",
+          },
+        },
+        "spec": {
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "CHAINS_CONFIG_PATH",
+                  "value": "/explorer",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/ping-pub:latest",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "explorer",
+              "ports": [
+                {
+                  "containerPort": 8080,
+                  "name": "http",
+                  "protocol": "TCP",
+                },
+              ],
+              "resources": {
+                "limits": {
+                  "cpu": "0.2",
+                  "memory": "200M",
+                },
+                "requests": {
+                  "cpu": "0.2",
+                  "memory": "200M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/explorer",
+                  "name": "explorer-config",
+                },
+              ],
+            },
+          ],
+          "volumes": [
+            {
+              "configMap": {
+                "name": "explorer",
+              },
+              "name": "explorer-config",
+            },
+          ],
+        },
+      },
+    },
+  },
+  "explorer/service.yaml": {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "explorer",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/part-of": "starship",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "explorer",
+    },
+    "spec": {
+      "clusterIP": "None",
+      "ports": [
+        {
+          "name": "http",
+          "port": 8080,
+          "protocol": "TCP",
+          "targetPort": "8080",
+        },
+      ],
+      "selector": {
+        "app.kubernetes.io/name": "explorer",
+      },
+    },
+  },
+  "osmosis/genesis-service.yaml": {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "chain",
+        "app.kubernetes.io/id": "osmosis-1",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "osmosis-1-genesis",
+        "app.kubernetes.io/part-of": "osmosis-1",
+        "app.kubernetes.io/role": "genesis",
+        "app.kubernetes.io/type": "osmosis-1-service",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-name": "osmosis",
+      },
+      "name": "osmosis-1-genesis",
+    },
+    "spec": {
+      "clusterIP": "None",
+      "ports": [
+        {
+          "name": "p2p",
+          "port": 26656,
+          "protocol": "TCP",
+          "targetPort": "26656",
+        },
+        {
+          "name": "address",
+          "port": 26658,
+          "protocol": "TCP",
+          "targetPort": "26658",
+        },
+        {
+          "name": "grpc",
+          "port": 9090,
+          "protocol": "TCP",
+          "targetPort": "9090",
+        },
+        {
+          "name": "grpc-web",
+          "port": 9091,
+          "protocol": "TCP",
+          "targetPort": "9091",
+        },
+        {
+          "name": "rest",
+          "port": 1317,
+          "protocol": "TCP",
+          "targetPort": "1317",
+        },
+        {
+          "name": "rpc",
+          "port": 26657,
+          "protocol": "TCP",
+          "targetPort": "26657",
+        },
+        {
+          "name": "metrics",
+          "port": 26660,
+          "protocol": "TCP",
+          "targetPort": "26660",
+        },
+        {
+          "name": "exposer",
+          "port": 8081,
+          "protocol": "TCP",
+          "targetPort": "8081",
+        },
+        {
+          "name": "faucet",
+          "port": 8000,
+          "protocol": "TCP",
+          "targetPort": "8000",
+        },
+      ],
+      "selector": {
+        "app.kubernetes.io/name": "osmosis-1-genesis",
+      },
+    },
+  },
+  "osmosis/genesis-statefulset.yaml": {
+    "apiVersion": "apps/v1",
+    "kind": "StatefulSet",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "chain",
+        "app.kubernetes.io/id": "osmosis-1",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "osmosis-1-genesis",
+        "app.kubernetes.io/part-of": "osmosis-1",
+        "app.kubernetes.io/role": "genesis",
+        "app.kubernetes.io/type": "osmosis-1-statefulset",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-name": "osmosis",
+      },
+      "name": "osmosis-1-genesis",
+    },
+    "spec": {
+      "replicas": 1,
+      "revisionHistoryLimit": 3,
+      "selector": {
+        "matchLabels": {
+          "app.kubernetes.io/instance": "starship-generator-test",
+          "app.kubernetes.io/name": "osmosis-1-genesis",
+        },
+      },
+      "serviceName": "osmosis-1-genesis",
+      "template": {
+        "metadata": {
+          "annotations": {
+            "quality": "release",
+            "role": "api-gateway",
+            "sla": "high",
+            "tier": "gateway",
+          },
+          "labels": {
+            "app.kubernetes.io/instance": "starship-generator-test",
+            "app.kubernetes.io/name": "osmosis-1-genesis",
+            "app.kubernetes.io/rawname": "osmosis-1",
+            "app.kubernetes.io/role": "genesis",
+            "app.kubernetes.io/type": "osmosis-1",
+            "app.kubernetes.io/version": "4.0.0-alpha.0",
+          },
+        },
+        "spec": {
+          "containers": [
+            {
+              "command": [
+                "bash",
+                "-c",
+                "#!/bin/bash
+set -euo pipefail
+
+echo "Starting osmosisd validator..."
+exec osmosisd start --home /root/.osmosisd --log_level info",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uosmo",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/osmosis-labs/osmosis",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "osmosis-1",
+                },
+                {
+                  "name": "FAUCET_ENABLED",
+                  "value": "true",
+                },
+                {
+                  "name": "SLOGFILE",
+                  "value": "slog.slog",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "validator",
+              "readinessProbe": {
+                "exec": {
+                  "command": [
+                    "bash",
+                    "-e",
+                    "/scripts/chain-rpc-ready.sh",
+                    "http://localhost:26657",
+                  ],
+                },
+                "initialDelaySeconds": 10,
+                "periodSeconds": 10,
+                "timeoutSeconds": 15,
+              },
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.osmosisd",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+            {
+              "command": [
+                "exposer",
+              ],
+              "env": [
+                {
+                  "name": "GENESIS_HOST",
+                  "value": "osmosis-1-genesis",
+                },
+                {
+                  "name": "GENESIS_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "NAMESPACE",
+                  "value": {
+                    "valueFrom": {
+                      "fieldRef": {
+                        "fieldPath": "metadata.namespace",
+                      },
+                    },
+                  },
+                },
+                {
+                  "name": "EXPOSER_HTTP_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "EXPOSER_GRPC_PORT",
+                  "value": "9099",
+                },
+                {
+                  "name": "EXPOSER_GENESIS_FILE",
+                  "value": "/root/.osmosisd/config/genesis.json",
+                },
+                {
+                  "name": "EXPOSER_MNEMONIC_FILE",
+                  "value": "/configs/keys.json",
+                },
+                {
+                  "name": "EXPOSER_PRIV_VAL_FILE",
+                  "value": "/root/.osmosisd/config/priv_validator_key.json",
+                },
+                {
+                  "name": "EXPOSER_NODE_KEY_FILE",
+                  "value": "/root/.osmosisd/config/node_key.json",
+                },
+                {
+                  "name": "EXPOSER_NODE_ID_FILE",
+                  "value": "/root/.osmosisd/config/node_id.json",
+                },
+                {
+                  "name": "EXPOSER_PRIV_VAL_STATE_FILE",
+                  "value": "/root/.osmosisd/data/priv_validator_state.json",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/exposer:latest",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "exposer",
+              "resources": {
+                "limits": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+                "requests": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.osmosisd",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+              ],
+            },
+            {
+              "command": [
+                "sh",
+                "-c",
+                "/faucet/faucet",
+              ],
+              "env": [
+                {
+                  "name": "FAUCET_CONCURRENCY",
+                  "value": "5",
+                },
+                {
+                  "name": "FAUCET_PORT",
+                  "value": "8000",
+                },
+                {
+                  "name": "FAUCET_CHAIN_ID",
+                  "value": "osmosis-1",
+                },
+                {
+                  "name": "FAUCET_CHAIN_DENOM",
+                  "value": "uosmo",
+                },
+                {
+                  "name": "FAUCET_CHAIN_PREFIX",
+                  "value": "osmo",
+                },
+                {
+                  "name": "FAUCET_AMOUNT_SEND",
+                  "value": "10000000",
+                },
+                {
+                  "name": "FAUCET_AMOUNT_STAKE",
+                  "value": "10000000",
+                },
+                {
+                  "name": "FAUCET_RPC_ENDPOINT",
+                  "value": "http://localhost:26657",
+                },
+                {
+                  "name": "FAUCET_REST_ENDPOINT",
+                  "value": "http://localhost:1317",
+                },
+              ],
+              "image": "busybox:1.34.1",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "faucet",
+              "resources": {
+                "limits": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+                "requests": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/faucet",
+                  "name": "faucet",
+                },
+              ],
+            },
+          ],
+          "initContainers": [
+            {
+              "command": [
+                "bash",
+                "-c",
+                "/scripts/create-genesis.sh",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uosmo",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/osmosis-labs/osmosis",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "osmosis-1",
+                },
+                {
+                  "name": "KEYS_CONFIG",
+                  "value": "/configs/keys.json",
+                },
+                {
+                  "name": "FAUCET_ENABLED",
+                  "value": "true",
+                },
+                {
+                  "name": "NUM_VALIDATORS",
+                  "value": "2",
+                },
+                {
+                  "name": "NUM_RELAYERS",
+                  "value": "1",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-genesis",
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.osmosisd",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+            {
+              "command": [
+                "bash",
+                "-c",
+                "/scripts/update-config.sh",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uosmo",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/osmosis-labs/osmosis",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "osmosis-1",
+                },
+                {
+                  "name": "KEYS_CONFIG",
+                  "value": "/configs/keys.json",
+                },
+                {
+                  "name": "METRICS",
+                  "value": "false",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-config",
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.osmosisd",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+            {
+              "command": [
+                "bash",
+                "-c",
+                "cp /bin/faucet /faucet/faucet && chmod +x /faucet/faucet",
+              ],
+              "image": "ghcr.io/hyperweb-io/starship/faucet:20250325-2207109",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-faucet",
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/faucet",
+                  "name": "faucet",
+                },
+              ],
+            },
+          ],
+          "volumes": [
+            {
+              "emptyDir": {},
+              "name": "node",
+            },
+            {
+              "configMap": {
+                "name": "keys",
+              },
+              "name": "addresses",
+            },
+            {
+              "configMap": {
+                "name": "setup-scripts-osmosis-1",
+              },
+              "name": "scripts",
+            },
+          ],
+        },
+      },
+    },
+  },
+  "osmosis/setup-scripts-configmap.yaml": {
+    "apiVersion": "v1",
+    "data": {
+      "build-chain.sh": "#!/bin/bash
+
+set -euxo pipefail
+
+mkdir -p /tmp/chains $UPGRADE_DIR
+
+echo "Fetching code from tag"
+mkdir -p /tmp/chains/$CHAIN_NAME
+cd /tmp/chains/$CHAIN_NAME
+
+if [[ $CODE_TAG =~ ^[0-9a-fA-F]{40}$ ]]; then
+  echo "Trying to fetch code from commit hash"
+  curl -LO $CODE_REPO/archive/$CODE_TAG.zip
+  unzip $CODE_TAG.zip
+  code_dir=\${CODE_REPO##*/}-\${CODE_TAG}
+elif [[ $CODE_TAG = v* ]]; then
+  echo "Trying to fetch code from tag with 'v' prefix"
+  curl -LO $CODE_REPO/archive/refs/tags/$CODE_TAG.zip
+  unzip $CODE_TAG.zip
+  code_dir=\${CODE_REPO##*/}-\${CODE_TAG#"v"}
+else
+  echo "Trying to fetch code from tag or branch"
+  if curl -fsLO $CODE_REPO/archive/refs/tags/$CODE_TAG.zip; then
+    unzip $CODE_TAG.zip
+    code_dir=\${CODE_REPO##*/}-$CODE_TAG
+  elif curl -fsLO $CODE_REPO/archive/refs/heads/$CODE_TAG.zip; then
+    unzip $(echo $CODE_TAG | rev | cut -d "/" -f 1 | rev).zip
+    code_dir=\${CODE_REPO##*/}-\${CODE_TAG/\\//-}
+  else
+    echo "Tag or branch '$CODE_TAG' not found"
+    exit 1
+  fi
+fi
+
+echo "Fetch wasmvm if needed"
+cd /tmp/chains/$CHAIN_NAME/$code_dir
+WASM_VERSION=$(cat go.mod | grep -oe "github.com/CosmWasm/wasmvm v[0-9.]*" | cut -d ' ' -f 2)
+if [[ WASM_VERSION != "" ]]; then
+  mkdir -p /tmp/chains/libwasmvm_muslc
+  cd /tmp/chains/libwasmvm_muslc
+  curl -LO https://github.com/CosmWasm/wasmvm/releases/download/$WASM_VERSION/libwasmvm_muslc.x86_64.a
+  cp libwasmvm_muslc.x86_64.a /lib/libwasmvm_muslc.a
+fi
+
+echo "Build chain binary"
+cd /tmp/chains/$CHAIN_NAME/$code_dir
+CGO_ENABLED=1 BUILD_TAGS="muslc linkstatic" LINK_STATICALLY=true LEDGER_ENABLED=false make install
+
+echo "Copy created binary to the upgrade directories"
+if [[ $UPGRADE_NAME == "genesis" ]]; then
+  mkdir -p $UPGRADE_DIR/genesis/bin
+  cp $GOBIN/$CHAIN_BIN $UPGRADE_DIR/genesis/bin
+else
+  mkdir -p $UPGRADE_DIR/upgrades/$UPGRADE_NAME/bin
+  cp $GOBIN/$CHAIN_BIN $UPGRADE_DIR/upgrades/$UPGRADE_NAME/bin
+fi
+
+echo "Cleanup"
+rm -rf /tmp/chains/$CHAIN_NAME
+",
+      "chain-rpc-ready.sh": "#!/bin/bash
+# chain-rpc-ready.sh - Check if a CometBFT or Tendermint RPC service is ready
+# Usage: chain-rpc-ready.sh [RPC_URL]
+
+set -euo pipefail
+
+RPC_URL=\${1:-"http://localhost:26657"}
+
+echo 1>&2 "Checking if $RPC_URL is ready..."
+
+# Check if the RPC URL is reachable,
+json=$(curl -s --connect-timeout 2 "$RPC_URL/status")
+
+# and the bootstrap block state has been validated,
+if [ "$(echo "$json" | jq -r '.result.sync_info | (.earliest_block_height < .latest_block_height)')" != true ]; then
+  echo 1>&2 "$RPC_URL is not ready: bootstrap block state has not been validated"
+  exit 1
+fi
+
+# and the node is not catching up.
+if [ "$(echo "$json" | jq -r .result.sync_info.catching_up)" != false ]; then
+  echo 1>&2 "$RPC_URL is not ready: node is catching up"
+  exit 1
+fi
+
+echo "$json" | jq -r .result
+exit 0
+",
+      "create-genesis.sh": "#!/bin/bash
+
+set -eux
+
+DENOM="\${DENOM:=uosmo}"
+COINS="\${COINS:=100000000000000000uosmo}"
+CHAIN_ID="\${CHAIN_ID:=osmosis}"
+CHAIN_BIN="\${CHAIN_BIN:=osmosisd}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+
+FAUCET_ENABLED="\${FAUCET_ENABLED:=true}"
+NUM_VALIDATORS="\${NUM_VALIDATORS:=1}"
+NUM_RELAYERS="\${NUM_RELAYERS:=0}"
+
+# check if the binary has genesis subcommand or not, if not, set CHAIN_GENESIS_CMD to empty
+CHAIN_GENESIS_CMD=$($CHAIN_BIN 2>&1 | grep -q "genesis-related subcommands" && echo "genesis" || echo "")
+
+CHAIN_INIT_ID="$CHAIN_ID"
+if [ "$CHAIN_BIN" == "osmosisd" ]; then
+  CHAIN_INIT_ID="test-1"
+fi
+jq -r ".genesis[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN init $CHAIN_ID --chain-id $CHAIN_INIT_ID --recover
+sed -i -e "s/$CHAIN_INIT_ID/$CHAIN_ID/g" $CHAIN_DIR/config/genesis.json
+
+# Add genesis keys to the keyring and self delegate initial coins
+echo "Adding key...." $(jq -r ".genesis[0].name" $KEYS_CONFIG)
+jq -r ".genesis[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $(jq -r ".genesis[0].name" $KEYS_CONFIG) --recover --keyring-backend="test"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $(jq -r .genesis[0].name $KEYS_CONFIG) --keyring-backend="test") $COINS --keyring-backend="test"
+
+# Add faucet key to the keyring and self delegate initial coins
+echo "Adding key...." $(jq -r ".faucet[0].name" $KEYS_CONFIG)
+jq -r ".faucet[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $(jq -r ".faucet[0].name" $KEYS_CONFIG) --recover --keyring-backend="test"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $(jq -r .faucet[0].name $KEYS_CONFIG) --keyring-backend="test") $COINS --keyring-backend="test"
+
+# Add test keys to the keyring and self delegate initial coins
+echo "Adding key...." $(jq -r ".keys[0].name" $KEYS_CONFIG)
+jq -r ".keys[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $(jq -r ".keys[0].name" $KEYS_CONFIG) --recover --keyring-backend="test"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $(jq -r .keys[0].name $KEYS_CONFIG) --keyring-backend="test") $COINS --keyring-backend="test"
+
+if [[ $FAUCET_ENABLED == "false" && $NUM_RELAYERS -gt "-1" ]];
+then
+  ## Add relayers keys and delegate tokens
+  for i in $(seq 0 $NUM_RELAYERS);
+  do
+    # Add relayer key and delegate tokens
+    RELAYER_KEY_NAME="$(jq -r ".relayers[$i].name" $KEYS_CONFIG)"
+    echo "Adding relayer key.... $RELAYER_KEY_NAME"
+    jq -r ".relayers[$i].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $RELAYER_KEY_NAME --recover --keyring-backend="test"
+    $CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $RELAYER_KEY_NAME --keyring-backend="test") $COINS --keyring-backend="test"
+    # Add relayer-cli key and delegate tokens
+    RELAYER_CLI_KEY_NAME="$(jq -r ".relayers_cli[$i].name" $KEYS_CONFIG)"
+    echo "Adding relayer-cli key.... $RELAYER_CLI_KEY_NAME"
+    jq -r ".relayers_cli[$i].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $RELAYER_CLI_KEY_NAME --recover --keyring-backend="test"
+    $CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $RELAYER_CLI_KEY_NAME --keyring-backend="test") $COINS --keyring-backend="test"
+  done
+fi
+
+## if faucet not enabled then add validator and relayer with index as keys and into gentx
+if [[ $FAUCET_ENABLED == "false" && $NUM_VALIDATORS -gt "1" ]];
+then
+  ## Add validators key and delegate tokens
+  for i in $(seq 0 $NUM_VALIDATORS);
+  do
+    VAL_KEY_NAME="$(jq -r '.validators[0].name' $KEYS_CONFIG)-$i"
+    echo "Adding validator key.... $VAL_KEY_NAME"
+    jq -r ".validators[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $VAL_KEY_NAME --index $i --recover --keyring-backend="test"
+    $CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account $($CHAIN_BIN keys show -a $VAL_KEY_NAME --keyring-backend="test") $COINS --keyring-backend="test"
+  done
+fi
+
+echo "Creating gentx..."
+COIN=$(echo $COINS | cut -d ',' -f1)
+AMT=$(echo \${COIN//[!0-9]/} | sed -e "s/0000$//")
+$CHAIN_BIN $CHAIN_GENESIS_CMD gentx $(jq -r ".genesis[0].name" $KEYS_CONFIG) $AMT$DENOM --keyring-backend="test" --chain-id $CHAIN_ID
+
+echo "Output of gentx"
+cat $CHAIN_DIR/config/gentx/*.json | jq
+
+echo "Running collect-gentxs"
+$CHAIN_BIN $CHAIN_GENESIS_CMD collect-gentxs
+
+ls $CHAIN_DIR/config
+",
+      "create-ics.sh": "#!/bin/bash
+
+set -euxo pipefail
+
+DENOM="\${DENOM:=uatom}"
+CHAIN_ID="\${CHAIN_ID:=cosmoshub-1}"
+CHAIN_BIN="\${CHAIN_BIN:=gaiad}"
+NODE_URL="\${NODE_URL:=http://0.0.0.0:26657}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+
+PROPOSAL_FILE="\${PROPOSAL_FILE}"
+KEY_NAME="ics-setup"
+MAX_RETRIES=3
+RETRY_INTERVAL=30
+SUBMIT_PROPOSAL_CMD=""
+
+add_key() {
+  # Add test keys to the keyring and self delegate initial coins
+  echo "Adding key...." $(jq -r ".keys[0].name" $KEYS_CONFIG)
+  jq -r ".keys[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $KEY_NAME --recover --keyring-backend="test"
+  echo $($CHAIN_BIN keys show -a $KEY_NAME --keyring-backend="test")
+}
+
+get_validator_address() {
+  echo "Getting validator address..."
+  VALIDATOR_ADDRESS=$($CHAIN_BIN q staking validators --node $NODE_URL --output json | jq -r '.validators[0].operator_address')
+  echo "Selected validator address: $VALIDATOR_ADDRESS"
+}
+
+stake_tokens() {
+  COINS="10000000$DENOM"
+  echo "Staking tokens..."
+  $CHAIN_BIN tx staking delegate $VALIDATOR_ADDRESS $COINS \\
+    --from $KEY_NAME \\
+    --chain-id $CHAIN_ID \\
+    --node $NODE_URL \\
+    --keyring-backend="test" \\
+    --gas auto --gas-adjustment 2 \\
+    --output json \\
+    --yes
+  sleep 5
+}
+
+determine_proposal_command() {
+  echo "Determining the correct command to submit proposals..."
+  HELP_OUTPUT=$($CHAIN_BIN tx gov --help)
+  if echo "$HELP_OUTPUT" | grep -q "submit-legacy-proposal"; then
+    SUBMIT_PROPOSAL_CMD="submit-legacy-proposal"
+  else
+    SUBMIT_PROPOSAL_CMD="submit-proposal"
+  fi
+  echo "Using $SUBMIT_PROPOSAL_CMD for submitting proposals."
+}
+
+submit_proposal() {
+  echo "Get all proposals"
+  PROPOSALS_OUTPUT=$($CHAIN_BIN query gov proposals --output json --node $NODE_URL 2>&1 || true)
+  if echo "$PROPOSALS_OUTPUT" | grep -q "no proposals found"; then
+    echo "No existing proposals found. Proceeding to submit a new proposal."
+  else
+    echo "Existing proposals: $PROPOSALS_OUTPUT"
+  fi
+
+  echo "Submit gov proposal on chain"
+  PROPOSAL_TX=$($CHAIN_BIN tx gov $SUBMIT_PROPOSAL_CMD consumer-addition $PROPOSAL_FILE \\
+    --from $KEY_NAME \\
+    --chain-id $CHAIN_ID \\
+    --node $NODE_URL \\
+    --keyring-backend="test" \\
+    --gas auto --gas-adjustment 2 \\
+    --output json \\
+    --yes)
+  echo $PROPOSAL_TX
+
+  # Extract JSON part from the output
+  TX_HASH=$(echo "$PROPOSAL_TX" | grep -o '{.*}' | jq -r '.txhash')
+  if [ -n "$TX_HASH" ]; then
+    echo "Transaction hash: $TX_HASH"
+  else
+    echo "Failed to submit proposal. Output was not as expected."
+    exit 1
+  fi
+
+  sleep 5
+}
+
+get_proposal_id() {
+  echo "Getting proposal ID"
+  PROPOSAL_QUERY=$(gaiad query tx $TX_HASH --node $NODE_URL --output json)
+  LOGS=$(echo $PROPOSAL_QUERY | jq -r '.logs')
+  if [ "$LOGS" != "null" ] && [ "$LOGS" != "[]" ]; then
+    PROPOSAL_ID=$(echo $PROPOSAL_QUERY | jq -r '.logs[0].events[] | select(.type=="submit_proposal").attributes[] | select(.key=="proposal_id").value')
+    if [ -n "$PROPOSAL_ID" ]; then
+      echo "Proposal ID: $PROPOSAL_ID"
+      return 0
+    fi
+  fi
+  echo "Failed to retrieve proposal ID from transaction logs. Logs might be empty."
+  exit 1
+}
+
+vote_proposal() {
+  echo "Voting on proposal"
+  $CHAIN_BIN tx gov vote $PROPOSAL_ID yes \\
+    --from $KEY_NAME \\
+    --chain-id $CHAIN_ID \\
+    --node $NODE_URL \\
+    --keyring-backend="test" \\
+    --gas auto --gas-adjustment 2 \\
+    --output json \\
+    --yes
+  sleep 5
+}
+
+wait_for_proposal_to_pass() {
+  echo "Waiting for proposal to pass"
+  for ((i=1; i<=$MAX_RETRIES; i++)); do
+    STATUS=$($CHAIN_BIN query gov proposal $PROPOSAL_ID --node $NODE_URL --output json | jq -r '.status')
+    if [ "$STATUS" == "PROPOSAL_STATUS_PASSED" ]; then
+      echo "Proposal has passed!"
+      return 0
+    else
+      echo "Current status: $STATUS. Attempt $i/$MAX_RETRIES. Waiting..."
+      sleep $RETRY_INTERVAL
+    fi
+  done
+  echo "Proposal did not pass after $MAX_RETRIES attempts."
+  exit 1
+}
+
+main() {
+  add_key
+  get_validator_address
+  stake_tokens
+  determine_proposal_command
+  submit_proposal
+  get_proposal_id
+  vote_proposal
+  wait_for_proposal_to_pass
+}
+
+main
+",
+      "create-validator.sh": "#!/bin/bash
+
+DENOM="\${DENOM:=uosmo}"
+CHAIN_BIN="\${CHAIN_BIN:=osmosisd}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+VAL_NAME="\${VAL_NAME:=osmosis}"
+NODE_URL="\${NODE_URL:=http://0.0.0.0:26657}"
+NODE_ARGS="\${NODE_ARGS}"
+GAS="\${GAS:=auto}"
+
+set -eux
+
+# Wait for the node to be synced
+max_tries=10
+while [[ $($CHAIN_BIN status --output json --node $NODE_URL 2>&1 | jq ".SyncInfo.catching_up") == true ]]
+do
+  if [[ max_tries -lt 0 ]]; then echo "Not able to sync with genesis node"; exit 1; fi
+  echo "Still syncing... Sleeping for 15 secs. Tries left $max_tries"
+  ((max_tries--))
+  sleep 30
+done
+
+# Function to compare version numbers
+version_compare() {
+    version1="$1"
+    version2="$2"
+    if [[ "$(printf '%s\\n' "$version1" "$version2" | sort -V | head -n 1)" == "$version1" ]]; then
+        return 1 # version1 is greater
+    else
+        return 0 # version2 is greater or equal
+    fi
+}
+
+# Check if cosmos_sdk_version is greater than a specified version
+is_greater() {
+    version_compare "$1" "$2"
+    return $?
+}
+
+function cosmos-sdk-version-v50() {
+  # Content for the validator.json file
+  json_content='{
+    "pubkey": '$($CHAIN_BIN tendermint show-validator $NODE_ARGS)',
+    "amount": "5000000000'$DENOM'",
+    "moniker": "'$VAL_NAME'",
+    "commission-rate": "0.1",
+    "commission-max-rate": "0.2",
+    "commission-max-change-rate": "0.01",
+    "min-self-delegation": "1000000"
+  }'
+  echo "$json_content" > /validator.json
+  cat /validator.json
+
+  # Run create validator tx command
+  echo "Running txn for create-validator"
+  $CHAIN_BIN tx staking create-validator /validator.json \\
+    --node $NODE_URL \\
+    --chain-id $CHAIN_ID \\
+    --from $VAL_NAME \\
+    --fees 100000$DENOM \\
+    --keyring-backend="test" \\
+    --output json \\
+    --gas $GAS \\
+    --gas-adjustment 1.5 $NODE_ARGS --yes > /validator.log
+
+  cat /validator.log | jq
+}
+
+function cosmos-sdk-version-default() {
+  # Run create validator tx command
+  echo "Running txn for create-validator"
+  args=''
+  if [[ $($CHAIN_BIN tx staking create-validator --help | grep -c "min-self-delegation") -gt 0 ]];
+  then
+    args+='--min-self-delegation=1000000'
+  fi
+  $CHAIN_BIN keys list --keyring-backend test --output json --home $CHAIN_DIR | jq
+  $CHAIN_BIN tx staking create-validator \\
+    --node $NODE_URL \\
+    --pubkey=$($CHAIN_BIN tendermint show-validator $NODE_ARGS) \\
+    --moniker $VAL_NAME \\
+    --amount 5000000000$DENOM \\
+    --chain-id $CHAIN_ID \\
+    --from $VAL_NAME \\
+    --commission-rate="0.10" \\
+    --commission-max-rate="0.20" \\
+    --commission-max-change-rate="0.01" \\
+    --keyring-backend test \\
+    --home $CHAIN_DIR \\
+    --fees 100000$DENOM \\
+    --gas $GAS \\
+    --output json \\
+    --gas-adjustment 1.5 $args $NODE_ARGS --yes > /validator.log
+
+  cat /validator.log | jq
+}
+
+set +e
+# Fetch the cosmos-sdk version to be able to perform the create-validator tx
+cosmos_sdk_version=$($CHAIN_BIN version --long | sed -n 's/cosmos_sdk_version: \\(.*\\)/\\1/p')
+echo "cosmos_sdk_version: $cosmos_sdk_version"
+set -e
+
+if is_greater "$cosmos_sdk_version" "v0.50.0"; then
+  echo "cosmos_sdk_version is greater than v0.50.0, running create-validator tx with new format"
+  cosmos-sdk-version-v50
+else
+  echo "cosmos_sdk_version is less than v0.50.0, running create-validator tx with old format"
+  cosmos-sdk-version-default
+fi
+",
+      "ibc-connection.sh": "#!/bin/bash
+
+REGISTRY_URL="$1"
+CHAIN_1="$2"
+CHAIN_2="$3"
+
+set -eux
+
+function connection_id() {
+  CONNECTION_ID=$(curl -s $REGISTRY_URL/ibc/$CHAIN_1/$CHAIN_2 | jq -r ".chain_1.connection_id")
+  echo $CONNECTION_ID
+}
+
+echo "Try to get connection id, if failed, wait for 2 seconds and try again"
+max_tries=20
+while [[ max_tries -gt 0 ]]
+do
+  id=$(connection_id)
+  if [[ -n "$id" ]]; then
+    echo "Found connection id: $id"
+    exit 0
+  fi
+  echo "Failed to get connection id. Sleeping for 2 secs. Tries left $max_tries"
+  ((max_tries--))
+  sleep 10
+done
+",
+      "transfer-tokens.sh": "#!/bin/bash
+
+ADDRESS="$1"
+DENOM="$2"
+FAUCET_URL="$3"
+FAUCET_ENABLED="$4"
+
+set -eux
+
+function transfer_token() {
+  status_code=$(curl --header "Content-Type: application/json" \\
+    --request POST --write-out %{http_code} --silent --output /dev/null \\
+    --data '{"denom":"'"$DENOM"'","address":"'"$ADDRESS"'"}' \\
+    $FAUCET_URL)
+  echo $status_code
+}
+
+if [[ $FAUCET_ENABLED == "false" ]];
+then
+  echo "Faucet not enabled... skipping transfer token from faucet"
+  exit 0
+fi
+
+echo "Try to send tokens, if failed, wait for 5 seconds and try again"
+max_tries=5
+while [[ max_tries -gt 0 ]]
+do
+  status_code=$(transfer_token)
+  if [[ "$status_code" -eq 200 ]]; then
+    echo "Successfully sent tokens"
+    exit 0
+  fi
+  echo "Failed to send tokens. Sleeping for 2 secs. Tries left $max_tries"
+  ((max_tries--))
+  sleep 2
+done
+",
+      "update-config.sh": "#!/bin/bash
+
+CHAIN_ID="\${CHAIN_ID:=osmosis}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+KEYS_CONFIG="\${KEYS_CONFIG:=configs/keys.json}"
+
+set -eux
+
+ls $CHAIN_DIR
+
+
+echo "Update config.toml file"
+sed -i -e 's#"tcp://127.0.0.1:26657"#"tcp://0.0.0.0:26657"#g' $CHAIN_DIR/config/config.toml
+sed -i -e 's/index_all_keys = false/index_all_keys = true/g' $CHAIN_DIR/config/config.toml
+sed -i -e 's/seeds = ".*"/seeds = ""/g' $CHAIN_DIR/config/config.toml
+sed -i -e 's#cors_allowed_origins = \\[\\]#cors_allowed_origins = \\["*"\\]#g' $CHAIN_DIR/config/config.toml
+sed -i -e 's/index_all_keys = false/index_all_keys = true/g' $CHAIN_DIR/config/config.toml
+
+echo "Update client.toml file"
+sed -i -e 's#keyring-backend = "os"#keyring-backend = "test"#g' $CHAIN_DIR/config/client.toml
+sed -i -e 's#output = "text"#output = "json"#g' $CHAIN_DIR/config/client.toml
+sed -i -e "s#chain-id = \\"\\"#chain-id = \\"$CHAIN_ID\\"#g" $CHAIN_DIR/config/client.toml
+
+
+echo "Update app.toml file"
+sed -i -e "s#minimum-gas-prices = \\".*\\"#minimum-gas-prices = \\"0$DENOM\\"#g" $CHAIN_DIR/config/app.toml
+sed -i -e "s#pruning = \\".*\\"#pruning = \\"default\\"#g" $CHAIN_DIR/config/app.toml
+sed -i -e 's/enable-unsafe-cors = false/enable-unsafe-cors = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enabled-unsafe-cors = false/enabled-unsafe-cors = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enable = false/enable = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/swagger = false/swagger = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enable = false/enable = true/g' $CHAIN_DIR/config/app.toml
+sed -i -e 's/enabled = false/enabled = true/g' $CHAIN_DIR/config/app.toml
+
+
+function get_next_line_number() {
+  local txt=$1
+  local file=$2
+  local line_number=$(grep -n "$txt" $file | cut -d: -f1 | head -1)
+  echo $((line_number + 1))
+}
+
+line_number=$(get_next_line_number "Address defines the API server to listen on." $CHAIN_DIR/config/app.toml)
+sed -i -e "\${line_number}s#address = \\".*\\"#address = \\"tcp://0.0.0.0:1317\\"#g" $CHAIN_DIR/config/app.toml
+
+line_number=$(get_next_line_number "Address defines the gRPC server address to bind to." $CHAIN_DIR/config/app.toml)
+sed -i -e "\${line_number}s#address = \\".*\\"#address = \\"0.0.0.0:9090\\"#g" $CHAIN_DIR/config/app.toml
+
+line_number=$(get_next_line_number "Address defines the gRPC-web server address to bind to." $CHAIN_DIR/config/app.toml)
+sed -i -e "\${line_number}s#address = \\".*\\"#address = \\"0.0.0.0:9091\\"#g" $CHAIN_DIR/config/app.toml
+
+if [ "$METRICS" == "true" ]; then
+  sed -i -e "s/prometheus = false/prometheus = true/g" $CHAIN_DIR/config/config.toml
+
+  line_number=$(get_next_line_number "PrometheusRetentionTime, when positive, enables a Prometheus metrics sink." $CHAIN_DIR/config/app.toml)
+  sed -i -e "\${line_number}s/prometheus-retention-time = 0/prometheus-retention-time = 3600/g" $CHAIN_DIR/config/app.toml
+fi
+
+echo "Update consensus params in config.toml"
+sed -i -e "s#timeout_propose = \\".*\\"#timeout_propose = \\"$TIMEOUT_PROPOSE\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_propose_delta = \\".*\\"#timeout_propose_delta = \\"$TIMEOUT_PROPOSE_DELTA\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_prevote = \\".*\\"#timeout_prevote = \\"$TIMEOUT_PREVOTE\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_prevote_delta = \\".*\\"#timeout_prevote_delta = \\"$TIMEOUT_PREVOTE_DELTA\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_precommit = \\".*\\"#timeout_precommit = \\"$TIMEOUT_PRECOMMIT\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_precommit_delta = \\".*\\"#timeout_precommit_delta = \\"$TIMEOUT_PRECOMMIT_DELTA\\"#g" $CHAIN_DIR/config/config.toml
+sed -i -e "s#timeout_commit = \\".*\\"#timeout_commit = \\"$TIMEOUT_COMMIT\\"#g" $CHAIN_DIR/config/config.toml
+",
+      "update-genesis.sh": "#!/bin/bash
+
+DENOM="\${DENOM:=uosmo}"
+CHAIN_BIN="\${CHAIN_BIN:=osmosisd}"
+CHAIN_DIR="\${CHAIN_DIR:=$HOME/.osmosisd}"
+
+set -eux
+
+ls $CHAIN_DIR/config
+
+echo "Update genesis.json file with updated local params"
+sed -i -e "s/\\"stake\\"/\\"$DENOM\\"/g" $CHAIN_DIR/config/genesis.json
+sed -i "s/\\"time_iota_ms\\": \\".*\\"/\\"time_iota_ms\\": \\"$TIME_IOTA_MS\\"/" $CHAIN_DIR/config/genesis.json
+
+echo "Update max gas param"
+jq -r '.consensus_params.block.max_gas |= "100000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+
+echo "Update staking unbonding time and slashing jail time"
+jq -r '.app_state.staking.params.unbonding_time |= "300s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+jq -r '.app_state.slashing.params.downtime_jail_duration |= "60s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+
+# overrides for older sdk versions, before 0.47
+function gov_overrides_sdk_v46() {
+  jq -r '.app_state.gov.deposit_params.max_deposit_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.deposit_params.min_deposit[0].amount |= "10"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.voting_params.voting_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.tally_params.quorum |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.tally_params.threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.tally_params.veto_threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+}
+
+# overrides for newer sdk versions, post 0.47
+function gov_overrides_sdk_v47() {
+  jq -r '.app_state.gov.params.max_deposit_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.min_deposit[0].amount |= "10"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.voting_period |= "30s"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.quorum |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.gov.params.veto_threshold |= "0.000000000000000000"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+}
+
+if [ "$(jq -r '.app_state.feemarket.params' $CHAIN_DIR/config/genesis.json)" != "null" ]; then
+  jq -r '.app_state.feemarket.params.min_base_gas_price |= "0"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.feemarket.params.beta |= "0"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+  jq -r '.app_state.feemarket.state.base_gas_price |= "0.0025"' $CHAIN_DIR/config/genesis.json > /tmp/genesis.json; mv /tmp/genesis.json $CHAIN_DIR/config/genesis.json
+fi
+
+if [ "$(jq -r '.app_state.gov.params' $CHAIN_DIR/config/genesis.json)" == "null" ]; then
+  gov_overrides_sdk_v46
+else
+  gov_overrides_sdk_v47
+fi
+
+$CHAIN_BIN tendermint show-node-id
+",
+    },
+    "kind": "ConfigMap",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "chain",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "osmosis",
+        "app.kubernetes.io/part-of": "osmosis-1",
+        "app.kubernetes.io/role": "setup-scripts",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "setup-scripts-osmosis-1",
+    },
+  },
+  "osmosis/validator-service.yaml": {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "chain",
+        "app.kubernetes.io/id": "osmosis-1",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "osmosis-1-genesis",
+        "app.kubernetes.io/part-of": "osmosis-1",
+        "app.kubernetes.io/role": "validator",
+        "app.kubernetes.io/type": "osmosis-1-service",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-name": "osmosis",
+      },
+      "name": "osmosis-1-validator",
+    },
+    "spec": {
+      "clusterIP": "None",
+      "ports": [
+        {
+          "name": "p2p",
+          "port": 26656,
+          "protocol": "TCP",
+          "targetPort": "26656",
+        },
+        {
+          "name": "address",
+          "port": 26658,
+          "protocol": "TCP",
+          "targetPort": "26658",
+        },
+        {
+          "name": "grpc",
+          "port": 9090,
+          "protocol": "TCP",
+          "targetPort": "9090",
+        },
+        {
+          "name": "grpc-web",
+          "port": 9091,
+          "protocol": "TCP",
+          "targetPort": "9091",
+        },
+        {
+          "name": "rest",
+          "port": 1317,
+          "protocol": "TCP",
+          "targetPort": "1317",
+        },
+        {
+          "name": "rpc",
+          "port": 26657,
+          "protocol": "TCP",
+          "targetPort": "26657",
+        },
+        {
+          "name": "metrics",
+          "port": 26660,
+          "protocol": "TCP",
+          "targetPort": "26660",
+        },
+        {
+          "name": "exposer",
+          "port": 8081,
+          "protocol": "TCP",
+          "targetPort": "8081",
+        },
+        {
+          "name": "faucet",
+          "port": 8000,
+          "protocol": "TCP",
+          "targetPort": "8000",
+        },
+      ],
+      "selector": {
+        "app.kubernetes.io/name": "osmosis-1-validator",
+      },
+    },
+  },
+  "osmosis/validator-statefulset.yaml": {
+    "apiVersion": "apps/v1",
+    "kind": "StatefulSet",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "chain",
+        "app.kubernetes.io/id": "osmosis-1",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "osmosis-1-genesis",
+        "app.kubernetes.io/part-of": "osmosis-1",
+        "app.kubernetes.io/role": "validator",
+        "app.kubernetes.io/type": "osmosis-1-statefulset",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-name": "osmosis",
+      },
+      "name": "osmosis-1-validator",
+    },
+    "spec": {
+      "podManagementPolicy": "Parallel",
+      "replicas": 1,
+      "revisionHistoryLimit": 3,
+      "selector": {
+        "matchLabels": {
+          "app.kubernetes.io/instance": "starship-generator-test",
+          "app.kubernetes.io/name": "osmosis-1-validator",
+        },
+      },
+      "serviceName": "osmosis-1-validator",
+      "template": {
+        "metadata": {
+          "annotations": {
+            "quality": "release",
+            "role": "api-gateway",
+            "sla": "high",
+            "tier": "gateway",
+          },
+          "labels": {
+            "app.kubernetes.io/instance": "starship-generator-test",
+            "app.kubernetes.io/name": "osmosis-1-validator",
+            "app.kubernetes.io/role": "validator",
+            "app.kubernetes.io/type": "osmosis-1",
+            "app.kubernetes.io/version": "4.0.0-alpha.0",
+          },
+        },
+        "spec": {
+          "containers": [
+            {
+              "command": [
+                "bash",
+                "-c",
+                "#!/bin/bash
+set -euo pipefail
+
+echo "Starting osmosisd validator..."
+exec osmosisd start --home /root/.osmosisd --log_level info",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uosmo",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/osmosis-labs/osmosis",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "osmosis-1",
+                },
+                {
+                  "name": "SLOGFILE",
+                  "value": "slog.slog",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "lifecycle": {
+                "postStart": {
+                  "exec": {
+                    "command": [
+                      "bash",
+                      "-c",
+                      "#!/bin/bash
+echo "Validator post-start hook for osmosis-1"
+# Add any post-start logic here",
+                    ],
+                  },
+                },
+              },
+              "name": "validator",
+              "readinessProbe": {
+                "exec": {
+                  "command": [
+                    "bash",
+                    "-e",
+                    "/scripts/chain-rpc-ready.sh",
+                    "http://localhost:26657",
+                  ],
+                },
+                "initialDelaySeconds": 10,
+                "periodSeconds": 10,
+                "timeoutSeconds": 15,
+              },
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.osmosisd",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+          ],
+          "initContainers": [
+            {
+              "command": [
+                "bash",
+                "-c",
+                "#!/bin/bash
+set -euo pipefail
+
+echo "Initializing validator node for osmosis-1..."
+osmosisd init validator-\${HOSTNAME##*-} --chain-id osmosis-1 --home /root/.osmosisd
+echo "Validator initialization completed"",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uosmo",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/osmosis-labs/osmosis",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "osmosis-1",
+                },
+                {
+                  "name": "KEYS_CONFIG",
+                  "value": "/configs/keys.json",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-validator",
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.osmosisd",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+            {
+              "command": [
+                "bash",
+                "-c",
+                "/scripts/update-config.sh",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uosmo",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/osmosis-labs/osmosis",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "osmosis-1",
+                },
+                {
+                  "name": "KEYS_CONFIG",
+                  "value": "/configs/keys.json",
+                },
+                {
+                  "name": "METRICS",
+                  "value": "false",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-validator-config",
+              "resources": {
+                "limits": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+                "requests": {
+                  "cpu": "0.5",
+                  "memory": "500M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.osmosisd",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+          ],
+          "volumes": [
+            {
+              "emptyDir": {},
+              "name": "node",
+            },
+            {
+              "configMap": {
+                "name": "keys",
+              },
+              "name": "addresses",
+            },
+            {
+              "configMap": {
+                "name": "setup-scripts-osmosis-1",
+              },
+              "name": "scripts",
+            },
+          ],
+        },
+      },
+    },
+  },
+  "registry/config-configmap.yaml": {
+    "apiVersion": "v1",
+    "data": {
+      "cosmoshub-4.json": "{"chain_name":"cosmoshub","assets":[{"base":"uatom","description":"The native staking and governance token of the Cosmos Hub.","name":"Cosmos Hub Atom","display":"atom","symbol":"ATOM","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/cosmoshub/images/atom.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/cosmoshub/images/atom.svg"},"denom_units":[{"denom":"uatom","exponent":0},{"denom":"atom","exponent":6}],"coingecko_id":"atom"}]}",
+      "osmosis-1.json": "{"chain_name":"osmosis","assets":[{"base":"uosmo","description":"The native token of Osmosis","name":"Osmosis","display":"osmo","symbol":"OSMO","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.svg"},"denom_units":[{"denom":"uosmo","exponent":0},{"denom":"osmo","exponent":6}],"coingecko_id":"osmosis","keywords":["staking","dex"]},{"base":"uion","name":"Ion","display":"ion","symbol":"ION","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.svg"},"denom_units":[{"denom":"uion","exponent":0},{"denom":"ion","exponent":6}],"coingecko_id":"ion","keywords":["memecoin"]}]}",
+    },
+    "kind": "ConfigMap",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "registry",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/part-of": "starship",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "registry-config",
+    },
+  },
+  "registry/deployment.yaml": {
+    "apiVersion": "apps/v1",
+    "kind": "Deployment",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "registry",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/part-of": "starship",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "registry",
+    },
+    "spec": {
+      "replicas": 1,
+      "selector": {
+        "matchLabels": {
+          "app": "registry",
+        },
+      },
+      "template": {
+        "metadata": {
+          "labels": {
+            "app": "registry",
+            "app.kubernetes.io/instance": "starship-generator-test",
+            "app.kubernetes.io/managed-by": "starship",
+            "app.kubernetes.io/version": "4.0.0-alpha.0",
+          },
+        },
+        "spec": {
+          "containers": [
+            {
+              "env": [
+                {
+                  "name": "REGISTRY_CHAIN_CLIENT_RPCS",
+                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657",
+                },
+                {
+                  "name": "REGISTRY_CHAIN_API_RPCS",
+                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657",
+                },
+                {
+                  "name": "REGISTRY_CHAIN_API_GRPCS",
+                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:9091,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:9091",
+                },
+                {
+                  "name": "REGISTRY_CHAIN_API_RESTS",
+                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1317,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:1317",
+                },
+                {
+                  "name": "REGISTRY_CHAIN_CLIENT_EXPOSERS",
+                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:8081,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:8081",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/registry:latest",
+              "livenessProbe": {
+                "httpGet": {
+                  "path": "/health",
+                  "port": "8080",
+                },
+                "initialDelaySeconds": 15,
+                "periodSeconds": 20,
+              },
+              "name": "registry",
+              "ports": [
+                {
+                  "containerPort": 8080,
+                  "name": "http",
+                },
+                {
+                  "containerPort": 9090,
+                  "name": "grpc",
+                },
+              ],
+              "readinessProbe": {
+                "httpGet": {
+                  "path": "/health",
+                  "port": "8080",
+                },
+                "initialDelaySeconds": 5,
+                "periodSeconds": 10,
+              },
+              "resources": {
+                "limits": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+                "requests": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/chains/osmosis-1",
+                  "name": "chain-osmosis-1",
+                },
+                {
+                  "mountPath": "/chains/cosmoshub-4",
+                  "name": "chain-cosmoshub-4",
+                },
+              ],
+            },
+          ],
+          "volumes": [
+            {
+              "configMap": {
+                "name": "chain-osmosis-1",
+              },
+              "name": "chain-osmosis-1",
+            },
+            {
+              "configMap": {
+                "name": "chain-cosmoshub-4",
+              },
+              "name": "chain-cosmoshub-4",
+            },
+          ],
+        },
+      },
+    },
+  },
+  "registry/service.yaml": {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "registry",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/part-of": "starship",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "registry",
+    },
+    "spec": {
+      "ports": [
+        {
+          "name": "http",
+          "port": 8080,
+          "targetPort": "8080",
+        },
+        {
+          "name": "grpc",
+          "port": 9090,
+          "targetPort": "9090",
+        },
+      ],
+      "selector": {
+        "app": "registry",
+      },
+    },
+  },
+  "relayer/hermes-osmos-cosmos-configmap.yaml": {
+    "apiVersion": "v1",
+    "data": {
+      "config-cli.toml": "# The global section has parameters that apply globally to the relayer operation.
+[global]
+log_level = "info"
+
+[mode]
+[mode.clients]
+enabled = true
+refresh = true
+misbehaviour = true
+
+[mode.connections]
+enabled = true
+
+[mode.channels]
+enabled = true
+
+[mode.packets]
+enabled = true
+clear_interval = 100
+clear_on_start = true
+tx_confirmation = true
+
+[rest]
+enabled = true
+host = "0.0.0.0"
+port = 3000
+
+[telemetry]
+enabled = false
+host = "0.0.0.0"
+port = 3001
+
+
+[[chains]]
+id = "osmosis-1"
+type = "CosmosSdk"
+key_name = "osmosis-1-cli"
+
+rpc_addr = "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657"
+grpc_addr = "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:9090"
+event_source = { mode = 'pull', interval = '500ms' }
+trusted_node = false
+account_prefix = "osmo"
+default_gas = 500000000
+max_gas = 1000000000
+rpc_timeout = "10s"
+store_prefix = "ibc"
+gas_multiplier = 2
+max_msg_num = 30
+max_tx_size = 2097152
+clock_drift = "5s"
+max_block_time = "30s"
+trusting_period = "75s"
+trust_threshold = { numerator = "2", denominator = "3" }
+address_type = { derivation = 'cosmos' }
+gas_price = { price = 1.25, denom = "uosmo" }
+
+[[chains]]
+id = "cosmoshub-4"
+type = "CosmosSdk"
+key_name = "cosmoshub-4-cli"
+
+rpc_addr = "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657"
+grpc_addr = "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:9090"
+event_source = { mode = 'pull', interval = '500ms' }
+trusted_node = false
+account_prefix = "cosmos"
+default_gas = 500000000
+max_gas = 1000000000
+rpc_timeout = "10s"
+store_prefix = "ibc"
+gas_multiplier = 2
+max_msg_num = 30
+max_tx_size = 2097152
+clock_drift = "5s"
+max_block_time = "30s"
+trusting_period = "75s"
+trust_threshold = { numerator = "2", denominator = "3" }
+address_type = { derivation = 'cosmos' }
+gas_price = { price = 1.25, denom = "uatom" }
+",
+      "config.toml": "# The global section has parameters that apply globally to the relayer operation.
+[global]
+log_level = "info"
+
+[mode]
+[mode.clients]
+enabled = true
+refresh = true
+misbehaviour = true
+
+[mode.connections]
+enabled = true
+
+[mode.channels]
+enabled = true
+
+[mode.packets]
+enabled = true
+clear_interval = 100
+clear_on_start = true
+tx_confirmation = true
+
+[rest]
+enabled = true
+host = "0.0.0.0"
+port = 3000
+
+[telemetry]
+enabled = false
+host = "0.0.0.0"
+port = 3001
+
+
+[[chains]]
+id = "osmosis-1"
+type = "CosmosSdk"
+key_name = "osmosis-1"
+
+rpc_addr = "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657"
+grpc_addr = "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:9090"
+event_source = { mode = 'pull', interval = '500ms' }
+trusted_node = false
+account_prefix = "osmo"
+default_gas = 500000000
+max_gas = 1000000000
+rpc_timeout = "10s"
+store_prefix = "ibc"
+gas_multiplier = 2
+max_msg_num = 30
+max_tx_size = 2097152
+clock_drift = "5s"
+max_block_time = "30s"
+trusting_period = "75s"
+trust_threshold = { numerator = "2", denominator = "3" }
+address_type = { derivation = 'cosmos' }
+gas_price = { price = 1.25, denom = "uosmo" }
+
+[[chains]]
+id = "cosmoshub-4"
+type = "CosmosSdk"
+key_name = "cosmoshub-4"
+
+rpc_addr = "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657"
+grpc_addr = "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:9090"
+event_source = { mode = 'pull', interval = '500ms' }
+trusted_node = false
+account_prefix = "cosmos"
+default_gas = 500000000
+max_gas = 1000000000
+rpc_timeout = "10s"
+store_prefix = "ibc"
+gas_multiplier = 2
+max_msg_num = 30
+max_tx_size = 2097152
+clock_drift = "5s"
+max_block_time = "30s"
+trusting_period = "75s"
+trust_threshold = { numerator = "2", denominator = "3" }
+address_type = { derivation = 'cosmos' }
+gas_price = { price = 1.25, denom = "uatom" }
+",
+    },
+    "kind": "ConfigMap",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "relayer",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "hermes-osmos-cosmos",
+        "app.kubernetes.io/part-of": "starship",
+        "app.kubernetes.io/role": "hermes",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "hermes-osmos-cosmos",
+    },
+  },
+  "relayer/hermes-osmos-cosmos-service.yaml": {
+    "apiVersion": "v1",
+    "kind": "Service",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "relayer",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "hermes-osmos-cosmos",
+        "app.kubernetes.io/part-of": "starship",
+        "app.kubernetes.io/role": "hermes",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "hermes-osmos-cosmos",
+    },
+    "spec": {
+      "clusterIP": "None",
+      "ports": [
+        {
+          "name": "rest",
+          "port": 3000,
+          "protocol": "TCP",
+          "targetPort": 3000,
+        },
+        {
+          "name": "exposer",
+          "port": 8081,
+          "protocol": "TCP",
+          "targetPort": 8081,
+        },
+      ],
+      "selector": {
+        "app.kubernetes.io/name": "hermes-osmos-cosmos",
+      },
+    },
+  },
+  "relayer/hermes-osmos-cosmos-statefulset.yaml": {
+    "apiVersion": "apps/v1",
+    "kind": "StatefulSet",
+    "metadata": {
+      "labels": {
+        "app.kubernetes.io/component": "relayer",
+        "app.kubernetes.io/instance": "starship-generator-test",
+        "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "hermes-osmos-cosmos",
+        "app.kubernetes.io/part-of": "starship",
+        "app.kubernetes.io/role": "hermes",
+        "app.kubernetes.io/version": "4.0.0-alpha.0",
+      },
+      "name": "hermes-osmos-cosmos",
+    },
+    "spec": {
+      "podManagementPolicy": "Parallel",
+      "replicas": 1,
+      "revisionHistoryLimit": 3,
+      "selector": {
+        "matchLabels": {
+          "app.kubernetes.io/instance": "relayer",
+          "app.kubernetes.io/name": "hermes-osmos-cosmos",
+          "app.kubernetes.io/type": "hermes",
+        },
+      },
+      "serviceName": "hermes-osmos-cosmos",
+      "template": {
+        "metadata": {
+          "annotations": {
+            "quality": "release",
+            "role": "api-gateway",
+            "sla": "high",
+            "tier": "gateway",
+          },
+          "labels": {
+            "app.kubernetes.io/instance": "relayer",
+            "app.kubernetes.io/name": "hermes-osmos-cosmos",
+            "app.kubernetes.io/rawname": "osmos-cosmos",
+            "app.kubernetes.io/type": "hermes",
+            "app.kubernetes.io/version": "4.0.0-alpha.0",
+          },
+        },
+        "spec": {
+          "containers": [
+            {
+              "args": [
+                "RLY_INDEX=\${HOSTNAME##*-}
+echo "Relayer Index: $RLY_INDEX"
+hermes start",
+              ],
+              "command": [
+                "bash",
+                "-c",
+              ],
+              "env": [
+                {
+                  "name": "RELAYER_DIR",
+                  "value": "/root/.hermes",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/hermes:1.10.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "relayer",
+              "resources": {
+                "limits": {
+                  "cpu": "0.2",
+                  "memory": "200M",
+                },
+                "requests": {
+                  "cpu": "0.2",
+                  "memory": "200M",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "runAsUser": 0,
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root",
+                  "name": "relayer",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "relayer-config",
+                },
+              ],
+            },
+            {
+              "args": [
+                "/exposer/exposer",
+              ],
+              "command": [
+                "bash",
+                "-c",
+              ],
+              "env": [
+                {
+                  "name": "EXPOSER_HTTP_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "EXPOSER_GRPC_PORT",
+                  "value": "9099",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/hermes:1.10.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "exposer",
+              "resources": {
+                "limits": {
+                  "cpu": "0.1",
+                  "memory": "100M",
+                },
+                "requests": {
+                  "cpu": "0.1",
+                  "memory": "100M",
+                },
+              },
+              "securityContext": {
+                "allowPrivilegeEscalation": false,
+                "runAsUser": 0,
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root",
+                  "name": "relayer",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "relayer-config",
+                },
+                {
+                  "mountPath": "/exposer",
+                  "name": "exposer",
+                },
+              ],
+            },
+          ],
+          "initContainers": [
+            {
+              "args": [
+                "# Install exposer binary from the image
+cp /bin/exposer /exposer/exposer
+chmod +x /exposer/exposer",
+              ],
+              "command": [
+                "bash",
+                "-c",
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/exposer:v0.2.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-exposer",
+              "resources": {
+                "limits": {
+                  "cpu": "0.1",
+                  "memory": "100M",
+                },
+                "requests": {
+                  "cpu": "0.1",
+                  "memory": "100M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/exposer",
+                  "name": "exposer",
+                },
+              ],
+            },
+            {
+              "args": [
+                "echo "Waiting for osmosis-1 service..."
+wait-for-service osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
+              ],
+              "command": [
+                "bash",
+                "-c",
+              ],
+              "env": [
+                {
+                  "name": "NAMESPACE",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
+                    },
+                  },
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/wait-for-service:v0.1.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-osmosis-1",
+            },
+            {
+              "args": [
+                "echo "Waiting for cosmoshub-4 service..."
+wait-for-service cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657",
+              ],
+              "command": [
+                "bash",
+                "-c",
+              ],
+              "env": [
+                {
+                  "name": "NAMESPACE",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
+                    },
+                  },
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/wait-for-service:v0.1.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-cosmoshub-4",
+            },
+            {
+              "args": [
+                "set -ux
+
+RLY_INDEX=\${HOSTNAME##*-}
+echo "Relayer Index: $RLY_INDEX"
+
+mkdir -p $RELAYER_DIR
+cp /configs/config.toml $RELAYER_DIR/config.toml
+cp /configs/config-cli.toml $RELAYER_DIR/config-cli.toml
+
+MNEMONIC=$(jq -r ".relayers[$RLY_INDEX].mnemonic" $KEYS_CONFIG)
+echo $MNEMONIC > $RELAYER_DIR/mnemonic.txt
+MNEMONIC_CLI=$(jq -r ".relayers_cli[$RLY_INDEX].mnemonic" $KEYS_CONFIG)
+echo $MNEMONIC_CLI > $RELAYER_DIR/mnemonic-cli.txt
+
+
+echo "Creating key for osmosis-1..."
+hermes keys add \\
+  --chain osmosis-1 \\
+  --mnemonic-file $RELAYER_DIR/mnemonic.txt \\
+  --key-name osmosis-1 \\
+  --hd-path "m/44'/118'/0'/0/0"
+
+DENOM="uosmo"
+RLY_ADDR=$(hermes --json keys list --chain osmosis-1 | tail -1 | jq -r '.result."osmosis-1".account')
+
+echo "Transfer tokens to address $RLY_ADDR"
+bash -e /scripts/transfer-tokens.sh \\
+  $RLY_ADDR \\
+  $DENOM \\
+  http://osmosis-1-genesis.$NAMESPACE.svc.cluster.local:8000/credit \\
+  "true" || true
+
+echo "Creating key for cosmoshub-4..."
+hermes keys add \\
+  --chain cosmoshub-4 \\
+  --mnemonic-file $RELAYER_DIR/mnemonic.txt \\
+  --key-name cosmoshub-4 \\
+  --hd-path "m/44'/118'/0'/0/0"
+
+DENOM="uatom"
+RLY_ADDR=$(hermes --json keys list --chain cosmoshub-4 | tail -1 | jq -r '.result."cosmoshub-4".account')
+
+echo "Transfer tokens to address $RLY_ADDR"
+bash -e /scripts/transfer-tokens.sh \\
+  $RLY_ADDR \\
+  $DENOM \\
+  http://cosmoshub-4-genesis.$NAMESPACE.svc.cluster.local:8000/credit \\
+  "false" || true
+",
+              ],
+              "command": [
+                "bash",
+                "-c",
+              ],
+              "env": [
+                {
+                  "name": "KEYS_CONFIG",
+                  "value": "/keys/keys.json",
+                },
+                {
+                  "name": "RELAYER_DIR",
+                  "value": "/root/.hermes",
+                },
+                {
+                  "name": "RELAYER_INDEX",
+                  "value": "\${HOSTNAME##*-}",
+                },
+                {
+                  "name": "NAMESPACE",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
+                    },
+                  },
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/hermes:1.10.0",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "init-relayer",
+              "resources": {
+                "limits": {
+                  "cpu": "0.2",
+                  "memory": "200M",
+                },
+                "requests": {
+                  "cpu": "0.2",
+                  "memory": "200M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root",
+                  "name": "relayer",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "relayer-config",
+                },
+                {
+                  "mountPath": "/keys",
+                  "name": "keys",
+                },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
+              ],
+            },
+          ],
+          "volumes": [
+            {
+              "emptyDir": {},
+              "name": "relayer",
+            },
+            {
+              "configMap": {
+                "name": "hermes-osmos-cosmos",
+              },
+              "name": "relayer-config",
+            },
+            {
+              "configMap": {
+                "name": "keys",
+              },
+              "name": "keys",
+            },
+            {
+              "configMap": {
+                "name": "setup-scripts",
+              },
+              "name": "scripts",
+            },
+            {
+              "emptyDir": {},
+              "name": "exposer",
+            },
+          ],
+        },
+      },
+    },
+  },
+}
+`;
+
 exports[`BuilderManager Tests Advanced Configuration Testing should skip Ethereum chains appropriately: ethereum-skip-yaml-files 1`] = `
 {
   "explorer/configmap.yaml": {

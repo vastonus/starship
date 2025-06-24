@@ -244,3 +244,161 @@ export const ethereumConfig: StarshipConfig = {
     }
   ]
 };
+
+// Based on starship/tests/e2e/configs/two-chain.yaml
+export const twoChainWithHermesConfig: StarshipConfig = {
+  name: 'starship-generator-test',
+  chains: [
+    {
+      id: 'osmosis-1',
+      name: 'osmosis',
+      numValidators: 2,
+      ports: {
+        rest: 1313,
+        rpc: 26653,
+        exposer: 38083,
+        faucet: 8001
+      }
+    },
+    {
+      id: 'cosmoshub-4',
+      name: 'cosmoshub',
+      numValidators: 2,
+      faucet: {
+        enabled: false
+      },
+      ports: {
+        rest: 1317,
+        rpc: 26657,
+        exposer: 38087
+      }
+    }
+  ],
+  relayers: [
+    {
+      name: 'osmos-cosmos',
+      type: 'hermes',
+      replicas: 1,
+      chains: ['osmosis-1', 'cosmoshub-4'],
+      config: {
+        global: {
+          log_level: 'info'
+        },
+        rest: {
+          enabled: true
+        },
+        telemetry: {
+          enabled: false
+        },
+        event_source: {
+          mode: 'pull'
+        }
+      },
+      ports: {
+        rest: 3000,
+        exposer: 3002
+      }
+    }
+  ],
+  explorer: {
+    enabled: true,
+    type: 'ping-pub',
+    ports: {
+      rest: 8080
+    }
+  },
+  registry: {
+    enabled: true,
+    image: 'ghcr.io/cosmology-tech/starship/registry:latest',
+    ports: {
+      rest: 8081
+    }
+  }
+};
+
+// Based on starship/tests/e2e/configs/two-chain-gorelayer.yaml
+export const twoChainWithGoRelayerConfig: StarshipConfig = {
+  name: 'starship-generator-test',
+  chains: [
+    {
+      id: 'osmosis-1',
+      name: 'osmosis',
+      numValidators: 2,
+      ports: {
+        rest: 1313,
+        rpc: 26653,
+        exposer: 38083,
+        faucet: 8001
+      }
+    },
+    {
+      id: 'cosmoshub-4',
+      name: 'cosmoshub',
+      numValidators: 2,
+      ports: {
+        rest: 1317,
+        rpc: 26657,
+        exposer: 38087,
+        faucet: 8000
+      }
+    }
+  ],
+  relayers: [
+    {
+      name: 'osmos-cosmos',
+      type: 'go-relayer',
+      replicas: 1,
+      chains: ['osmosis-1', 'cosmoshub-4']
+    }
+  ],
+  registry: {
+    enabled: true,
+    image: 'ghcr.io/cosmology-tech/starship/registry:latest',
+    ports: {
+      rest: 8081
+    }
+  }
+};
+
+// Config for testing neutron query relayer
+export const neutronRelayerConfig: StarshipConfig = {
+  name: 'starship-generator-test',
+  chains: [
+    {
+      id: 'neutron-1',
+      name: 'neutron',
+      numValidators: 1,
+      prefix: 'neutron',
+      denom: 'untrn',
+      home: '/root/.neutrond',
+      ports: {
+        rest: 1317,
+        rpc: 26657,
+        exposer: 38087
+      }
+    },
+    {
+      id: 'osmosis-1',
+      name: 'osmosis',
+      numValidators: 1,
+      ports: {
+        rest: 1313,
+        rpc: 26653,
+        exposer: 38083,
+        faucet: 8001
+      }
+    }
+  ],
+  relayers: [
+    {
+      name: 'neutron-query',
+      type: 'neutron-query-relayer',
+      replicas: 1,
+      chains: ['neutron-1', 'osmosis-1'],
+      config: {
+        RELAYER_NEUTRON_CHAIN_TIMEOUT: '1000s',
+        RELAYER_NEUTRON_CHAIN_GAS_PRICES: '0.5untrn'
+      }
+    }
+  ]
+};
