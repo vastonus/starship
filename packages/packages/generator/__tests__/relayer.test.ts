@@ -93,7 +93,7 @@ describe('RelayerBuilder', () => {
 
       expect(configMap).toBeDefined();
       expect(configMap.metadata.name).toBe('ts-relayer-ts-rly');
-      expect(configMap.data['template-app.yaml']).toContain('<SRC>');
+      expect(configMap.data['app.yaml']).toBeDefined();
       expect(configMap.data['registry.yaml']).toContain('osmosis-1');
 
       expect(statefulSet).toBeDefined();
@@ -419,8 +419,8 @@ describe('RelayerBuilder', () => {
       expect(configToml).toContain('key_name = "cosmoshub-4"');
 
       // Verify RPC endpoints
-      expect(configToml).toContain('rpc_addr = "http://osmosis-genesis.$(NAMESPACE).svc.cluster.local:26657"');
-      expect(configToml).toContain('rpc_addr = "http://cosmoshub-genesis.$(NAMESPACE).svc.cluster.local:26657"');
+      expect(configToml).toContain('rpc_addr = "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657"');
+      expect(configToml).toContain('rpc_addr = "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657"');
 
       // Snapshot test for configuration content
       expect(configToml).toMatchSnapshot('hermes-config-toml-content');
@@ -434,9 +434,11 @@ describe('RelayerBuilder', () => {
       const pathJson = JSON.parse(configMap.data['path.json'] as string);
 
       // Verify path configuration
-      expect(pathJson.src['chain-id']).toBe('osmosis-1');
-      expect(pathJson.dst['chain-id']).toBe('cosmoshub-4');
-      expect(pathJson['src-channel-filter']).toBeDefined();
+      expect(pathJson.paths).toBeDefined();
+      expect(pathJson.paths.path).toBeDefined();
+      expect(pathJson.paths.path.src['chain-id']).toBe('osmosis-1');
+      expect(pathJson.paths.path.dst['chain-id']).toBe('cosmoshub-4');
+      expect(pathJson.paths.path['src-channel-filter']).toBeDefined();
 
       // Verify chain configurations exist
       expect(configMap.data['osmosis-1.json'] as string).toBeDefined();
@@ -445,7 +447,7 @@ describe('RelayerBuilder', () => {
       const osmosisConfig = JSON.parse(configMap.data['osmosis-1.json'] as string);
       expect(osmosisConfig.type).toBe('cosmos');
       expect(osmosisConfig.value['chain-id']).toBe('osmosis-1');
-      expect(osmosisConfig.value['rpc-addr']).toContain('osmosis-genesis');
+      expect(osmosisConfig.value['rpc-addr']).toContain('osmosis-1-genesis');
 
       // Snapshot test for configuration content
       expect({

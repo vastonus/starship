@@ -81,6 +81,31 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
           }
         };
       });
+    } else if (this.relayer.chains && this.relayer.chains.length >= 2) {
+      // Generate a default path using the first two chains
+      const srcChainId = this.relayer.chains[0];
+      const dstChainId = this.relayer.chains[1];
+      
+      paths['path'] = {
+        src: {
+          'chain-id': srcChainId,
+          'client-id': '', // Will be filled during connection creation
+          'connection-id': '', // Will be filled during connection creation
+          'channel-id': '', // Will be filled during channel creation
+          'port-id': 'transfer'
+        },
+        dst: {
+          'chain-id': dstChainId,
+          'client-id': '', // Will be filled during connection creation
+          'connection-id': '', // Will be filled during connection creation
+          'channel-id': '', // Will be filled during channel creation
+          'port-id': 'transfer'
+        },
+        'src-channel-filter': {
+          rule: null,
+          'channel-list': []
+        }
+      };
     }
 
     return JSON.stringify({ paths }, null, 2);
