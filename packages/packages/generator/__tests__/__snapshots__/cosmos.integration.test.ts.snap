@@ -80,7 +80,7 @@ exports[`Cosmos Integration Tests Resource Content Verification should generate 
     "app.kubernetes.io/part-of": "osmosis-1",
     "app.kubernetes.io/role": "genesis",
     "app.kubernetes.io/type": "osmosis-1-service",
-    "app.kubernetes.io/version": "4.0.0",
+    "app.kubernetes.io/version": "4.0.0-alpha.0",
     "starship.io/chain-name": "osmosis",
   },
   "serviceName": "osmosis-1-genesis",

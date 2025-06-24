@@ -1,6 +1,7 @@
 import { StarshipConfig } from '@starship-ci/types';
 
 import { TemplateHelpers } from '../helpers';
+import { getGeneratorVersion } from '../version';
 
 /**
  * Service generator for Frontend services
@@ -93,7 +94,7 @@ export class FrontendDeploymentGenerator {
               'app.kubernetes.io/type': this.frontend.type,
               'app.kubernetes.io/name': this.frontend.name,
               'app.kubernetes.io/rawname': this.frontend.name,
-              'app.kubernetes.io/version': this.config.version || '1.8.0'
+              'app.kubernetes.io/version': getGeneratorVersion()
             }
           },
           spec: {

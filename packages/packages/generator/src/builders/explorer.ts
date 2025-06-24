@@ -1,6 +1,7 @@
 import { StarshipConfig } from '@starship-ci/types';
 
 import { TemplateHelpers } from '../helpers';
+import { getGeneratorVersion } from '../version';
 
 /**
  * ConfigMap generator for Explorer service
@@ -153,7 +154,7 @@ export class ExplorerDeploymentGenerator {
                 this.config.explorer?.type || 'ping-pub',
               'app.kubernetes.io/name': 'explorer',
               'app.kubernetes.io/rawname': 'explorer',
-              'app.kubernetes.io/version': this.config.version || '1.8.0'
+              'app.kubernetes.io/version': getGeneratorVersion()
             }
           },
           spec: {

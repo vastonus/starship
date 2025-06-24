@@ -6,7 +6,6 @@ export const outputDir = resolve(join(__dirname, '../__output__'));
 // Based on starship/tests/e2e/configs/one-chain.yaml
 export const singleChainConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 'osmosis-1',
@@ -61,7 +60,6 @@ export const singleChainConfig: StarshipConfig = {
 // Based on starship/tests/e2e/configs/multi-validator.yaml
 export const multiValidatorConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 'osmosis-1',
@@ -93,7 +91,6 @@ export const multiValidatorConfig: StarshipConfig = {
 // Based on starship/tests/e2e/configs/one-custom-chain.yaml
 export const customChainConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 'custom-1',
@@ -125,7 +122,6 @@ export const customChainConfig: StarshipConfig = {
 // Based on starship/tests/e2e/configs/one-chain-cosmjs-faucet.yaml
 export const cosmjsFaucetConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 'osmosis-1',
@@ -153,7 +149,6 @@ export const cosmjsFaucetConfig: StarshipConfig = {
 // Based on starship/tests/e2e/configs/build-chain.yaml
 export const buildChainConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 'core-1',
@@ -179,7 +174,6 @@ export const buildChainConfig: StarshipConfig = {
 // Based on starship/tests/e2e/configs/one-chain-cometmock.yaml
 export const cometmockConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 'cosmoshub-4',
@@ -207,7 +201,6 @@ export const cometmockConfig: StarshipConfig = {
 // Based on starship/tests/e2e/configs/two-chain.yaml (but only chains, no relayers)
 export const twoChainConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 'osmosis-1',
@@ -239,7 +232,6 @@ export const twoChainConfig: StarshipConfig = {
 // Ethereum chain (should be skipped by generator)
 export const ethereumConfig: StarshipConfig = {
   name: 'starship-generator-test',
-  version: '4.0.0',
   chains: [
     {
       id: 1337,
