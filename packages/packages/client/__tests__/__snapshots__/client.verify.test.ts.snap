@@ -2,6 +2,7 @@
 
 exports[`StarshipClient verify should handle explorer verification failure 1`] = `
 "Call: setConfig({"name":"osmojs","version":"v0.2.3","chains":[{"id":"osmosis-1","name":"osmosis","image":"pyramation/osmosis:v16.1.0","numValidators":1,"ports":{"rest":1317,"rpc":26657,"faucet":8007}},{"id":"cosmos-2","name":"cosmos","numValidators":1,"ports":{"rest":1313,"rpc":26653,"faucet":8003}}],"relayers":[{"name":"osmos-cosmos","type":"hermes","replicas":1,"chains":["osmosis-1","cosmos-2"]}],"registry":{"enabled":true,"ports":{"rest":8081,"grpc":9091}}})
+Log: No version specified, using default version: v1.8.0
 Log: config again: [object Object]
 Call: verify()
 Log: Verifying services...
@@ -26,6 +27,7 @@ exports[`StarshipClient verify should handle explorer verification failure 2`] =
 
 exports[`StarshipClient verify should handle registry verification failure 1`] = `
 "Call: setConfig({"name":"osmojs","version":"v0.2.3","chains":[{"id":"osmosis-1","name":"osmosis","image":"pyramation/osmosis:v16.1.0","numValidators":1,"ports":{"rest":1317,"rpc":26657,"faucet":8007}},{"id":"cosmos-2","name":"cosmos","numValidators":1,"ports":{"rest":1313,"rpc":26653,"faucet":8003}}],"relayers":[{"name":"osmos-cosmos","type":"hermes","replicas":1,"chains":["osmosis-1","cosmos-2"]}],"registry":{"enabled":true,"ports":{"rest":8081,"grpc":9091}}})
+Log: No version specified, using default version: v1.8.0
 Log: config again: [object Object]
 Call: verify()
 Log: Verifying services...
@@ -50,6 +52,7 @@ exports[`StarshipClient verify should handle registry verification failure 2`] =
 
 exports[`StarshipClient verify should handle relayer verification failure 1`] = `
 "Call: setConfig({"name":"osmojs","version":"v0.2.3","chains":[{"id":"osmosis-1","name":"osmosis","image":"pyramation/osmosis:v16.1.0","numValidators":1,"ports":{"rest":1317,"rpc":26657,"faucet":8007}},{"id":"cosmos-2","name":"cosmos","numValidators":1,"ports":{"rest":1313,"rpc":26653,"faucet":8003}}],"relayers":[{"name":"osmos-cosmos","type":"hermes","replicas":1,"chains":["osmosis-1","cosmos-2"]}],"registry":{"enabled":true,"ports":{"rest":8081,"grpc":9091}}})
+Log: No version specified, using default version: v1.8.0
 Log: config again: [object Object]
 Call: verify()
 Log: Verifying services...
@@ -74,6 +77,7 @@ exports[`StarshipClient verify should handle relayer verification failure 2`] = 
 
 exports[`StarshipClient verify should skip disabled services 1`] = `
 "Call: setConfig({"name":"osmojs","version":"v0.2.3","chains":[{"id":"osmosis-1","name":"osmosis","image":"pyramation/osmosis:v16.1.0","numValidators":1,"ports":{"rest":1317,"rpc":26657,"faucet":8007}},{"id":"cosmos-2","name":"cosmos","numValidators":1,"ports":{"rest":1313,"rpc":26653,"faucet":8003}}],"relayers":[{"name":"osmos-cosmos","type":"hermes","replicas":1,"chains":["osmosis-1","cosmos-2"]}],"registry":{"enabled":false,"ports":{"rest":8081,"grpc":9091}},"explorer":{"enabled":false}})
+Log: No version specified, using default version: v1.8.0
 Log: config again: [object Object]
 Call: verify()
 Log: Verifying services...
@@ -97,6 +101,7 @@ exports[`StarshipClient verify should skip disabled services 2`] = `""`;
 
 exports[`StarshipClient verify should verify all services successfully 1`] = `
 "Call: setConfig({"name":"starship","version":"v0.2.3","chains":[{"id":"osmosis-1","name":"osmosis","image":"pyramation/osmosis:v16.1.0","numValidators":1,"ports":{"rest":1317,"rpc":26657,"faucet":8007}},{"id":"cosmos-2","name":"cosmos","numValidators":1,"ports":{"rest":1313,"rpc":26653,"faucet":8003}}],"relayers":[{"name":"osmos-cosmos","type":"hermes","replicas":1,"chains":["osmosis-1","cosmos-2"]}],"registry":{"enabled":true,"ports":{"rest":8081,"grpc":9091}}})
+Log: No version specified, using default version: v1.8.0
 Log: config again: [object Object]
 Call: verify()
 Log: Verifying services...
