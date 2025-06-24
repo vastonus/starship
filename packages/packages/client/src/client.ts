@@ -303,9 +303,6 @@ export class StarshipClient implements StarshipClientI {
     if (this.ctx.name) {
       this.config.name = this.ctx.name;
     }
-    if (this.ctx.version) {
-      this.config.version = this.ctx.version;
-    }
 
     // Use default name and version if not provided
     if (!this.config.name) {
@@ -314,13 +311,13 @@ export class StarshipClient implements StarshipClientI {
       );
       this.config.name = defaultName;
     }
-    if (!this.config.version) {
+    if (!this.ctx.version) {
       this.log(
         chalk.yellow(
           'No version specified, using default version: ' + defaultVersion
         )
       );
-      this.config.version = defaultVersion;
+      this.ctx.version = defaultVersion;
     }
 
     this.log('config again: ' + this.config);
@@ -381,7 +378,7 @@ export class StarshipClient implements StarshipClientI {
         'repo',
         this.ctx.chart,
         '--version',
-        this.config.version
+        this.ctx.version
       ],
       { ignoreError: false }
     );
@@ -408,7 +405,7 @@ export class StarshipClient implements StarshipClientI {
       this.config.name,
       this.ctx.chart,
       '--version',
-      this.config.version,
+      this.ctx.version,
       '--timeout',
       this.ctx.timeout,
       ...this.getDeployArgs(),
