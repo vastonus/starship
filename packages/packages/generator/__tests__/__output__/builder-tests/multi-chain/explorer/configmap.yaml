@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: explorer
+  labels:
+    app.kubernetes.io/instance: starship-generator-test
+    app.kubernetes.io/version: 4.0.0
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/component: explorer
+    app.kubernetes.io/part-of: starship
+data:
+  osmosis-1.json: >-
+    {"chain_name":"osmosis-1","coingecko":"osmosis","api":"http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1313","rpc":["http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26653"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"osmo","logo":"","assets":[{"base":"uosmo","symbol":"OSMO","exponent":"6","coingecko_id":"osmosis-1","logo":""}]}
+  cosmoshub-4.json: >-
+    {"chain_name":"cosmoshub-4","coingecko":"cosmoshub","api":"http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:1317","rpc":["http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"cosmos","logo":"","assets":[{"base":"uatom","symbol":"COSMOS","exponent":"6","coingecko_id":"cosmoshub-4","logo":""}]}
