@@ -2,18 +2,20 @@ import { Relayer, StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../../helpers';
+import { getGeneratorVersion } from '../../version';
 import {
   BaseRelayerBuilder,
   IRelayerConfigMapGenerator,
   IRelayerServiceGenerator,
   IRelayerStatefulSetGenerator
 } from './base';
-import { getGeneratorVersion } from '../../version';
 
 /**
  * ConfigMap generator for Neutron Query Relayer
  */
-export class NeutronQueryConfigMapGenerator implements IRelayerConfigMapGenerator {
+export class NeutronQueryConfigMapGenerator
+  implements IRelayerConfigMapGenerator
+{
   private config: StarshipConfig;
   private relayer: Relayer;
 
@@ -46,25 +48,36 @@ export class NeutronQueryConfigMapGenerator implements IRelayerConfigMapGenerato
 
   private generateNeutronQueryConfig(): string {
     const relayerConfig = this.relayer.config || {};
-    
-    // Find the neutron chain (should be the first one typically)
-    const neutronChainId = this.relayer.chains.find(chainId => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
-      return chain?.name === 'neutron';
-    }) || this.relayer.chains[0];
 
-    const neutronChain = this.config.chains.find(c => String(c.id) === neutronChainId);
+    // Find the neutron chain (should be the first one typically)
+    const neutronChainId =
+      this.relayer.chains.find((chainId) => {
+        const chain = this.config.chains.find((c) => String(c.id) === chainId);
+        return chain?.name === 'neutron';
+      }) || this.relayer.chains[0];
+
+    const neutronChain = this.config.chains.find(
+      (c) => String(c.id) === neutronChainId
+    );
     if (!neutronChain) {
-      throw new Error(`Neutron chain ${neutronChainId} not found in configuration`);
+      throw new Error(
+        `Neutron chain ${neutronChainId} not found in configuration`
+      );
     }
 
     const neutronChainName = TemplateHelpers.chainName(String(neutronChain.id));
 
-    // Find the target chain (should be the second one typically) 
-    const targetChainId = this.relayer.chains.find(chainId => chainId !== neutronChainId) || this.relayer.chains[1];
-    const targetChain = this.config.chains.find(c => String(c.id) === targetChainId);
+    // Find the target chain (should be the second one typically)
+    const targetChainId =
+      this.relayer.chains.find((chainId) => chainId !== neutronChainId) ||
+      this.relayer.chains[1];
+    const targetChain = this.config.chains.find(
+      (c) => String(c.id) === targetChainId
+    );
     if (!targetChain) {
-      throw new Error(`Target chain ${targetChainId} not found in configuration`);
+      throw new Error(
+        `Target chain ${targetChainId} not found in configuration`
+      );
     }
 
     const targetChainName = TemplateHelpers.chainName(String(targetChain.id));
@@ -161,7 +174,9 @@ export class NeutronQueryServiceGenerator implements IRelayerServiceGenerator {
 /**
  * StatefulSet generator for Neutron Query Relayer
  */
-export class NeutronQueryStatefulSetGenerator implements IRelayerStatefulSetGenerator {
+export class NeutronQueryStatefulSetGenerator
+  implements IRelayerStatefulSetGenerator
+{
   private config: StarshipConfig;
   private relayer: Relayer;
 
@@ -172,7 +187,7 @@ export class NeutronQueryStatefulSetGenerator implements IRelayerStatefulSetGene
 
   statefulSet(): StatefulSet {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
-    
+
     return {
       apiVersion: 'apps/v1',
       kind: 'StatefulSet',
@@ -229,7 +244,7 @@ export class NeutronQueryStatefulSetGenerator implements IRelayerStatefulSetGene
 
     // Add wait init containers for all chains
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
       const chainName = TemplateHelpers.chainName(String(chain.id));
@@ -257,7 +272,9 @@ export class NeutronQueryStatefulSetGenerator implements IRelayerStatefulSetGene
   }
 
   private generateNeutronQueryInitContainer(): any {
-    const image = this.relayer.image || 'ghcr.io/cosmology-tech/starship/neutron-query-relayer:v0.2.0';
+    const image =
+      this.relayer.image ||
+      'ghcr.io/cosmology-tech/starship/neutron-query-relayer:v0.2.0';
     const env = this.generateEnvironmentVariables();
 
     const command = this.generateNeutronQueryInitCommand();
@@ -269,7 +286,9 @@ export class NeutronQueryStatefulSetGenerator implements IRelayerStatefulSetGene
       env,
       command: ['bash', '-c'],
       args: [command],
-      resources: TemplateHelpers.getResourceObject(this.relayer.resources || { cpu: '0.2', memory: '200M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.relayer.resources || { cpu: '0.2', memory: '200M' }
+      ),
       volumeMounts: [
         { mountPath: '/root', name: 'relayer' },
         { mountPath: '/configs', name: 'relayer-config' },
@@ -285,14 +304,18 @@ export class NeutronQueryStatefulSetGenerator implements IRelayerStatefulSetGene
     // Main neutron-query-relayer container
     containers.push({
       name: 'relayer',
-      image: this.relayer.image || 'ghcr.io/cosmology-tech/starship/neutron-query-relayer:v0.2.0',
+      image:
+        this.relayer.image ||
+        'ghcr.io/cosmology-tech/starship/neutron-query-relayer:v0.2.0',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: this.generateEnvironmentVariables(),
       command: ['bash', '-c'],
       args: [
         'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nneutron-query-relayer start --config /configs/config.json'
       ],
-      resources: TemplateHelpers.getResourceObject(this.relayer.resources || { cpu: '0.2', memory: '200M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.relayer.resources || { cpu: '0.2', memory: '200M' }
+      ),
       securityContext: {
         allowPrivilegeEscalation: false,
         runAsUser: 0
@@ -309,7 +332,10 @@ export class NeutronQueryStatefulSetGenerator implements IRelayerStatefulSetGene
   private generateVolumes(): any[] {
     return [
       { name: 'relayer', emptyDir: {} },
-      { name: 'relayer-config', configMap: { name: `${this.relayer.type}-${this.relayer.name}` } },
+      {
+        name: 'relayer-config',
+        configMap: { name: `${this.relayer.type}-${this.relayer.name}` }
+      },
       { name: 'keys', configMap: { name: 'keys' } },
       { name: 'scripts', configMap: { name: 'setup-scripts' } }
     ];
@@ -317,15 +343,24 @@ export class NeutronQueryStatefulSetGenerator implements IRelayerStatefulSetGene
 
   private generateEnvironmentVariables(): any[] {
     const relayerConfig = this.relayer.config || {};
-    
+
     return [
       { name: 'KEYS_CONFIG', value: '/keys/keys.json' },
       { name: 'RELAYER_INDEX', value: '${HOSTNAME##*-}' },
-      { name: 'NAMESPACE', valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } } },
+      {
+        name: 'NAMESPACE',
+        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+      },
       { name: 'CONFIG_PATH', value: '/configs/config.json' },
-      { name: 'STORAGE_PATH', value: relayerConfig.storage_path || './storage' },
+      {
+        name: 'STORAGE_PATH',
+        value: relayerConfig.storage_path || './storage'
+      },
       { name: 'LOG_LEVEL', value: relayerConfig.log_level || 'info' },
-      { name: 'METRICS_PORT', value: String(relayerConfig.metrics_port || 9090) }
+      {
+        name: 'METRICS_PORT',
+        value: String(relayerConfig.metrics_port || 9090)
+      }
     ];
   }
 
@@ -344,10 +379,9 @@ TARGET_MNEMONIC=$(jq -r ".relayers[$RLY_INDEX].mnemonic" $KEYS_CONFIG)
 
     // Add key creation and funding for each chain
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
       command += `
 echo "Setting up keys for ${chainId}..."
 # Keys will be managed through environment variables for neutron-query-relayer
@@ -374,9 +408,15 @@ export class NeutronQueryRelayerBuilder extends BaseRelayerBuilder {
 
   constructor(config: StarshipConfig, relayer: Relayer) {
     super(config, relayer);
-    this.configMapGenerator = new NeutronQueryConfigMapGenerator(config, relayer);
+    this.configMapGenerator = new NeutronQueryConfigMapGenerator(
+      config,
+      relayer
+    );
     this.serviceGenerator = new NeutronQueryServiceGenerator(config, relayer);
-    this.statefulSetGenerator = new NeutronQueryStatefulSetGenerator(config, relayer);
+    this.statefulSetGenerator = new NeutronQueryStatefulSetGenerator(
+      config,
+      relayer
+    );
   }
 
   buildManifests(): (ConfigMap | Service | StatefulSet)[] {
@@ -386,4 +426,4 @@ export class NeutronQueryRelayerBuilder extends BaseRelayerBuilder {
       this.statefulSetGenerator.statefulSet()
     ];
   }
-} 
+}

@@ -57,7 +57,7 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
    * Get chain configuration by ID
    */
   protected getChainConfig(chainId: string) {
-    const chain = this.config.chains.find(c => String(c.id) === chainId);
+    const chain = this.config.chains.find((c) => String(c.id) === chainId);
     if (!chain) {
       throw new Error(`Chain ${chainId} not found in configuration`);
     }
@@ -77,7 +77,9 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
    */
   protected getImage(): string {
     if (!this.relayer.image) {
-      throw new Error(`No image configured for relayer ${this.relayer.name} of type ${this.relayer.type}`);
+      throw new Error(
+        `No image configured for relayer ${this.relayer.name} of type ${this.relayer.type}`
+      );
     }
     return this.relayer.image;
   }
@@ -88,7 +90,10 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
   protected generateVolumes(): any[] {
     return [
       { name: 'relayer', emptyDir: {} },
-      { name: 'relayer-config', configMap: { name: `${this.relayer.type}-${this.relayer.name}` } },
+      {
+        name: 'relayer-config',
+        configMap: { name: `${this.relayer.type}-${this.relayer.name}` }
+      },
       { name: 'keys', configMap: { name: 'keys' } },
       { name: 'scripts', configMap: { name: 'setup-scripts' } }
     ];
@@ -100,7 +105,10 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
   protected generateCommonEnv(): any[] {
     return [
       { name: 'KEYS_CONFIG', value: '/keys/keys.json' },
-      { name: 'NAMESPACE', valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } } }
+      {
+        name: 'NAMESPACE',
+        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+      }
     ];
   }
 
@@ -111,7 +119,7 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
     return this.relayer.chains.map((chainId) => {
       const chain = this.getChainConfig(chainId);
       const chainName = TemplateHelpers.chainName(String(chain.id));
-      
+
       return {
         name: `init-${chainName}`,
         image: 'ghcr.io/cosmology-tech/starship/wait-for-service:v0.1.0',
@@ -179,4 +187,4 @@ export class RelayerHelpers {
   static needsService(relayerType: string): boolean {
     return relayerType === 'hermes' || relayerType === 'neutron-query-relayer';
   }
-} 
+}

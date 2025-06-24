@@ -3,23 +3,26 @@ import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
 
 import { DefaultsManager } from '../../defaults';
 import { IRelayerBuilder } from './base';
-import { HermesRelayerBuilder } from './hermes';
 import { GoRelayerBuilder } from './go-relayer';
-import { TsRelayerBuilder } from './ts-relayer';
+import { HermesRelayerBuilder } from './hermes';
 import { NeutronQueryRelayerBuilder } from './neutron-query';
+import { TsRelayerBuilder } from './ts-relayer';
 
 // Export all individual builders and components
 export * from './base';
-export * from './hermes';
 export * from './go-relayer';
-export * from './ts-relayer';
+export * from './hermes';
 export * from './neutron-query';
+export * from './ts-relayer';
 
 /**
  * Factory for creating appropriate relayer builders based on relayer type
  */
 export class RelayerBuilderFactory {
-  static createBuilder(config: StarshipConfig, relayer: Relayer): IRelayerBuilder {
+  static createBuilder(
+    config: StarshipConfig,
+    relayer: Relayer
+  ): IRelayerBuilder {
     switch (relayer.type) {
       case 'hermes':
         return new HermesRelayerBuilder(config, relayer);
@@ -46,9 +49,9 @@ export class RelayerBuilder {
   constructor(config: StarshipConfig) {
     this.config = config;
     this.defaultsManager = new DefaultsManager();
-    
+
     // Process relayers with defaults
-    this.relayers = (config.relayers || []).map(relayer => 
+    this.relayers = (config.relayers || []).map((relayer) =>
       this.defaultsManager.processRelayer(relayer)
     );
   }
@@ -61,11 +64,17 @@ export class RelayerBuilder {
 
     this.relayers.forEach((relayer) => {
       try {
-        const builder = RelayerBuilderFactory.createBuilder(this.config, relayer);
+        const builder = RelayerBuilderFactory.createBuilder(
+          this.config,
+          relayer
+        );
         const relayerManifests = builder.buildManifests();
         manifests.push(...relayerManifests);
       } catch (error) {
-        console.error(`Error building manifests for relayer ${relayer.name}:`, error);
+        console.error(
+          `Error building manifests for relayer ${relayer.name}:`,
+          error
+        );
         throw error;
       }
     });
@@ -84,7 +93,7 @@ export class RelayerBuilder {
    * Get relayers by type
    */
   getRelayersByType(type: string): Relayer[] {
-    return this.relayers.filter(relayer => relayer.type === type);
+    return this.relayers.filter((relayer) => relayer.type === type);
   }
 
   /**
@@ -100,4 +109,4 @@ export class RelayerBuilder {
   static getSupportedTypes(): string[] {
     return ['hermes', 'go-relayer', 'ts-relayer', 'neutron-query-relayer'];
   }
-} 
+}

@@ -339,8 +339,10 @@ describe('BuilderManager Tests', () => {
       expect(hermesManifests.length).toBeGreaterThan(0);
 
       // Verify hermes has service
-      const hermesServiceExists = Object.values(yamlFiles).some((content: any) =>
-        content.kind === 'Service' && content.metadata.name.includes('osmos-cosmos')
+      const hermesServiceExists = Object.values(yamlFiles).some(
+        (content: any) =>
+          content.kind === 'Service' &&
+          content.metadata.name.includes('osmos-cosmos')
       );
 
       expect(hermesServiceExists).toBe(true);

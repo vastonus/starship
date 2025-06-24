@@ -2,6 +2,7 @@ import { Relayer, StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../../helpers';
+import { getGeneratorVersion } from '../../version';
 import {
   BaseRelayerBuilder,
   IRelayerConfigMapGenerator,
@@ -9,7 +10,6 @@ import {
   IRelayerStatefulSetGenerator,
   RelayerHelpers
 } from './base';
-import { getGeneratorVersion } from '../../version';
 
 /**
  * ConfigMap generator for Hermes relayer
@@ -43,7 +43,10 @@ export class HermesConfigMapGenerator implements IRelayerConfigMapGenerator {
       metadata,
       data: {
         'config.toml': configToml,
-        'config-cli.toml': configToml.replace(/key_name = "([^"]+)"/g, 'key_name = "$1-cli"')
+        'config-cli.toml': configToml.replace(
+          /key_name = "([^"]+)"/g,
+          'key_name = "$1-cli"'
+        )
       }
     };
   }
@@ -92,12 +95,13 @@ port = ${telemetryConfig.port || 3001}
 
     // Add chain configurations
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) {
         throw new Error(`Chain ${chainId} not found in configuration`);
       }
 
-      const chainConfig = relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
+      const chainConfig =
+        relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
       const chainName = TemplateHelpers.chainName(String(chain.id));
       const addressType = RelayerHelpers.getAddressType(chain.name);
       const gasPrice = RelayerHelpers.getGasPrice(chain.name, chain.denom);
@@ -110,9 +114,10 @@ key_name = "${chainId}"
 ${chain.ics?.enabled ? 'ccv_consumer_chain = true' : ''}
 rpc_addr = "http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657"
 grpc_addr = "http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:9090"
-${eventSourceConfig.mode === 'pull' 
-  ? `event_source = { mode = 'pull', interval = '${eventSourceConfig.interval || '500ms'}' }`
-  : `event_source = { mode = 'push', url = "ws://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657/websocket", batch_delay = '${eventSourceConfig.batch_delay || '500ms'}' }`
+${
+  eventSourceConfig.mode === 'pull'
+    ? `event_source = { mode = 'pull', interval = '${eventSourceConfig.interval || '500ms'}' }`
+    : `event_source = { mode = 'push', url = "ws://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657/websocket", batch_delay = '${eventSourceConfig.batch_delay || '500ms'}' }`
 }
 trusted_node = false
 account_prefix = "${chainConfig.account_prefix || chain.prefix}"
@@ -193,7 +198,9 @@ export class HermesServiceGenerator implements IRelayerServiceGenerator {
 /**
  * StatefulSet generator for Hermes relayer
  */
-export class HermesStatefulSetGenerator implements IRelayerStatefulSetGenerator {
+export class HermesStatefulSetGenerator
+  implements IRelayerStatefulSetGenerator
+{
   private config: StarshipConfig;
   private relayer: Relayer;
 
@@ -204,7 +211,7 @@ export class HermesStatefulSetGenerator implements IRelayerStatefulSetGenerator 
 
   statefulSet(): StatefulSet {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
-    
+
     return {
       apiVersion: 'apps/v1',
       kind: 'StatefulSet',
@@ -262,19 +269,23 @@ export class HermesStatefulSetGenerator implements IRelayerStatefulSetGenerator 
     // Add exposer init container
     initContainers.push({
       name: 'init-exposer',
-      image: this.config.exposer?.image || 'ghcr.io/cosmology-tech/starship/exposer:v0.2.0',
+      image:
+        this.config.exposer?.image ||
+        'ghcr.io/cosmology-tech/starship/exposer:v0.2.0',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       command: ['bash', '-c'],
       args: [
         '# Install exposer binary from the image\ncp /bin/exposer /exposer/exposer\nchmod +x /exposer/exposer'
       ],
-      resources: TemplateHelpers.getResourceObject(this.relayer.resources || { cpu: '0.1', memory: '100M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.relayer.resources || { cpu: '0.1', memory: '100M' }
+      ),
       volumeMounts: [{ mountPath: '/exposer', name: 'exposer' }]
     });
 
     // Add wait init containers for all chains
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
       const chainName = TemplateHelpers.chainName(String(chain.id));
@@ -302,12 +313,16 @@ export class HermesStatefulSetGenerator implements IRelayerStatefulSetGenerator 
   }
 
   private generateHermesInitContainer(): any {
-    const image = this.relayer.image || 'ghcr.io/cosmology-tech/starship/hermes:1.10.0';
+    const image =
+      this.relayer.image || 'ghcr.io/cosmology-tech/starship/hermes:1.10.0';
     const env = [
       { name: 'KEYS_CONFIG', value: '/keys/keys.json' },
       { name: 'RELAYER_DIR', value: '/root/.hermes' },
       { name: 'RELAYER_INDEX', value: '${HOSTNAME##*-}' },
-      { name: 'NAMESPACE', valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } } }
+      {
+        name: 'NAMESPACE',
+        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+      }
     ];
 
     const command = this.generateHermesInitCommand();
@@ -319,7 +334,9 @@ export class HermesStatefulSetGenerator implements IRelayerStatefulSetGenerator 
       env,
       command: ['bash', '-c'],
       args: [command],
-      resources: TemplateHelpers.getResourceObject(this.relayer.resources || { cpu: '0.2', memory: '200M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.relayer.resources || { cpu: '0.2', memory: '200M' }
+      ),
       volumeMounts: [
         { mountPath: '/root', name: 'relayer' },
         { mountPath: '/configs', name: 'relayer-config' },
@@ -335,14 +352,17 @@ export class HermesStatefulSetGenerator implements IRelayerStatefulSetGenerator 
     // Main hermes container
     containers.push({
       name: 'relayer',
-      image: this.relayer.image || 'ghcr.io/cosmology-tech/starship/hermes:1.10.0',
+      image:
+        this.relayer.image || 'ghcr.io/cosmology-tech/starship/hermes:1.10.0',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [{ name: 'RELAYER_DIR', value: '/root/.hermes' }],
       command: ['bash', '-c'],
       args: [
         'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nhermes start'
       ],
-      resources: TemplateHelpers.getResourceObject(this.relayer.resources || { cpu: '0.2', memory: '200M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.relayer.resources || { cpu: '0.2', memory: '200M' }
+      ),
       securityContext: {
         allowPrivilegeEscalation: false,
         runAsUser: 0
@@ -356,7 +376,8 @@ export class HermesStatefulSetGenerator implements IRelayerStatefulSetGenerator 
     // Exposer container
     containers.push({
       name: 'exposer',
-      image: this.relayer.image || 'ghcr.io/cosmology-tech/starship/hermes:1.10.0',
+      image:
+        this.relayer.image || 'ghcr.io/cosmology-tech/starship/hermes:1.10.0',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
         { name: 'EXPOSER_HTTP_PORT', value: '8081' },
@@ -364,7 +385,9 @@ export class HermesStatefulSetGenerator implements IRelayerStatefulSetGenerator 
       ],
       command: ['bash', '-c'],
       args: ['/exposer/exposer'],
-      resources: TemplateHelpers.getResourceObject(this.config.exposer?.resources || { cpu: '0.1', memory: '100M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.config.exposer?.resources || { cpu: '0.1', memory: '100M' }
+      ),
       securityContext: {
         allowPrivilegeEscalation: false,
         runAsUser: 0
@@ -382,7 +405,10 @@ export class HermesStatefulSetGenerator implements IRelayerStatefulSetGenerator 
   private generateVolumes(): any[] {
     return [
       { name: 'relayer', emptyDir: {} },
-      { name: 'relayer-config', configMap: { name: `${this.relayer.type}-${this.relayer.name}` } },
+      {
+        name: 'relayer-config',
+        configMap: { name: `${this.relayer.type}-${this.relayer.name}` }
+      },
       { name: 'keys', configMap: { name: 'keys' } },
       { name: 'scripts', configMap: { name: 'setup-scripts' } },
       { name: 'exposer', emptyDir: {} }
@@ -408,7 +434,7 @@ echo $MNEMONIC_CLI > $RELAYER_DIR/mnemonic-cli.txt
 
     // Add key creation and funding for each chain
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
       const chainName = TemplateHelpers.chainName(String(chain.id));
@@ -475,4 +501,4 @@ export class HermesRelayerBuilder extends BaseRelayerBuilder {
       this.statefulSetGenerator.statefulSet()
     ];
   }
-} 
+}

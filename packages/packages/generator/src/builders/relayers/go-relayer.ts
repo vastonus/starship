@@ -2,12 +2,12 @@ import { Relayer, StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, StatefulSet } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../../helpers';
+import { getGeneratorVersion } from '../../version';
 import {
   BaseRelayerBuilder,
   IRelayerConfigMapGenerator,
   IRelayerStatefulSetGenerator
 } from './base';
-import { getGeneratorVersion } from '../../version';
 
 /**
  * ConfigMap generator for Go Relayer
@@ -39,7 +39,7 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
 
     // Generate individual chain configs
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) {
         throw new Error(`Chain ${chainId} not found in configuration`);
       }
@@ -56,7 +56,7 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
 
   private generatePathConfig(): string {
     const paths: Record<string, any> = {};
-    
+
     if (this.relayer.channels && this.relayer.channels.length > 0) {
       this.relayer.channels.forEach((channel, index) => {
         const pathName = `path${index}`;
@@ -85,7 +85,7 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
       // Generate a default path using the first two chains
       const srcChainId = this.relayer.chains[0];
       const dstChainId = this.relayer.chains[1];
-      
+
       paths['path'] = {
         src: {
           'chain-id': srcChainId,
@@ -114,7 +114,8 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
   private generateChainConfig(chainId: string, chain: any): string {
     const chainName = TemplateHelpers.chainName(String(chain.id));
     const relayerConfig = this.relayer.config || {};
-    const chainConfig = relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
+    const chainConfig =
+      relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
 
     const config = {
       type: 'cosmos',
@@ -127,7 +128,7 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
         'gas-adjustment': chainConfig.gas_adjustment || 1.2,
         'gas-prices': `${chainConfig.gas_prices || '0.01'}${chain.denom}`,
         'min-gas-amount': chainConfig.min_gas_amount || 0,
-        'debug': chainConfig.debug || false,
+        debug: chainConfig.debug || false,
         timeout: chainConfig.timeout || '20s',
         'block-timeout': chainConfig.block_timeout || '',
         'output-format': 'json',
@@ -143,7 +144,9 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
 /**
  * StatefulSet generator for Go Relayer
  */
-export class GoRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerator {
+export class GoRelayerStatefulSetGenerator
+  implements IRelayerStatefulSetGenerator
+{
   private config: StarshipConfig;
   private relayer: Relayer;
 
@@ -154,7 +157,7 @@ export class GoRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
 
   statefulSet(): StatefulSet {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
-    
+
     return {
       apiVersion: 'apps/v1',
       kind: 'StatefulSet',
@@ -211,7 +214,7 @@ export class GoRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
 
     // Add wait init containers for all chains
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
       const chainName = TemplateHelpers.chainName(String(chain.id));
@@ -239,12 +242,16 @@ export class GoRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
   }
 
   private generateGoRelayerInitContainer(): any {
-    const image = this.relayer.image || 'ghcr.io/cosmology-tech/starship/go-relayer:v2.4.1';
+    const image =
+      this.relayer.image || 'ghcr.io/cosmology-tech/starship/go-relayer:v2.4.1';
     const env = [
       { name: 'KEYS_CONFIG', value: '/keys/keys.json' },
       { name: 'RELAYER_DIR', value: '/root/.relayer' },
       { name: 'RELAYER_INDEX', value: '${HOSTNAME##*-}' },
-      { name: 'NAMESPACE', valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } } }
+      {
+        name: 'NAMESPACE',
+        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+      }
     ];
 
     const command = this.generateGoRelayerInitCommand();
@@ -256,7 +263,9 @@ export class GoRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
       env,
       command: ['bash', '-c'],
       args: [command],
-      resources: TemplateHelpers.getResourceObject(this.relayer.resources || { cpu: '0.2', memory: '200M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.relayer.resources || { cpu: '0.2', memory: '200M' }
+      ),
       volumeMounts: [
         { mountPath: '/root', name: 'relayer' },
         { mountPath: '/configs', name: 'relayer-config' },
@@ -272,14 +281,18 @@ export class GoRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
     // Main go-relayer container
     containers.push({
       name: 'relayer',
-      image: this.relayer.image || 'ghcr.io/cosmology-tech/starship/go-relayer:v2.4.1',
+      image:
+        this.relayer.image ||
+        'ghcr.io/cosmology-tech/starship/go-relayer:v2.4.1',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [{ name: 'RELAYER_DIR', value: '/root/.relayer' }],
       command: ['bash', '-c'],
       args: [
         'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nrly start'
       ],
-      resources: TemplateHelpers.getResourceObject(this.relayer.resources || { cpu: '0.2', memory: '200M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.relayer.resources || { cpu: '0.2', memory: '200M' }
+      ),
       securityContext: {
         allowPrivilegeEscalation: false,
         runAsUser: 0
@@ -296,7 +309,10 @@ export class GoRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
   private generateVolumes(): any[] {
     return [
       { name: 'relayer', emptyDir: {} },
-      { name: 'relayer-config', configMap: { name: `${this.relayer.type}-${this.relayer.name}` } },
+      {
+        name: 'relayer-config',
+        configMap: { name: `${this.relayer.type}-${this.relayer.name}` }
+      },
       { name: 'keys', configMap: { name: 'keys' } },
       { name: 'scripts', configMap: { name: 'setup-scripts' } }
     ];
@@ -317,7 +333,7 @@ MNEMONIC=$(jq -r ".relayers[$RLY_INDEX].mnemonic" $KEYS_CONFIG)
 
     // Add chain configurations and key creation
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
       const chainName = TemplateHelpers.chainName(String(chain.id));
@@ -379,7 +395,10 @@ export class GoRelayerBuilder extends BaseRelayerBuilder {
   constructor(config: StarshipConfig, relayer: Relayer) {
     super(config, relayer);
     this.configMapGenerator = new GoRelayerConfigMapGenerator(config, relayer);
-    this.statefulSetGenerator = new GoRelayerStatefulSetGenerator(config, relayer);
+    this.statefulSetGenerator = new GoRelayerStatefulSetGenerator(
+      config,
+      relayer
+    );
   }
 
   buildManifests(): (ConfigMap | StatefulSet)[] {
@@ -388,4 +407,4 @@ export class GoRelayerBuilder extends BaseRelayerBuilder {
       this.statefulSetGenerator.statefulSet()
     ];
   }
-} 
+}

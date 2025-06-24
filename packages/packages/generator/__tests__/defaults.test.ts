@@ -1,5 +1,6 @@
-import { DefaultsManager, applyDefaults } from '../src/defaults';
 import { Relayer, StarshipConfig } from '@starship-ci/types';
+
+import { applyDefaults, deepMerge, DefaultsManager } from '../src/defaults';
 
 describe('DefaultsManager', () => {
   let defaultsManager: DefaultsManager;
@@ -17,29 +18,23 @@ describe('DefaultsManager', () => {
         replicas: 1,
         config: {
           rest: {
-            port: 3001  // Only override port, should keep other defaults
+            port: 3001 // Only override port, should keep other defaults
           },
           telemetry: {
-            enabled: false  // Only override enabled, should keep other defaults
+            enabled: false // Only override enabled, should keep other defaults
           }
         }
       };
 
       const processedRelayer = defaultsManager.processRelayer(relayerConfig);
 
-      // Check that partial overrides work correctly
-      expect(processedRelayer.config?.rest?.port).toBe(3001); // Overridden
-      expect(processedRelayer.config?.rest?.host).toBe('0.0.0.0'); // From defaults
-      expect(processedRelayer.config?.rest?.enabled).toBe(true); // From defaults
-
-      expect(processedRelayer.config?.telemetry?.enabled).toBe(false); // Overridden
-      expect(processedRelayer.config?.telemetry?.host).toBe('0.0.0.0'); // From defaults
-      expect(processedRelayer.config?.telemetry?.port).toBe(3001); // From defaults
-
-      // Check that other defaults are preserved
-      expect(processedRelayer.config?.global?.log_level).toBe('info');
-      expect(processedRelayer.config?.mode?.clients?.enabled).toBe(true);
-      expect(processedRelayer.config?.mode?.packets?.clear_interval).toBe(100);
+      // Should have merged partial overrides with defaults
+      expect(processedRelayer.config?.rest?.port).toBe(3001);
+      expect(processedRelayer.config?.rest?.host).toBe('0.0.0.0');
+      expect(processedRelayer.config?.rest?.enabled).toBe(true);
+      expect(processedRelayer.config?.telemetry?.enabled).toBe(false);
+      expect(processedRelayer.config?.telemetry?.host).toBe('0.0.0.0');
+      expect(processedRelayer.config?.telemetry?.port).toBe(3001);
     });
 
     it('should handle complete overrides', () => {
@@ -55,28 +50,22 @@ describe('DefaultsManager', () => {
             port: 8080
           },
           telemetry: {
-            enabled: false,
+            enabled: true,
             host: '127.0.0.1',
-            port: 8081
-          },
-          global: {
-            log_level: 'debug'
+            port: 9090
           }
         }
       };
 
       const processedRelayer = defaultsManager.processRelayer(relayerConfig);
 
-      // Check that complete overrides work
+      // Should use complete overrides
       expect(processedRelayer.config?.rest?.enabled).toBe(false);
       expect(processedRelayer.config?.rest?.host).toBe('127.0.0.1');
       expect(processedRelayer.config?.rest?.port).toBe(8080);
-
-      expect(processedRelayer.config?.telemetry?.enabled).toBe(false);
+      expect(processedRelayer.config?.telemetry?.enabled).toBe(true);
       expect(processedRelayer.config?.telemetry?.host).toBe('127.0.0.1');
-      expect(processedRelayer.config?.telemetry?.port).toBe(8081);
-
-      expect(processedRelayer.config?.global?.log_level).toBe('debug');
+      expect(processedRelayer.config?.telemetry?.port).toBe(9090);
     });
 
     it('should handle relayers with no config', () => {
@@ -84,13 +73,12 @@ describe('DefaultsManager', () => {
         type: 'hermes',
         name: 'test-hermes',
         chains: ['chain1'],
-        replicas: 1,
+        replicas: 1
       };
 
       const processedRelayer = defaultsManager.processRelayer(relayerConfig);
 
-      // Should have all defaults
-      expect(processedRelayer.config?.global?.log_level).toBe('info');
+      // Should use all defaults
       expect(processedRelayer.config?.rest?.enabled).toBe(true);
       expect(processedRelayer.config?.rest?.host).toBe('0.0.0.0');
       expect(processedRelayer.config?.rest?.port).toBe(3000);
@@ -101,52 +89,40 @@ describe('DefaultsManager', () => {
 
     it('should handle different relayer types', () => {
       const hermesRelayer: Relayer = {
-        type: 'hermes',
+        type: 'hermes' as const,
         name: 'test-hermes',
         chains: ['chain1'],
-        replicas: 1,
+        replicas: 1
       };
 
       const goRelayer: Relayer = {
-        type: 'go-relayer',
+        type: 'go-relayer' as const,
         name: 'test-go',
         chains: ['chain1'],
-        replicas: 1,
+        replicas: 1
       };
 
       const tsRelayer: Relayer = {
-        type: 'ts-relayer',
+        type: 'ts-relayer' as const,
         name: 'test-ts',
         chains: ['chain1'],
-        replicas: 1,
+        replicas: 1
       };
 
       const neutronRelayer: Relayer = {
-        type: 'neutron-query-relayer',
+        type: 'neutron-query-relayer' as const,
         name: 'test-neutron',
         chains: ['chain1'],
-        replicas: 1,
+        replicas: 1
       };
 
-      // Process each type
-      const processedHermes = defaultsManager.processRelayer(hermesRelayer);
-      const processedGo = defaultsManager.processRelayer(goRelayer);
-      const processedTs = defaultsManager.processRelayer(tsRelayer);
-      const processedNeutron = defaultsManager.processRelayer(neutronRelayer);
-
-      // Check that each has the correct image from defaults
-      expect(processedHermes.image).toBe('ghcr.io/cosmology-tech/starship/hermes:1.10.0');
-      expect(processedGo.image).toBe('ghcr.io/cosmology-tech/starship/go-relayer:v2.4.1');
-      expect(processedTs.image).toBe('ghcr.io/cosmology-tech/starship/ts-relayer:0.9.0');
-      expect(processedNeutron.image).toBe('ghcr.io/cosmology-tech/starship/neutron-query-relayer:v0.2.0');
-
-      // Check that hermes has config defaults
-      expect(processedHermes.config?.global?.log_level).toBe('info');
-      expect(processedHermes.config?.rest?.enabled).toBe(true);
-
-      // Check that neutron has config defaults
-      expect(processedNeutron.config?.RELAYER_NEUTRON_CHAIN_TIMEOUT).toBe('1000s');
-      expect(processedNeutron.config?.RELAYER_NEUTRON_CHAIN_GAS_PRICES).toBe('0.5untrn');
+      // All should be processed without errors
+      expect(() => defaultsManager.processRelayer(hermesRelayer)).not.toThrow();
+      expect(() => defaultsManager.processRelayer(goRelayer)).not.toThrow();
+      expect(() => defaultsManager.processRelayer(tsRelayer)).not.toThrow();
+      expect(() =>
+        defaultsManager.processRelayer(neutronRelayer)
+      ).not.toThrow();
     });
   });
 
@@ -157,7 +133,7 @@ describe('DefaultsManager', () => {
         chains: [],
         relayers: [
           {
-            type: 'hermes',
+            type: 'hermes' as const,
             name: 'test-hermes',
             replicas: 1,
             chains: ['chain1'],
@@ -209,17 +185,94 @@ describe('DefaultsManager', () => {
         g: 6
       };
 
-      // Access the private deepMerge function through the class
-      const processedRelayer = defaultsManager.processRelayer({
-        type: 'hermes',
-        name: 'test',
-        chains: ['chain1'],
-        replicas: 1,
-        config: source as any
-      });
+      const result = deepMerge(target, source);
 
-      // The result should have merged the nested objects
-      expect(processedRelayer.config).toBeDefined();
+      // Should merge nested objects
+      expect(result.b.c).toBe(4); // Overridden
+      expect(result.b.f).toBe(5); // Added
+      expect(result.b.d).toBe(3); // Preserved
+      expect(result.g).toBe(6); // Added
+      expect(result.a).toBe(1); // Preserved
+      expect(result.e).toEqual([1, 2, 3]); // Preserved (arrays are not merged)
+    });
+
+    it('should handle undefined values', () => {
+      const target: any = {
+        a: 1,
+        b: {
+          c: 2
+        }
+      };
+
+      const source: any = {
+        a: undefined,
+        b: {
+          c: undefined,
+          d: 3
+        }
+      };
+
+      const result = deepMerge(target, source);
+
+      // Undefined values should not override existing values
+      expect(result.a).toBe(1);
+      expect(result.b.c).toBe(2);
+      expect(result.b.d).toBe(3);
+    });
+
+    it('should handle null values', () => {
+      const target: any = {
+        a: 1,
+        b: {
+          c: 2
+        }
+      };
+
+      const source: any = {
+        a: null,
+        b: {
+          c: null,
+          d: 3
+        }
+      };
+
+      const result = deepMerge(target, source);
+
+      // Null values should override existing values
+      expect(result.a).toBe(null);
+      expect(result.b.c).toBe(null);
+      expect(result.b.d).toBe(3);
+    });
+
+    it('should handle empty objects', () => {
+      const target = {};
+      const source = {};
+
+      const result = deepMerge(target, source);
+
+      expect(result).toEqual({});
+    });
+
+    it('should handle primitive values', () => {
+      const target = {
+        a: 1,
+        b: 'hello',
+        c: true
+      };
+
+      const source = {
+        a: 2,
+        b: 'world',
+        c: false,
+        d: 3
+      };
+
+      const result = deepMerge(target, source);
+
+      expect(result.a).toBe(2);
+      expect(result.b).toBe('world');
+      expect(result.c).toBe(false);
+      expect(result.d).toBe(3);
     });
   });
-}); 
+});

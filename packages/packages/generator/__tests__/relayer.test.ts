@@ -1,11 +1,11 @@
 import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
 
 import { RelayerBuilder } from '../src/builders/relayers';
-import { 
-  singleChainConfig, 
-  twoChainWithHermesConfig, 
+import {
+  neutronRelayerConfig,
+  singleChainConfig,
   twoChainWithGoRelayerConfig,
-  neutronRelayerConfig
+  twoChainWithHermesConfig
 } from './test-utils/config';
 
 describe('RelayerBuilder', () => {
@@ -18,7 +18,7 @@ describe('RelayerBuilder', () => {
       const manifests = builder.buildManifests();
 
       expect(manifests).toEqual([]);
-      
+
       // Snapshot test
       expect(manifests).toMatchSnapshot('no-relayers-empty-manifests');
     });
@@ -29,9 +29,13 @@ describe('RelayerBuilder', () => {
 
       expect(manifests).toHaveLength(3); // ConfigMap, Service, StatefulSet
 
-      const configMap = manifests.find(m => m.kind === 'ConfigMap') as ConfigMap;
-      const service = manifests.find(m => m.kind === 'Service') as Service;
-      const statefulSet = manifests.find(m => m.kind === 'StatefulSet') as StatefulSet;
+      const configMap = manifests.find(
+        (m) => m.kind === 'ConfigMap'
+      ) as ConfigMap;
+      const service = manifests.find((m) => m.kind === 'Service') as Service;
+      const statefulSet = manifests.find(
+        (m) => m.kind === 'StatefulSet'
+      ) as StatefulSet;
 
       expect(configMap).toBeDefined();
       expect(configMap.metadata.name).toBe('hermes-osmos-cosmos');
@@ -55,8 +59,12 @@ describe('RelayerBuilder', () => {
 
       expect(manifests).toHaveLength(2); // ConfigMap, StatefulSet (no service)
 
-      const configMap = manifests.find(m => m.kind === 'ConfigMap') as ConfigMap;
-      const statefulSet = manifests.find(m => m.kind === 'StatefulSet') as StatefulSet;
+      const configMap = manifests.find(
+        (m) => m.kind === 'ConfigMap'
+      ) as ConfigMap;
+      const statefulSet = manifests.find(
+        (m) => m.kind === 'StatefulSet'
+      ) as StatefulSet;
 
       expect(configMap).toBeDefined();
       expect(configMap.metadata.name).toBe('go-relayer-osmos-cosmos');
@@ -88,8 +96,12 @@ describe('RelayerBuilder', () => {
 
       expect(manifests).toHaveLength(2); // ConfigMap, StatefulSet (no service)
 
-      const configMap = manifests.find(m => m.kind === 'ConfigMap') as ConfigMap;
-      const statefulSet = manifests.find(m => m.kind === 'StatefulSet') as StatefulSet;
+      const configMap = manifests.find(
+        (m) => m.kind === 'ConfigMap'
+      ) as ConfigMap;
+      const statefulSet = manifests.find(
+        (m) => m.kind === 'StatefulSet'
+      ) as StatefulSet;
 
       expect(configMap).toBeDefined();
       expect(configMap.metadata.name).toBe('ts-relayer-ts-rly');
@@ -109,18 +121,26 @@ describe('RelayerBuilder', () => {
 
       expect(manifests).toHaveLength(3); // ConfigMap, Service, StatefulSet
 
-      const configMap = manifests.find(m => m.kind === 'ConfigMap') as ConfigMap;
-      const service = manifests.find(m => m.kind === 'Service') as Service;
-      const statefulSet = manifests.find(m => m.kind === 'StatefulSet') as StatefulSet;
+      const configMap = manifests.find(
+        (m) => m.kind === 'ConfigMap'
+      ) as ConfigMap;
+      const service = manifests.find((m) => m.kind === 'Service') as Service;
+      const statefulSet = manifests.find(
+        (m) => m.kind === 'StatefulSet'
+      ) as StatefulSet;
 
       expect(configMap).toBeDefined();
-      expect(configMap.metadata.name).toBe('neutron-query-relayer-neutron-query');
+      expect(configMap.metadata.name).toBe(
+        'neutron-query-relayer-neutron-query'
+      );
 
       expect(service).toBeDefined();
       expect(service.metadata.name).toBe('neutron-query-relayer-neutron-query');
 
       expect(statefulSet).toBeDefined();
-      expect(statefulSet.metadata.name).toBe('neutron-query-relayer-neutron-query');
+      expect(statefulSet.metadata.name).toBe(
+        'neutron-query-relayer-neutron-query'
+      );
 
       // Snapshot test
       expect(manifests).toMatchSnapshot('neutron-query-relayer-manifests');
@@ -148,10 +168,10 @@ describe('RelayerBuilder', () => {
 
       expect(manifests).toHaveLength(5); // hermes (3 manifests) + go-relayer (2 manifests)
 
-      const hermesManifests = manifests.filter(m => 
+      const hermesManifests = manifests.filter((m) =>
         m.metadata.name.includes('osmos-cosmos')
       );
-      const goRelayerManifests = manifests.filter(m => 
+      const goRelayerManifests = manifests.filter((m) =>
         m.metadata.name.includes('go-rly')
       );
 
@@ -159,9 +179,9 @@ describe('RelayerBuilder', () => {
       expect(goRelayerManifests).toHaveLength(2);
 
       // Verify resource types
-      const configMaps = manifests.filter(m => m.kind === 'ConfigMap');
-      const services = manifests.filter(m => m.kind === 'Service');
-      const statefulSets = manifests.filter(m => m.kind === 'StatefulSet');
+      const configMaps = manifests.filter((m) => m.kind === 'ConfigMap');
+      const services = manifests.filter((m) => m.kind === 'Service');
+      const statefulSets = manifests.filter((m) => m.kind === 'StatefulSet');
 
       expect(configMaps).toHaveLength(2); // One per relayer
       expect(services).toHaveLength(1); // Only hermes has service
@@ -187,12 +207,18 @@ describe('RelayerBuilder', () => {
       const builder = new RelayerBuilder(customImageConfig);
       const manifests = builder.buildManifests();
 
-      const statefulSet = manifests.find(m => m.kind === 'StatefulSet') as StatefulSet;
+      const statefulSet = manifests.find(
+        (m) => m.kind === 'StatefulSet'
+      ) as StatefulSet;
       const initContainers = statefulSet.spec.template.spec.initContainers;
       const containers = statefulSet.spec.template.spec.containers;
 
-      const relayerInitContainer = initContainers.find((c: any) => c.name === 'init-relayer');
-      const relayerContainer = containers.find((c: any) => c.name === 'relayer');
+      const relayerInitContainer = initContainers.find(
+        (c: any) => c.name === 'init-relayer'
+      );
+      const relayerContainer = containers.find(
+        (c: any) => c.name === 'relayer'
+      );
 
       expect(relayerInitContainer.image).toBe('custom/hermes:latest');
       expect(relayerContainer.image).toBe('custom/hermes:latest');
@@ -255,19 +281,27 @@ describe('RelayerBuilder', () => {
       const manifests = builder.buildManifests();
 
       // Should have 4 ConfigMaps, 2 Services (hermes + neutron-query), 4 StatefulSets
-      const configMaps = manifests.filter(m => m.kind === 'ConfigMap');
-      const services = manifests.filter(m => m.kind === 'Service');
-      const statefulSets = manifests.filter(m => m.kind === 'StatefulSet');
+      const configMaps = manifests.filter((m) => m.kind === 'ConfigMap');
+      const services = manifests.filter((m) => m.kind === 'Service');
+      const statefulSets = manifests.filter((m) => m.kind === 'StatefulSet');
 
       expect(configMaps).toHaveLength(4);
       expect(services).toHaveLength(2); // Only hermes and neutron-query expose services
       expect(statefulSets).toHaveLength(4);
 
       // Verify each relayer type exists
-      const hermesManifests = manifests.filter(m => m.metadata.name.includes('hermes-relay'));
-      const goRelayerManifests = manifests.filter(m => m.metadata.name.includes('go-relay'));
-      const tsRelayerManifests = manifests.filter(m => m.metadata.name.includes('ts-relay'));
-      const neutronManifests = manifests.filter(m => m.metadata.name.includes('neutron-query-relay'));
+      const hermesManifests = manifests.filter((m) =>
+        m.metadata.name.includes('hermes-relay')
+      );
+      const goRelayerManifests = manifests.filter((m) =>
+        m.metadata.name.includes('go-relay')
+      );
+      const tsRelayerManifests = manifests.filter((m) =>
+        m.metadata.name.includes('ts-relay')
+      );
+      const neutronManifests = manifests.filter((m) =>
+        m.metadata.name.includes('neutron-query-relay')
+      );
 
       expect(hermesManifests).toHaveLength(3);
       expect(goRelayerManifests).toHaveLength(2);
@@ -284,25 +318,41 @@ describe('RelayerBuilder', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
       const manifests = builder.buildManifests();
 
-      const configMap = manifests.find(m => m.kind === 'ConfigMap') as ConfigMap;
-      const service = manifests.find(m => m.kind === 'Service') as Service;
-      const statefulSet = manifests.find(m => m.kind === 'StatefulSet') as StatefulSet;
+      const configMap = manifests.find(
+        (m) => m.kind === 'ConfigMap'
+      ) as ConfigMap;
+      const service = manifests.find((m) => m.kind === 'Service') as Service;
+      const statefulSet = manifests.find(
+        (m) => m.kind === 'StatefulSet'
+      ) as StatefulSet;
 
       // Check ConfigMap labels
       expect(configMap.metadata.labels).toBeDefined();
-      expect(configMap.metadata.labels['app.kubernetes.io/component']).toBe('relayer');
-      expect(configMap.metadata.labels['app.kubernetes.io/part-of']).toBe('starship');
-      expect(configMap.metadata.labels['app.kubernetes.io/role']).toBe('hermes');
+      expect(configMap.metadata.labels['app.kubernetes.io/component']).toBe(
+        'relayer'
+      );
+      expect(configMap.metadata.labels['app.kubernetes.io/part-of']).toBe(
+        'starship'
+      );
+      expect(configMap.metadata.labels['app.kubernetes.io/role']).toBe(
+        'hermes'
+      );
 
       // Check Service labels
       expect(service.metadata.labels).toBeDefined();
-      expect(service.metadata.labels['app.kubernetes.io/component']).toBe('relayer');
+      expect(service.metadata.labels['app.kubernetes.io/component']).toBe(
+        'relayer'
+      );
 
       // Check StatefulSet labels and selectors
       expect(statefulSet.metadata.labels).toBeDefined();
       expect(statefulSet.spec.selector.matchLabels).toBeDefined();
-      expect(statefulSet.spec.selector.matchLabels['app.kubernetes.io/instance']).toBe('relayer');
-      expect(statefulSet.spec.selector.matchLabels['app.kubernetes.io/type']).toBe('hermes');
+      expect(
+        statefulSet.spec.selector.matchLabels['app.kubernetes.io/instance']
+      ).toBe('relayer');
+      expect(
+        statefulSet.spec.selector.matchLabels['app.kubernetes.io/type']
+      ).toBe('hermes');
 
       // Snapshot test for labels
       expect({
@@ -317,11 +367,11 @@ describe('RelayerBuilder', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
       const manifests = builder.buildManifests();
 
-      const service = manifests.find(m => m.kind === 'Service') as Service;
+      const service = manifests.find((m) => m.kind === 'Service') as Service;
       const ports = service.spec.ports;
 
       expect(ports).toHaveLength(2);
-      
+
       const restPort = ports.find((p: any) => p.name === 'rest');
       const exposerPort = ports.find((p: any) => p.name === 'exposer');
 
@@ -340,23 +390,33 @@ describe('RelayerBuilder', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
       const manifests = builder.buildManifests();
 
-      const statefulSet = manifests.find(m => m.kind === 'StatefulSet') as StatefulSet;
+      const statefulSet = manifests.find(
+        (m) => m.kind === 'StatefulSet'
+      ) as StatefulSet;
       const containers = statefulSet.spec.template.spec.containers;
       const initContainers = statefulSet.spec.template.spec.initContainers;
 
       // Should have relayer and exposer containers for hermes
       expect(containers).toHaveLength(2);
-      const relayerContainer = containers.find((c: any) => c.name === 'relayer');
-      const exposerContainer = containers.find((c: any) => c.name === 'exposer');
+      const relayerContainer = containers.find(
+        (c: any) => c.name === 'relayer'
+      );
+      const exposerContainer = containers.find(
+        (c: any) => c.name === 'exposer'
+      );
 
       expect(relayerContainer).toBeDefined();
       expect(exposerContainer).toBeDefined();
 
       // Should have init containers
       expect(initContainers.length).toBeGreaterThan(0);
-      
-      const initExposerContainer = initContainers.find((c: any) => c.name === 'init-exposer');
-      const initRelayerContainer = initContainers.find((c: any) => c.name === 'init-relayer');
+
+      const initExposerContainer = initContainers.find(
+        (c: any) => c.name === 'init-exposer'
+      );
+      const initRelayerContainer = initContainers.find(
+        (c: any) => c.name === 'init-relayer'
+      );
 
       expect(initExposerContainer).toBeDefined();
       expect(initRelayerContainer).toBeDefined();
@@ -374,14 +434,18 @@ describe('RelayerBuilder', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
       const manifests = builder.buildManifests();
 
-      const statefulSet = manifests.find(m => m.kind === 'StatefulSet') as StatefulSet;
+      const statefulSet = manifests.find(
+        (m) => m.kind === 'StatefulSet'
+      ) as StatefulSet;
       const volumes = statefulSet.spec.template.spec.volumes;
 
       expect(volumes.length).toBeGreaterThan(0);
 
       // Check for required volumes
       const relayerVolume = volumes.find((v: any) => v.name === 'relayer');
-      const configVolume = volumes.find((v: any) => v.name === 'relayer-config');
+      const configVolume = volumes.find(
+        (v: any) => v.name === 'relayer-config'
+      );
       const keysVolume = volumes.find((v: any) => v.name === 'keys');
       const scriptsVolume = volumes.find((v: any) => v.name === 'scripts');
       const exposerVolume = volumes.find((v: any) => v.name === 'exposer');
@@ -402,7 +466,9 @@ describe('RelayerBuilder', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
       const manifests = builder.buildManifests();
 
-      const configMap = manifests.find(m => m.kind === 'ConfigMap') as ConfigMap;
+      const configMap = manifests.find(
+        (m) => m.kind === 'ConfigMap'
+      ) as ConfigMap;
       const configToml = configMap.data['config.toml'];
 
       // Verify configuration structure
@@ -419,8 +485,12 @@ describe('RelayerBuilder', () => {
       expect(configToml).toContain('key_name = "cosmoshub-4"');
 
       // Verify RPC endpoints
-      expect(configToml).toContain('rpc_addr = "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657"');
-      expect(configToml).toContain('rpc_addr = "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657"');
+      expect(configToml).toContain(
+        'rpc_addr = "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657"'
+      );
+      expect(configToml).toContain(
+        'rpc_addr = "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657"'
+      );
 
       // Snapshot test for configuration content
       expect(configToml).toMatchSnapshot('hermes-config-toml-content');
@@ -430,7 +500,9 @@ describe('RelayerBuilder', () => {
       const builder = new RelayerBuilder(twoChainWithGoRelayerConfig);
       const manifests = builder.buildManifests();
 
-      const configMap = manifests.find(m => m.kind === 'ConfigMap') as ConfigMap;
+      const configMap = manifests.find(
+        (m) => m.kind === 'ConfigMap'
+      ) as ConfigMap;
       const pathJson = JSON.parse(configMap.data['path.json'] as string);
 
       // Verify path configuration
@@ -444,7 +516,9 @@ describe('RelayerBuilder', () => {
       expect(configMap.data['osmosis-1.json'] as string).toBeDefined();
       expect(configMap.data['cosmoshub-4.json'] as string).toBeDefined();
 
-      const osmosisConfig = JSON.parse(configMap.data['osmosis-1.json'] as string);
+      const osmosisConfig = JSON.parse(
+        configMap.data['osmosis-1.json'] as string
+      );
       expect(osmosisConfig.type).toBe('cosmos');
       expect(osmosisConfig.value['chain-id']).toBe('osmosis-1');
       expect(osmosisConfig.value['rpc-addr']).toContain('osmosis-1-genesis');
@@ -457,4 +531,4 @@ describe('RelayerBuilder', () => {
       }).toMatchSnapshot('go-relayer-config-content');
     });
   });
-}); 
+});

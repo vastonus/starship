@@ -2,12 +2,12 @@ import { Relayer, StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, StatefulSet } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../../helpers';
+import { getGeneratorVersion } from '../../version';
 import {
   BaseRelayerBuilder,
   IRelayerConfigMapGenerator,
   IRelayerStatefulSetGenerator
 } from './base';
-import { getGeneratorVersion } from '../../version';
 
 /**
  * ConfigMap generator for TS Relayer
@@ -50,18 +50,23 @@ export class TsRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
 
     const chains: any = {};
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) {
         throw new Error(`Chain ${chainId} not found in configuration`);
       }
 
       const chainName = TemplateHelpers.chainName(String(chain.id));
-      const chainConfig = relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
+      const chainConfig =
+        relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
 
       chains[chainId] = {
         chain_id: chainId,
-        rpc: [`http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`],
-        rest: [`http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:1317`],
+        rpc: [
+          `http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`
+        ],
+        rest: [
+          `http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:1317`
+        ],
         chain_name: chain.name,
         pretty_name: chainConfig.pretty_name || chain.name,
         prefix: chain.prefix,
@@ -124,20 +129,23 @@ export class TsRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
     }
 
     return `# TS Relayer Configuration
-${Object.entries(appConfig).map(([key, value]) => `${key}: ${JSON.stringify(value, null, 2)}`).join('\n\n')}`;
+${Object.entries(appConfig)
+  .map(([key, value]) => `${key}: ${JSON.stringify(value, null, 2)}`)
+  .join('\n\n')}`;
   }
 
   private generateRegistryConfig(): string {
     const chains: any[] = [];
-    
+
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) {
         throw new Error(`Chain ${chainId} not found in configuration`);
       }
 
       const chainName = TemplateHelpers.chainName(String(chain.id));
-      const chainConfig = this.relayer.config?.chains?.find((c: any) => c.id === chainId) || {};
+      const chainConfig =
+        this.relayer.config?.chains?.find((c: any) => c.id === chainId) || {};
 
       chains.push({
         chain_name: chain.name,
@@ -196,14 +204,23 @@ ${Object.entries(appConfig).map(([key, value]) => `${key}: ${JSON.stringify(valu
 
     return `# Chain Registry Configuration
 chains:
-${chains.map(chain => `  - ${Object.entries(chain).map(([key, value]) => `${key}: ${JSON.stringify(value, null, 4)}`).join('\n    ')}`).join('\n')}`;
+${chains
+  .map(
+    (chain) =>
+      `  - ${Object.entries(chain)
+        .map(([key, value]) => `${key}: ${JSON.stringify(value, null, 4)}`)
+        .join('\n    ')}`
+  )
+  .join('\n')}`;
   }
 }
 
 /**
  * StatefulSet generator for TS Relayer
  */
-export class TsRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerator {
+export class TsRelayerStatefulSetGenerator
+  implements IRelayerStatefulSetGenerator
+{
   private config: StarshipConfig;
   private relayer: Relayer;
 
@@ -214,7 +231,7 @@ export class TsRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
 
   statefulSet(): StatefulSet {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
-    
+
     return {
       apiVersion: 'apps/v1',
       kind: 'StatefulSet',
@@ -271,7 +288,7 @@ export class TsRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
 
     // Add wait init containers for all chains
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
       const chainName = TemplateHelpers.chainName(String(chain.id));
@@ -299,12 +316,16 @@ export class TsRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
   }
 
   private generateTsRelayerInitContainer(): any {
-    const image = this.relayer.image || 'ghcr.io/cosmology-tech/starship/ts-relayer:0.9.0';
+    const image =
+      this.relayer.image || 'ghcr.io/cosmology-tech/starship/ts-relayer:0.9.0';
     const env = [
       { name: 'KEYS_CONFIG', value: '/keys/keys.json' },
       { name: 'RELAYER_DIR', value: '/root/.ts-relayer' },
       { name: 'RELAYER_INDEX', value: '${HOSTNAME##*-}' },
-      { name: 'NAMESPACE', valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } } }
+      {
+        name: 'NAMESPACE',
+        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+      }
     ];
 
     const command = this.generateTsRelayerInitCommand();
@@ -316,7 +337,9 @@ export class TsRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
       env,
       command: ['bash', '-c'],
       args: [command],
-      resources: TemplateHelpers.getResourceObject(this.relayer.resources || { cpu: '0.2', memory: '200M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.relayer.resources || { cpu: '0.2', memory: '200M' }
+      ),
       volumeMounts: [
         { mountPath: '/root', name: 'relayer' },
         { mountPath: '/configs', name: 'relayer-config' },
@@ -332,14 +355,18 @@ export class TsRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
     // Main ts-relayer container
     containers.push({
       name: 'relayer',
-      image: this.relayer.image || 'ghcr.io/cosmology-tech/starship/ts-relayer:0.9.0',
+      image:
+        this.relayer.image ||
+        'ghcr.io/cosmology-tech/starship/ts-relayer:0.9.0',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [{ name: 'RELAYER_DIR', value: '/root/.ts-relayer' }],
       command: ['bash', '-c'],
       args: [
         'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nts-relayer start'
       ],
-      resources: TemplateHelpers.getResourceObject(this.relayer.resources || { cpu: '0.2', memory: '200M' }),
+      resources: TemplateHelpers.getResourceObject(
+        this.relayer.resources || { cpu: '0.2', memory: '200M' }
+      ),
       securityContext: {
         allowPrivilegeEscalation: false,
         runAsUser: 0
@@ -356,7 +383,10 @@ export class TsRelayerStatefulSetGenerator implements IRelayerStatefulSetGenerat
   private generateVolumes(): any[] {
     return [
       { name: 'relayer', emptyDir: {} },
-      { name: 'relayer-config', configMap: { name: `${this.relayer.type}-${this.relayer.name}` } },
+      {
+        name: 'relayer-config',
+        configMap: { name: `${this.relayer.type}-${this.relayer.name}` }
+      },
       { name: 'keys', configMap: { name: 'keys' } },
       { name: 'scripts', configMap: { name: 'setup-scripts' } }
     ];
@@ -378,7 +408,7 @@ MNEMONIC=$(jq -r ".relayers[$RLY_INDEX].mnemonic" $KEYS_CONFIG)
 
     // Add key creation and funding for each chain
     this.relayer.chains.forEach((chainId) => {
-      const chain = this.config.chains.find(c => String(c.id) === chainId);
+      const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
       const chainName = TemplateHelpers.chainName(String(chain.id));
@@ -435,7 +465,10 @@ export class TsRelayerBuilder extends BaseRelayerBuilder {
   constructor(config: StarshipConfig, relayer: Relayer) {
     super(config, relayer);
     this.configMapGenerator = new TsRelayerConfigMapGenerator(config, relayer);
-    this.statefulSetGenerator = new TsRelayerStatefulSetGenerator(config, relayer);
+    this.statefulSetGenerator = new TsRelayerStatefulSetGenerator(
+      config,
+      relayer
+    );
   }
 
   buildManifests(): (ConfigMap | StatefulSet)[] {
@@ -444,4 +477,4 @@ export class TsRelayerBuilder extends BaseRelayerBuilder {
       this.statefulSetGenerator.statefulSet()
     ];
   }
-} 
+}

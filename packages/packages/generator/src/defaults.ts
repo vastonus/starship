@@ -1,9 +1,9 @@
 import {
   Chain,
   FaucetConfig,
+  Relayer,
   Script,
-  StarshipConfig,
-  Relayer
+  StarshipConfig
 } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
@@ -17,19 +17,23 @@ export { ProcessedChain };
 /**
  * Deep merge utility for nested objects
  */
-function deepMerge(target: any, source: any): any {
+export function deepMerge(target: any, source: any): any {
   const result = { ...target };
-  
-  for (const key in source) {
+
+  Object.keys(source).forEach((key) => {
     if (source[key] !== undefined) {
-      if (source[key] && typeof source[key] === 'object' && !Array.isArray(source[key])) {
+      if (
+        source[key] &&
+        typeof source[key] === 'object' &&
+        !Array.isArray(source[key])
+      ) {
         result[key] = deepMerge(result[key] || {}, source[key]);
       } else {
         result[key] = source[key];
       }
     }
-  }
-  
+  });
+
   return result;
 }
 
@@ -230,17 +234,17 @@ export class DefaultsManager {
  */
 export function applyDefaults(config: StarshipConfig): StarshipConfig {
   const defaultsManager = new DefaultsManager();
-  const processedChains = config.chains.map((chain) =>
+  const processedChains = config.chains?.map((chain: Chain) =>
     defaultsManager.processChain(chain)
   );
 
   const processedConfig: StarshipConfig = {
     ...config,
-    chains: processedChains,
+    chains: processedChains
   };
 
   if (config.relayers && config.relayers?.length > 0) {
-    const processedRelayers = config.relayers.map((relayer) =>
+    const processedRelayers = config.relayers.map((relayer: Relayer) =>
       defaultsManager.processRelayer(relayer)
     );
     processedConfig.relayers = processedRelayers;
