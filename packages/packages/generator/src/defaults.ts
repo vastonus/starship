@@ -17,7 +17,7 @@ export { ProcessedChain };
 /**
  * Deep merge utility for nested objects
  */
-export function deepMerge<T>(target: T, source: Partial<T>): T {
+export function deepMerge(target: any, source: any): any {
   const result = { ...target };
 
   Object.keys(source).forEach((key) => {
