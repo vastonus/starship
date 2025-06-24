@@ -1,10 +1,8 @@
 import { StarshipConfig } from '@starship-ci/types';
-import * as fs from 'fs';
-import * as yaml from 'js-yaml';
 import { ConfigMap, Deployment, Service } from 'kubernetesjs';
-import * as path from 'path';
 
 import { TemplateHelpers } from '../helpers';
+import { Manifest } from '../types';
 
 /**
  * ConfigMap generator for Registry service
@@ -17,7 +15,7 @@ export class RegistryConfigMapGenerator {
     this.config = config;
   }
 
-  configMap(): ConfigMap {
+  generate(): ConfigMap {
     const chainConfigs: Record<string, string> = {};
     const assetLists: Record<string, string> = {};
 
@@ -68,7 +66,7 @@ export class RegistryServiceGenerator {
     this.config = config;
   }
 
-  service(): Service {
+  generate(): Service {
     return {
       apiVersion: 'v1',
       kind: 'Service',
@@ -111,7 +109,7 @@ export class RegistryDeploymentGenerator {
     this.config = config;
   }
 
-  deployment(): Deployment {
+  generate(): Deployment {
     const volumeMounts = this.config.chains.map((chain) => ({
       name: `chain-${TemplateHelpers.chainName(String(chain.id))}`,
       mountPath: `/chains/${chain.id}`
@@ -153,9 +151,7 @@ export class RegistryDeploymentGenerator {
             containers: [
               {
                 name: 'registry',
-                image:
-                  this.config.registry?.image ||
-                  'ghcr.io/cosmology-tech/starship/registry:latest',
+                image: this.config.registry?.image, 
                 ports: [
                   {
                     name: 'http',
@@ -201,12 +197,7 @@ export class RegistryDeploymentGenerator {
                   }
                 ],
                 volumeMounts,
-                resources: TemplateHelpers.getResourceObject(
-                  this.config.registry?.resources || {
-                    cpu: '0.1',
-                    memory: '128M'
-                  }
-                ),
+                resources: TemplateHelpers.getResourceObject(this.config.registry?.resources),
                 readinessProbe: {
                   httpGet: {
                     path: '/health',
@@ -253,79 +244,15 @@ export class RegistryBuilder {
   /**
    * Build all Kubernetes manifests for the Registry service
    */
-  buildManifests(): (ConfigMap | Service | Deployment)[] {
+  buildManifests(): Manifest[] {
+    if (!this.config.registry) {
+      return [];
+    }
+
     return [
-      this.configMapGenerator.configMap(),
-      this.serviceGenerator.service(),
-      this.deploymentGenerator.deployment()
+      this.configMapGenerator.generate(),
+      this.serviceGenerator.generate(),
+      this.deploymentGenerator.generate()
     ];
-  }
-
-  /**
-   * Generate and write YAML files for the Registry service
-   */
-  generateFiles(outputDir?: string): void {
-    const targetDir = outputDir || 'registry';
-    if (!targetDir) {
-      throw new Error(
-        'Output directory must be provided either in constructor or method call'
-      );
-    }
-
-    const manifests = this.buildManifests();
-
-    // Skip if no manifests to write
-    if (manifests.length === 0) {
-      return;
-    }
-
-    this.writeManifests(manifests, targetDir);
-  }
-
-  /**
-   * Write manifests to the directory structure:
-   * registry/
-   *   configmap.yaml: chain configurations
-   *   service.yaml: registry service
-   *   deployment.yaml: registry deployment
-   */
-  writeManifests(
-    manifests: Array<ConfigMap | Service | Deployment>,
-    outputDir: string
-  ): void {
-    const registryDir = path.join(outputDir, 'registry');
-
-    // Create registry directory
-    fs.mkdirSync(registryDir, { recursive: true });
-
-    // Separate manifests by type
-    const configMaps = manifests.filter(
-      (m) => m.kind === 'ConfigMap'
-    ) as ConfigMap[];
-    const services = manifests.filter((m) => m.kind === 'Service') as Service[];
-    const deployments = manifests.filter(
-      (m) => m.kind === 'Deployment'
-    ) as Deployment[];
-
-    // Write ConfigMaps
-    if (configMaps.length > 0) {
-      const configMapYaml = configMaps.map((cm) => yaml.dump(cm)).join('---\n');
-      fs.writeFileSync(path.join(registryDir, 'configmap.yaml'), configMapYaml);
-    }
-
-    // Write Services
-    if (services.length > 0) {
-      const serviceYaml = services.map((svc) => yaml.dump(svc)).join('---\n');
-      fs.writeFileSync(path.join(registryDir, 'service.yaml'), serviceYaml);
-    }
-
-    // Write Deployments
-    if (deployments.length > 0) {
-      const deploymentYaml = deployments.map((d) => yaml.dump(d)).join('---\n');
-      fs.writeFileSync(
-        path.join(registryDir, 'deployment.yaml'),
-        deploymentYaml
-      );
-    }
   }
 }

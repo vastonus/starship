@@ -1,21 +1,23 @@
-import { StarshipConfig } from '@starship-ci/types';
+import { StarshipConfig, Frontend } from '@starship-ci/types';
 
 import { TemplateHelpers } from '../helpers';
 import { getGeneratorVersion } from '../version';
+import { Deployment, Service } from 'kubernetesjs';
+import { Manifest } from '../types';
 
 /**
  * Service generator for Frontend services
  */
 export class FrontendServiceGenerator {
   private config: StarshipConfig;
-  private frontend: any;
+  private frontend: Frontend;
 
-  constructor(config: StarshipConfig, frontend: any) {
+  constructor(config: StarshipConfig, frontend: Frontend) {
     this.config = config;
     this.frontend = frontend;
   }
 
-  service(): any {
+  generate(): Service {
     return {
       apiVersion: 'v1',
       kind: 'Service',
@@ -53,14 +55,14 @@ export class FrontendServiceGenerator {
  */
 export class FrontendDeploymentGenerator {
   private config: StarshipConfig;
-  private frontend: any;
+  private frontend: Frontend;
 
-  constructor(config: StarshipConfig, frontend: any) {
+  constructor(config: StarshipConfig, frontend: Frontend) {
     this.config = config;
     this.frontend = frontend;
   }
 
-  deployment(): any {
+  generate(): Deployment {
     return {
       apiVersion: 'apps/v1',
       kind: 'Deployment',
@@ -136,8 +138,8 @@ export class FrontendBuilder {
     this.config = config;
   }
 
-  buildManifests(): any[] {
-    const manifests: any[] = [];
+  buildManifests(): Manifest[] {
+    const manifests: Manifest[] = [];
 
     if (!this.config.frontends || this.config.frontends.length === 0) {
       return manifests;
@@ -153,8 +155,8 @@ export class FrontendBuilder {
         frontend
       );
 
-      manifests.push(serviceGenerator.service());
-      manifests.push(deploymentGenerator.deployment());
+      manifests.push(serviceGenerator.generate());
+      manifests.push(deploymentGenerator.generate());
     });
 
     return manifests;
