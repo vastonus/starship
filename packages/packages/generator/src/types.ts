@@ -3,7 +3,15 @@ import {
   FaucetConfig,
   Relayer,
   Script,
-  StarshipConfig
+  StarshipConfig,
+  Images,
+  Resources,
+  Exposer,
+  TimeoutConfig,
+  Explorer,
+  Registry,
+  Monitoring,
+  Ingress
 } from '@starship-ci/types';
 
 export interface EnvVar {
@@ -41,13 +49,16 @@ export interface DefaultsConfig {
   defaultRelayers: Record<string, Relayer>;
   defaultScripts: Record<string, Script>;
   defaultCometmock: CometmockDefault;
-}
-
-export interface ProcessedChain extends Chain {
-  hostname: string;
-  accounts: Array<{
-    name: string;
-    mnemonic: string;
-    address: string;
-  }>;
+  images?: Images;
+  resources?: {
+    node: Resources;
+    wait: Resources;
+  };
+  exposer?: Exposer;
+  timeouts?: TimeoutConfig;
+  explorer?: Explorer;
+  registry?: Registry;
+  faucet?: FaucetConfig;
+  monitoring?: Monitoring;
+  ingress?: Ingress;
 }
