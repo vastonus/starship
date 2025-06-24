@@ -245,7 +245,6 @@ export interface Exposer {
 // Main config interface
 export interface StarshipConfig {
   name: string;
-  version?: string;
   resources?: {
     node?: Resources;
     wait?: Resources;

@@ -1,6 +1,7 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
 
 import { EnvVar } from './types';
+import { getGeneratorVersion } from './version';
 
 export class TemplateHelpers {
   /**
@@ -26,7 +27,7 @@ export class TemplateHelpers {
   static commonLabels(config: StarshipConfig): Record<string, string> {
     return {
       ...this.selectorLabels(config),
-      'app.kubernetes.io/version': config.version,
+      'app.kubernetes.io/version': getGeneratorVersion(),
       'app.kubernetes.io/managed-by': 'starship'
     };
   }

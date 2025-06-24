@@ -6,6 +6,7 @@ import * as path from 'path';
 import { DefaultsManager } from '../defaults';
 import { TemplateHelpers } from '../helpers';
 import { ScriptManager } from '../scripts';
+import { getGeneratorVersion } from '../version';
 
 // Helper functions
 function getHostname(chain: Chain): string {
@@ -323,7 +324,7 @@ export class CosmosStatefulSetGenerator {
               'app.kubernetes.io/type': getChainId(this.chain),
               'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`,
               'app.kubernetes.io/rawname': getChainId(this.chain),
-              'app.kubernetes.io/version': this.config.version || '1.8.0',
+              'app.kubernetes.io/version': getGeneratorVersion(),
               'app.kubernetes.io/role': 'genesis'
             }
           },
@@ -380,7 +381,7 @@ export class CosmosStatefulSetGenerator {
               'app.kubernetes.io/instance': this.config.name,
               'app.kubernetes.io/type': getChainId(this.chain),
               'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`,
-              'app.kubernetes.io/version': this.config.version || '1.8.0',
+              'app.kubernetes.io/version': getGeneratorVersion(),
               'app.kubernetes.io/role': 'validator'
             }
           },
