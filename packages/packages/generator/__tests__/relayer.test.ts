@@ -15,7 +15,7 @@ describe('RelayerBuilder', () => {
       delete config.relayers;
 
       const builder = new RelayerBuilder(config);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests).toEqual([]);
 
@@ -25,7 +25,7 @@ describe('RelayerBuilder', () => {
 
     it('should generate manifests for a hermes relayer', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests).toHaveLength(3); // ConfigMap, Service, StatefulSet
 
@@ -55,7 +55,7 @@ describe('RelayerBuilder', () => {
 
     it('should generate manifests for a go-relayer', () => {
       const builder = new RelayerBuilder(twoChainWithGoRelayerConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests).toHaveLength(2); // ConfigMap, StatefulSet (no service)
 
@@ -92,7 +92,7 @@ describe('RelayerBuilder', () => {
       };
 
       const builder = new RelayerBuilder(tsRelayerConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests).toHaveLength(2); // ConfigMap, StatefulSet (no service)
 
@@ -117,7 +117,7 @@ describe('RelayerBuilder', () => {
 
     it('should generate manifests for a neutron-query-relayer', () => {
       const builder = new RelayerBuilder(neutronRelayerConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests).toHaveLength(3); // ConfigMap, Service, StatefulSet
 
@@ -164,7 +164,7 @@ describe('RelayerBuilder', () => {
       };
 
       const builder = new RelayerBuilder(multiRelayerConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests).toHaveLength(5); // hermes (3 manifests) + go-relayer (2 manifests)
 
@@ -205,7 +205,7 @@ describe('RelayerBuilder', () => {
       };
 
       const builder = new RelayerBuilder(customImageConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const statefulSet = manifests.find(
         (m) => m.kind === 'StatefulSet'
@@ -278,7 +278,7 @@ describe('RelayerBuilder', () => {
       };
 
       const builder = new RelayerBuilder(allRelayersConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       // Should have 4 ConfigMaps, 2 Services (hermes + neutron-query), 4 StatefulSets
       const configMaps = manifests.filter((m) => m.kind === 'ConfigMap');
@@ -316,7 +316,7 @@ describe('RelayerBuilder', () => {
   describe('Resource Validation', () => {
     it('should generate correct labels and metadata', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const configMap = manifests.find(
         (m) => m.kind === 'ConfigMap'
@@ -365,7 +365,7 @@ describe('RelayerBuilder', () => {
 
     it('should generate correct port configurations', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const service = manifests.find((m) => m.kind === 'Service') as Service;
       const ports = service.spec.ports;
@@ -388,7 +388,7 @@ describe('RelayerBuilder', () => {
 
     it('should generate correct container configurations', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const statefulSet = manifests.find(
         (m) => m.kind === 'StatefulSet'
@@ -432,7 +432,7 @@ describe('RelayerBuilder', () => {
 
     it('should generate correct volume configurations', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const statefulSet = manifests.find(
         (m) => m.kind === 'StatefulSet'
@@ -464,7 +464,7 @@ describe('RelayerBuilder', () => {
   describe('Configuration Content Validation', () => {
     it('should generate correct hermes configuration', () => {
       const builder = new RelayerBuilder(twoChainWithHermesConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const configMap = manifests.find(
         (m) => m.kind === 'ConfigMap'
@@ -498,7 +498,7 @@ describe('RelayerBuilder', () => {
 
     it('should generate correct go-relayer configuration', () => {
       const builder = new RelayerBuilder(twoChainWithGoRelayerConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const configMap = manifests.find(
         (m) => m.kind === 'ConfigMap'

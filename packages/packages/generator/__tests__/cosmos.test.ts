@@ -34,7 +34,7 @@ describe('Cosmos Generator Tests', () => {
     it('should generate all manifests for a single chain', () => {
       const processedConfig = applyDefaults(singleChainConfig);
       const builder = new CosmosBuilder(processedConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests.length).toBeGreaterThan(0);
 
@@ -65,7 +65,7 @@ describe('Cosmos Generator Tests', () => {
     it('should generate all manifests for a multi-validator chain', () => {
       const processedConfig = applyDefaults(multiValidatorConfig);
       const builder = new CosmosBuilder(processedConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests.length).toBeGreaterThan(0);
 
@@ -106,7 +106,7 @@ describe('Cosmos Generator Tests', () => {
     it('should generate genesis patch ConfigMap when genesis exists', () => {
       const processedConfig = applyDefaults(singleChainConfig);
       const builder = new CosmosBuilder(processedConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const configMaps = manifests.filter(
         (m: any) => m.kind === 'ConfigMap'
@@ -128,7 +128,7 @@ describe('Cosmos Generator Tests', () => {
 
     it('should not generate genesis patch when no genesis', () => {
       const builder = new CosmosBuilder(multiValidatorConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const configMaps = manifests.filter(
         (m: any) => m.kind === 'ConfigMap'
@@ -169,7 +169,7 @@ describe('Cosmos Generator Tests', () => {
       };
 
       const builder = new CosmosBuilder(icsConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const configMaps = manifests.filter(
         (m: any) => m.kind === 'ConfigMap'
@@ -196,7 +196,7 @@ describe('Cosmos Generator Tests', () => {
       // Test with build chain config
       const processedBuildConfig = applyDefaults(buildChainConfig);
       const buildBuilder = new CosmosBuilder(processedBuildConfig);
-      const buildManifests = buildBuilder.buildManifests();
+      const buildManifests = buildBuilder.generate();
       expect(buildManifests.length).toBeGreaterThan(0);
 
       // Find StatefulSet to verify build configuration
@@ -214,7 +214,7 @@ describe('Cosmos Generator Tests', () => {
       // Test with custom chain config
       const processedCustomConfig = applyDefaults(customChainConfig);
       const customBuilder = new CosmosBuilder(processedCustomConfig);
-      const customManifests = customBuilder.buildManifests();
+      const customManifests = customBuilder.generate();
       expect(customManifests.length).toBeGreaterThan(0);
 
       // Test with ICS enabled config
@@ -233,7 +233,7 @@ describe('Cosmos Generator Tests', () => {
       };
       const processedIcsConfig = applyDefaults(icsConfig);
       const icsBuilder = new CosmosBuilder(processedIcsConfig);
-      const icsManifests = icsBuilder.buildManifests();
+      const icsManifests = icsBuilder.generate();
       expect(icsManifests.length).toBeGreaterThan(0);
 
       // Check for ICS consumer proposal ConfigMap
@@ -258,20 +258,20 @@ describe('Cosmos Generator Tests', () => {
       // Test starship faucet
       const processedStarshipConfig = applyDefaults(singleChainConfig);
       const starshipBuilder = new CosmosBuilder(processedStarshipConfig);
-      const starshipManifests = starshipBuilder.buildManifests();
+      const starshipManifests = starshipBuilder.generate();
       expect(starshipManifests).toMatchSnapshot('starship-faucet-manifests');
 
       // Test cosmjs faucet
       const processedCosmjsConfig = applyDefaults(cosmjsFaucetConfig);
       const cosmjsBuilder = new CosmosBuilder(processedCosmjsConfig);
-      const cosmjsManifests = cosmjsBuilder.buildManifests();
+      const cosmjsManifests = cosmjsBuilder.generate();
       expect(cosmjsManifests).toMatchSnapshot('cosmjs-faucet-manifests');
     });
 
     it('should handle cometmock configuration', () => {
       const processedConfig = applyDefaults(cometmockConfig);
       const builder = new CosmosBuilder(processedConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const statefulSets = manifests.filter(
         (m: any) => m.kind === 'StatefulSet'
@@ -290,7 +290,7 @@ describe('Cosmos Generator Tests', () => {
 
     it('should skip Ethereum chains', () => {
       const builder = new CosmosBuilder(ethereumConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests.length).toBe(0);
 
@@ -303,7 +303,7 @@ describe('Cosmos Generator Tests', () => {
     it('should apply defaults correctly', () => {
       const processedConfig = applyDefaults(singleChainConfig);
       const builder = new CosmosBuilder(processedConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       // Verify that defaults have been applied
       expect(processedConfig.chains[0].scripts).toBeDefined();
@@ -322,7 +322,7 @@ describe('Cosmos Generator Tests', () => {
     it('should handle chain name conversion', () => {
       const processedConfig = applyDefaults(customChainConfig);
       const builder = new CosmosBuilder(processedConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const services = manifests.filter((m: any) => m.kind === 'Service');
       expect(services[0]?.metadata?.name).toContain('custom-1');
@@ -339,7 +339,7 @@ describe('Cosmos Generator Tests', () => {
     it('should generate correct labels', () => {
       const processedConfig = applyDefaults(singleChainConfig);
       const builder = new CosmosBuilder(processedConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const services = manifests.filter(
         (m: any) => m.kind === 'Service'
@@ -386,7 +386,7 @@ describe('Cosmos Generator Tests', () => {
 
     it('should generate correct port mappings', () => {
       const builder = new CosmosBuilder(singleChainConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const services = manifests.filter(
         (m: any) => m.kind === 'Service'
@@ -413,7 +413,7 @@ describe('Cosmos Generator Tests', () => {
 
     it('should generate correct environment variables', () => {
       const builder = new CosmosBuilder(singleChainConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const statefulSets = manifests.filter(
         (m: any) => m.kind === 'StatefulSet'
