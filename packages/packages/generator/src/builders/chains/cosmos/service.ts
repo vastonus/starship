@@ -1,12 +1,7 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
 import { Service } from 'kubernetesjs';
 
-import {
-  getChainId,
-  getCommonLabels,
-  getHostname,
-  TemplateHelpers
-} from '../../../helpers';
+import * as helpers from '../../../helpers';
 import { IGenerator, Manifest } from '../../../types';
 
 class CosmosGenesisServiceGenerator implements IGenerator {
@@ -20,18 +15,18 @@ class CosmosGenesisServiceGenerator implements IGenerator {
 
   labels(): Record<string, string> {
     return {
-      ...getCommonLabels(this.config),
+      ...helpers.getCommonLabels(this.config),
       'app.kubernetes.io/component': 'chain',
-      'app.kubernetes.io/name': `${getHostname(this.chain)}-genesis`,
-      'app.kubernetes.io/type': `${getChainId(this.chain)}-service`,
+      'app.kubernetes.io/name': `${helpers.getHostname(this.chain)}-genesis`,
+      'app.kubernetes.io/type': `${helpers.getChainId(this.chain)}-service`,
       'app.kubernetes.io/role': 'genesis',
       'starship.io/chain-name': this.chain.name,
-      'starship.io/chain-id': getChainId(this.chain)
+      'starship.io/chain-id': helpers.getChainId(this.chain)
     };
   }
 
   generate(): Array<Service> {
-    const portMap = TemplateHelpers.getPortMap();
+    const portMap = helpers.getPortMap();
     const ports = Object.entries(portMap).map(([name, port]) => ({
       name,
       port,
@@ -54,14 +49,14 @@ class CosmosGenesisServiceGenerator implements IGenerator {
         apiVersion: 'v1',
         kind: 'Service',
         metadata: {
-          name: `${getHostname(this.chain)}-genesis`,
+          name: `${helpers.getHostname(this.chain)}-genesis`,
           labels: this.labels()
         },
         spec: {
           clusterIP: 'None',
           ports,
           selector: {
-            'app.kubernetes.io/name': `${getHostname(this.chain)}-genesis`
+            'app.kubernetes.io/name': `${helpers.getHostname(this.chain)}-genesis`
           }
         }
       }
@@ -80,18 +75,18 @@ class CosmosValidatorServiceGenerator implements IGenerator {
 
   labels(): Record<string, string> {
     return {
-      ...getCommonLabels(this.config),
+      ...helpers.getCommonLabels(this.config),
       'app.kubernetes.io/component': 'chain',
-      'app.kubernetes.io/name': `${getHostname(this.chain)}-validator`,
+      'app.kubernetes.io/name': `${helpers.getHostname(this.chain)}-validator`,
       'app.kubernetes.io/role': 'validator',
-      'app.kubernetes.io/type': `${getChainId(this.chain)}-service`,
+      'app.kubernetes.io/type': `${helpers.getChainId(this.chain)}-service`,
       'starship.io/chain-name': this.chain.name,
-      'starship.io/chain-id': getChainId(this.chain)
+      'starship.io/chain-id': helpers.getChainId(this.chain)
     };
   }
 
   generate(): Array<Service> {
-    const portMap = TemplateHelpers.getPortMap();
+    const portMap = helpers.getPortMap();
     const ports = Object.entries(portMap).map(([name, port]) => ({
       name,
       port,
@@ -113,14 +108,14 @@ class CosmosValidatorServiceGenerator implements IGenerator {
         apiVersion: 'v1',
         kind: 'Service',
         metadata: {
-          name: `${getHostname(this.chain)}-validator`,
+          name: `${helpers.getHostname(this.chain)}-validator`,
           labels: this.labels()
         },
         spec: {
           clusterIP: 'None',
           ports,
           selector: {
-            'app.kubernetes.io/name': `${getHostname(this.chain)}-validator`
+            'app.kubernetes.io/name': `${helpers.getHostname(this.chain)}-validator`
           }
         }
       }

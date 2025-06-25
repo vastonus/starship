@@ -1,7 +1,7 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, Container, StatefulSet, Volume } from 'kubernetesjs';
 
-import { TemplateHelpers } from '../../helpers';
+import * as helpers from '../../helpers';
 import { IGenerator } from '../../types';
 import { getGeneratorVersion } from '../../version';
 import { BaseRelayerBuilder } from './base';
@@ -22,7 +22,7 @@ export class GoRelayerConfigMapGenerator implements IGenerator {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
-        ...TemplateHelpers.commonLabels(this.config),
+        ...helpers.getCommonLabels(this.config),
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
@@ -111,7 +111,7 @@ export class GoRelayerConfigMapGenerator implements IGenerator {
   }
 
   private generateChainConfig(chainId: string, chain: any): string {
-    const chainName = TemplateHelpers.chainName(String(chain.id));
+    const chainName = helpers.getChainName(String(chain.id));
     const relayerConfig = this.relayer.config || {};
     const chainConfig =
       relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
@@ -162,7 +162,7 @@ export class GoRelayerStatefulSetGenerator implements IGenerator {
         metadata: {
           name: fullname,
           labels: {
-            ...TemplateHelpers.commonLabels(this.config),
+            ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'relayer',
             'app.kubernetes.io/part-of': 'starship',
             'app.kubernetes.io/role': this.relayer.type,
@@ -216,7 +216,7 @@ export class GoRelayerStatefulSetGenerator implements IGenerator {
       const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       initContainers.push({
         name: `init-${chainName}`,
         image: 'ghcr.io/cosmology-tech/starship/wait-for-service:v0.1.0',
@@ -262,7 +262,7 @@ export class GoRelayerStatefulSetGenerator implements IGenerator {
       env,
       command: ['bash', '-c'],
       args: [command],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       volumeMounts: [
@@ -289,7 +289,7 @@ export class GoRelayerStatefulSetGenerator implements IGenerator {
       args: [
         'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nrly start'
       ],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       securityContext: {
@@ -335,7 +335,7 @@ MNEMONIC=$(jq -r ".relayers[$RLY_INDEX].mnemonic" $KEYS_CONFIG)
       const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       command += `
 echo "Setting up chain ${chainId}..."
 cp /configs/${chainId}.json $RELAYER_DIR/config/

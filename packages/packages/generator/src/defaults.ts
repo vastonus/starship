@@ -9,10 +9,8 @@ import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
 
-import { TemplateHelpers } from './helpers';
-import { DefaultsConfig, ProcessedChain } from './types';
-
-export { ProcessedChain };
+import * as helpers from './helpers';
+import { DefaultsConfig } from './types';
 
 /**
  * Deep merge utility for nested objects
@@ -155,11 +153,6 @@ export class DefaultsManager {
       ...chainConfig
     };
 
-    // Set computed properties
-    const hostname = TemplateHelpers.chainName(String(chainConfig.id));
-    const toBuild =
-      chainConfig.build?.enabled || chainConfig.upgrade?.enabled || false;
-
     // Process faucet configuration
     const defaultFaucet = this.getFaucetDefaults('starship');
     const faucetConfig = {
@@ -182,7 +175,7 @@ export class DefaultsManager {
 
     // Set image based on build requirements
     let image = mergedChain.image;
-    if (toBuild) {
+    if (mergedChain.build?.enabled || mergedChain.upgrade?.enabled) {
       image = 'ghcr.io/cosmology-tech/starship/runner:latest';
     }
 
@@ -197,8 +190,6 @@ export class DefaultsManager {
 
     return {
       ...mergedChain,
-      hostname,
-      toBuild,
       image,
       faucet: faucetConfig,
       cometmock: cometmockConfig,

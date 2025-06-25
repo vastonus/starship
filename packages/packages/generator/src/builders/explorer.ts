@@ -1,9 +1,10 @@
 import { StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, Deployment, Service } from 'kubernetesjs';
 
-import { TemplateHelpers } from '../helpers';
+import * as helpers from '../helpers';
 import { IGenerator, Manifest } from '../types';
 import { getGeneratorVersion } from '../version';
+import { DefaultsManager, deepMerge } from '../defaults';
 
 /**
  * ConfigMap generator for Explorer service
@@ -20,7 +21,7 @@ export class ExplorerConfigMapGenerator implements IGenerator {
     const chainConfigs: Record<string, string> = {};
 
     this.config.chains.forEach((chain) => {
-      const hostname = TemplateHelpers.chainName(String(chain.id));
+      const hostname = helpers.getChainName(String(chain.id));
       const host = this.config.explorer?.localhost
         ? 'localhost'
         : `${hostname}-genesis.$(NAMESPACE).svc.cluster.local`;
@@ -62,7 +63,7 @@ export class ExplorerConfigMapGenerator implements IGenerator {
         metadata: {
           name: 'explorer',
           labels: {
-            ...TemplateHelpers.commonLabels(this.config),
+            ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'explorer',
             'app.kubernetes.io/part-of': 'starship'
           }
@@ -91,7 +92,7 @@ export class ExplorerServiceGenerator implements IGenerator {
         metadata: {
           name: 'explorer',
           labels: {
-            ...TemplateHelpers.commonLabels(this.config),
+            ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'explorer',
             'app.kubernetes.io/part-of': 'starship'
           }
@@ -133,7 +134,7 @@ export class ExplorerDeploymentGenerator implements IGenerator {
         metadata: {
           name: 'explorer',
           labels: {
-            ...TemplateHelpers.commonLabels(this.config),
+            ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'explorer',
             'app.kubernetes.io/part-of': 'starship'
           }
@@ -180,8 +181,11 @@ export class ExplorerDeploymentGenerator implements IGenerator {
                   volumeMounts: [
                     { name: 'explorer-config', mountPath: '/explorer' }
                   ],
-                  resources: TemplateHelpers.getResourceObject(
-                    this.config.explorer?.resources
+                  resources: helpers.getResourceObject(
+                    this.config.explorer?.resources || {
+                      cpu: '0.2',
+                      memory: '512Mi'
+                    }
                   )
                 }
               ],

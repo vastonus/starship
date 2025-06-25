@@ -29,19 +29,6 @@ export interface DefaultsConfig {
   defaultCometmock: CometmockDefault;
 }
 
-export interface ProcessedChain extends Chain {
-  hostname: string;
-  accounts: Array<{
-    name: string;
-    mnemonic: string;
-    address: string;
-  }>;
-}
-
 export interface IGenerator {
   generate(): Array<Manifest>;
-}
-
-export interface IManifestGenerator {
-  buildManifests(): Array<Manifest>;
 }

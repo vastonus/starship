@@ -1,7 +1,7 @@
 import { Frontend, StarshipConfig } from '@starship-ci/types';
 import { Deployment, Service } from 'kubernetesjs';
 
-import { TemplateHelpers } from '../helpers';
+import * as helpers from '../helpers';
 import { IGenerator, Manifest } from '../types';
 import { getGeneratorVersion } from '../version';
 
@@ -28,7 +28,7 @@ export class FrontendServiceGenerator implements IGenerator {
             'app.kubernetes.io/name': this.frontend.name,
             'app.kubernetes.io/component': 'frontend',
             'app.kubernetes.io/part-of': 'starship',
-            ...TemplateHelpers.commonLabels(this.config)
+            ...helpers.getCommonLabels(this.config)
           }
         },
         spec: {
@@ -74,7 +74,7 @@ export class FrontendDeploymentGenerator implements IGenerator {
           labels: {
             'app.kubernetes.io/component': 'frontend',
             'app.kubernetes.io/part-of': 'starship',
-            ...TemplateHelpers.commonLabels(this.config)
+            ...helpers.getCommonLabels(this.config)
           }
         },
         spec: {
@@ -119,7 +119,7 @@ export class FrontendDeploymentGenerator implements IGenerator {
                       ]
                     : [],
                   env: this.frontend.env || [],
-                  resources: TemplateHelpers.getResourceObject(
+                  resources: helpers.getResourceObject(
                     this.frontend.resources || { cpu: '0.2', memory: '200M' }
                   )
                 }

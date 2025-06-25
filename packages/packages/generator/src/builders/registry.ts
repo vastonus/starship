@@ -1,7 +1,7 @@
 import { StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, Deployment, Service } from 'kubernetesjs';
 
-import { TemplateHelpers } from '../helpers';
+import * as helpers from '../helpers';
 import { IGenerator, Manifest } from '../types';
 
 /**
@@ -20,7 +20,7 @@ export class RegistryConfigMapGenerator implements IGenerator {
     const assetLists: Record<string, string> = {};
 
     this.config.chains.forEach((chain) => {
-      const hostname = TemplateHelpers.chainName(String(chain.id));
+      const hostname = helpers.getChainName(String(chain.id));
       chainConfigs[`${hostname}.json`] = JSON.stringify({
         chain_name: chain.name,
         api: {
@@ -44,7 +44,7 @@ export class RegistryConfigMapGenerator implements IGenerator {
         metadata: {
           name: 'registry-config',
           labels: {
-            ...TemplateHelpers.commonLabels(this.config),
+            ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'registry',
             'app.kubernetes.io/part-of': 'starship'
           }
@@ -76,7 +76,7 @@ export class RegistryServiceGenerator implements IGenerator {
         metadata: {
           name: 'registry',
           labels: {
-            ...TemplateHelpers.commonLabels(this.config),
+            ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'registry',
             'app.kubernetes.io/part-of': 'starship'
           }
@@ -115,14 +115,14 @@ export class RegistryDeploymentGenerator implements IGenerator {
 
   generate(): Array<Deployment> {
     const volumeMounts = this.config.chains.map((chain) => ({
-      name: `chain-${TemplateHelpers.chainName(String(chain.id))}`,
+      name: `chain-${helpers.getChainName(String(chain.id))}`,
       mountPath: `/chains/${chain.id}`
     }));
 
     const volumes = this.config.chains.map((chain) => ({
-      name: `chain-${TemplateHelpers.chainName(String(chain.id))}`,
+      name: `chain-${helpers.getChainName(String(chain.id))}`,
       configMap: {
-        name: `chain-${TemplateHelpers.chainName(String(chain.id))}`
+        name: `chain-${helpers.getChainName(String(chain.id))}`
       }
     }));
 
@@ -133,7 +133,7 @@ export class RegistryDeploymentGenerator implements IGenerator {
         metadata: {
           name: 'registry',
           labels: {
-            ...TemplateHelpers.commonLabels(this.config),
+            ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'registry',
             'app.kubernetes.io/part-of': 'starship'
           }
@@ -149,7 +149,7 @@ export class RegistryDeploymentGenerator implements IGenerator {
             metadata: {
               labels: {
                 app: 'registry',
-                ...TemplateHelpers.commonLabels(this.config)
+                ...helpers.getCommonLabels(this.config)
               }
             },
             spec: {
@@ -170,41 +170,41 @@ export class RegistryDeploymentGenerator implements IGenerator {
                   env: [
                     {
                       name: 'REGISTRY_CHAIN_CLIENT_RPCS',
-                      value: TemplateHelpers.chainRpcAddrs(
+                      value: helpers.getChainRpcAddrs(
                         this.config.chains,
                         this.config
                       )
                     },
                     {
                       name: 'REGISTRY_CHAIN_API_RPCS',
-                      value: TemplateHelpers.chainRpcAddrs(
+                      value: helpers.getChainRpcAddrs(
                         this.config.chains,
                         this.config
                       )
                     },
                     {
                       name: 'REGISTRY_CHAIN_API_GRPCS',
-                      value: TemplateHelpers.chainGrpcAddrs(
+                      value: helpers.getChainGrpcAddrs(
                         this.config.chains,
                         this.config
                       )
                     },
                     {
                       name: 'REGISTRY_CHAIN_API_RESTS',
-                      value: TemplateHelpers.chainRestAddrs(
+                      value: helpers.getChainRestAddrs(
                         this.config.chains,
                         this.config
                       )
                     },
                     {
                       name: 'REGISTRY_CHAIN_CLIENT_EXPOSERS',
-                      value: TemplateHelpers.chainExposerAddrs(
+                      value: helpers.getChainExposerAddrs(
                         this.config.chains
                       )
                     }
                   ],
                   volumeMounts,
-                  resources: TemplateHelpers.getResourceObject(
+                  resources: helpers.getResourceObject(
                     this.config.registry?.resources
                   ),
                   readinessProbe: {

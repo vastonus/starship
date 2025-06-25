@@ -1,7 +1,7 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, Container, StatefulSet, Volume } from 'kubernetesjs';
 
-import { TemplateHelpers } from '../../helpers';
+import * as helpers from '../../helpers';
 import { IGenerator } from '../../types';
 import { getGeneratorVersion } from '../../version';
 import { BaseRelayerBuilder } from './base';
@@ -22,7 +22,7 @@ export class TsRelayerConfigMapGenerator implements IGenerator {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
-        ...TemplateHelpers.commonLabels(this.config),
+        ...helpers.getCommonLabels(this.config),
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
@@ -54,7 +54,7 @@ export class TsRelayerConfigMapGenerator implements IGenerator {
         throw new Error(`Chain ${chainId} not found in configuration`);
       }
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       const chainConfig =
         relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
 
@@ -142,7 +142,7 @@ ${Object.entries(appConfig)
         throw new Error(`Chain ${chainId} not found in configuration`);
       }
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       const chainConfig =
         this.relayer.config?.chains?.find((c: any) => c.id === chainId) || {};
 
@@ -236,7 +236,7 @@ export class TsRelayerStatefulSetGenerator implements IGenerator {
         metadata: {
           name: fullname,
           labels: {
-            ...TemplateHelpers.commonLabels(this.config),
+            ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'relayer',
             'app.kubernetes.io/part-of': 'starship',
             'app.kubernetes.io/role': this.relayer.type,
@@ -290,7 +290,7 @@ export class TsRelayerStatefulSetGenerator implements IGenerator {
       const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       initContainers.push({
         name: `init-${chainName}`,
         image: 'ghcr.io/cosmology-tech/starship/wait-for-service:v0.1.0',
@@ -336,7 +336,7 @@ export class TsRelayerStatefulSetGenerator implements IGenerator {
       env,
       command: ['bash', '-c'],
       args: [command],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       volumeMounts: [
@@ -363,7 +363,7 @@ export class TsRelayerStatefulSetGenerator implements IGenerator {
       args: [
         'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nts-relayer start'
       ],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       securityContext: {
@@ -410,7 +410,7 @@ MNEMONIC=$(jq -r ".relayers[$RLY_INDEX].mnemonic" $KEYS_CONFIG)
       const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       command += `
 echo "Creating key for ${chainId}..."
 echo "$MNEMONIC" | ts-relayer keys restore ${chainId} --hd-path "${chain.hdPath || "m/44'/118'/0'/0/0"}"

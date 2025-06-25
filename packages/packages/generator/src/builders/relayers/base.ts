@@ -1,7 +1,7 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
 import { Container, EnvVar, Volume, VolumeMount } from 'kubernetesjs';
 
-import { TemplateHelpers } from '../../helpers';
+import * as helpers from '../../helpers';
 import { IGenerator, Manifest } from '../../types';
 
 /**
@@ -31,7 +31,7 @@ export class BaseRelayerBuilder implements IGenerator {
     return {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
-        ...TemplateHelpers.commonLabels(this.config),
+        ...helpers.getCommonLabels(this.config),
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
@@ -56,7 +56,7 @@ export class BaseRelayerBuilder implements IGenerator {
    */
   protected getChainHostname(chainId: string): string {
     const chain = this.getChainConfig(chainId);
-    return TemplateHelpers.chainName(String(chain.id));
+    return helpers.getChainName(String(chain.id));
   }
 
   /**
@@ -105,7 +105,7 @@ export class BaseRelayerBuilder implements IGenerator {
   protected generateWaitInitContainers(): Container[] {
     return this.relayer.chains.map((chainId) => {
       const chain = this.getChainConfig(chainId);
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
 
       return {
         name: `init-${chainName}`,

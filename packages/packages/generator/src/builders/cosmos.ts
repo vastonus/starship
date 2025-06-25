@@ -4,7 +4,7 @@ import { ConfigMap, Container, StatefulSet } from 'kubernetesjs';
 import * as path from 'path';
 
 import { DefaultsManager } from '../defaults';
-import { getChainId, getHostname, TemplateHelpers } from '../helpers';
+import * as helpers from '../helpers';
 import { ScriptManager } from '../scripts';
 import { IGenerator, Manifest } from '../types';
 import { getGeneratorVersion } from '../version';
@@ -33,12 +33,12 @@ export class CosmosConfigMapGenerator implements IGenerator {
 
   labels(): Record<string, string> {
     return {
-      ...TemplateHelpers.commonLabels(this.config),
+      ...helpers.getCommonLabels(this.config),
       'app.kubernetes.io/component': 'chain',
-      'app.kubernetes.io/part-of': getChainId(this.chain),
-      'app.kubernetes.io/id': getChainId(this.chain),
+      'app.kubernetes.io/part-of': helpers.getChainId(this.chain),
+      'app.kubernetes.io/id': helpers.getChainId(this.chain),
       'app.kubernetes.io/name': this.chain.name,
-      'app.kubernetes.io/type': `${getChainId(this.chain)}-configmap`
+      'app.kubernetes.io/type': `${helpers.getChainId(this.chain)}-configmap`
     };
   }
 
@@ -57,7 +57,7 @@ export class CosmosConfigMapGenerator implements IGenerator {
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
-        name: `setup-scripts-${getHostname(this.chain)}`,
+        name: `setup-scripts-${helpers.getHostname(this.chain)}`,
         labels: this.labels()
       },
       data: scriptsData
@@ -74,7 +74,7 @@ export class CosmosConfigMapGenerator implements IGenerator {
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
-        name: `patch-${getHostname(this.chain)}`,
+        name: `patch-${helpers.getHostname(this.chain)}`,
         labels: this.labels()
       },
       data: {
@@ -97,15 +97,15 @@ export class CosmosConfigMapGenerator implements IGenerator {
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
-        name: `consumer-proposal-${getHostname(this.chain)}`,
+        name: `consumer-proposal-${helpers.getHostname(this.chain)}`,
         labels: this.labels()
       },
       data: {
         'proposal.json': JSON.stringify(
           {
             title: `Add ${this.chain.name} consumer chain`,
-            summary: `Add ${this.chain.name} consumer chain with id ${getChainId(this.chain)}`,
-            chain_id: getChainId(this.chain),
+            summary: `Add ${this.chain.name} consumer chain with id ${helpers.getChainId(this.chain)}`,
+            chain_id: helpers.getChainId(this.chain),
             initial_height: {
               revision_height: 1,
               revision_number: 1
@@ -168,12 +168,12 @@ export class CosmosStatefulSetGenerator implements IGenerator {
 
   labels(): Record<string, string> {
     return {
-      ...TemplateHelpers.commonLabels(this.config),
+      ...helpers.getCommonLabels(this.config),
       'app.kubernetes.io/component': 'chain',
-      'app.kubernetes.io/part-of': getChainId(this.chain),
-      'app.kubernetes.io/id': getChainId(this.chain),
-      'app.kubernetes.io/name': `${getHostname(this.chain)}-genesis`,
-      'app.kubernetes.io/type': `${getChainId(this.chain)}-statefulset`
+      'app.kubernetes.io/part-of': helpers.getChainId(this.chain),
+      'app.kubernetes.io/id': helpers.getChainId(this.chain),
+      'app.kubernetes.io/name': `${helpers.getHostname(this.chain)}-genesis`,
+      'app.kubernetes.io/type': `${helpers.getChainId(this.chain)}-statefulset`
     };
   }
 
@@ -185,7 +185,7 @@ export class CosmosStatefulSetGenerator implements IGenerator {
       apiVersion: 'apps/v1',
       kind: 'StatefulSet',
       metadata: {
-        name: `${getHostname(this.chain)}-genesis`,
+        name: `${helpers.getHostname(this.chain)}-genesis`,
         labels: {
           ...this.labels(),
           'app.kubernetes.io/role': 'genesis',
@@ -193,13 +193,13 @@ export class CosmosStatefulSetGenerator implements IGenerator {
         }
       },
       spec: {
-        serviceName: `${getHostname(this.chain)}-genesis`,
+        serviceName: `${helpers.getHostname(this.chain)}-genesis`,
         replicas: 1,
         revisionHistoryLimit: 3,
         selector: {
           matchLabels: {
             'app.kubernetes.io/instance': this.config.name,
-            'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`
+            'app.kubernetes.io/name': `${helpers.getChainId(this.chain)}-genesis`
           }
         },
         template: {
@@ -212,22 +212,22 @@ export class CosmosStatefulSetGenerator implements IGenerator {
             },
             labels: {
               'app.kubernetes.io/instance': this.config.name,
-              'app.kubernetes.io/type': getChainId(this.chain),
-              'app.kubernetes.io/name': `${getChainId(this.chain)}-genesis`,
-              'app.kubernetes.io/rawname': getChainId(this.chain),
+              'app.kubernetes.io/type': helpers.getChainId(this.chain),
+              'app.kubernetes.io/name': `${helpers.getChainId(this.chain)}-genesis`,
+              'app.kubernetes.io/rawname': helpers.getChainId(this.chain),
               'app.kubernetes.io/version': getGeneratorVersion(),
               'app.kubernetes.io/role': 'genesis'
             }
           },
           spec: {
             ...(this.chain.imagePullSecrets
-              ? TemplateHelpers.generateImagePullSecrets(
+              ? helpers.generateImagePullSecrets(
                   this.chain.imagePullSecrets
                 )
               : {}),
             initContainers: this.genesisInitContainers(),
             containers: this.genesisContainers(),
-            volumes: TemplateHelpers.generateChainVolumes(this.chain)
+            volumes: helpers.generateChainVolumes(this.chain)
           }
         }
       }
@@ -242,7 +242,7 @@ export class CosmosStatefulSetGenerator implements IGenerator {
       apiVersion: 'apps/v1',
       kind: 'StatefulSet',
       metadata: {
-        name: `${getHostname(this.chain)}-validator`,
+        name: `${helpers.getHostname(this.chain)}-validator`,
         labels: {
           ...this.labels(),
           'app.kubernetes.io/role': 'validator',
@@ -250,14 +250,14 @@ export class CosmosStatefulSetGenerator implements IGenerator {
         }
       },
       spec: {
-        serviceName: `${getHostname(this.chain)}-validator`,
+        serviceName: `${helpers.getHostname(this.chain)}-validator`,
         podManagementPolicy: 'Parallel',
         replicas: (this.chain.numValidators || 1) - 1,
         revisionHistoryLimit: 3,
         selector: {
           matchLabels: {
             'app.kubernetes.io/instance': this.config.name,
-            'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`
+            'app.kubernetes.io/name': `${helpers.getChainId(this.chain)}-validator`
           }
         },
         template: {
@@ -270,21 +270,21 @@ export class CosmosStatefulSetGenerator implements IGenerator {
             },
             labels: {
               'app.kubernetes.io/instance': this.config.name,
-              'app.kubernetes.io/type': getChainId(this.chain),
-              'app.kubernetes.io/name': `${getChainId(this.chain)}-validator`,
+              'app.kubernetes.io/type': helpers.getChainId(this.chain),
+              'app.kubernetes.io/name': `${helpers.getChainId(this.chain)}-validator`,
               'app.kubernetes.io/version': getGeneratorVersion(),
               'app.kubernetes.io/role': 'validator'
             }
           },
           spec: {
             ...(this.chain.imagePullSecrets
-              ? TemplateHelpers.generateImagePullSecrets(
+              ? helpers.generateImagePullSecrets(
                   this.chain.imagePullSecrets
                 )
               : {}),
             initContainers: this.validatorInitContainers(),
             containers: this.validatorContainers(),
-            volumes: TemplateHelpers.generateChainVolumes(this.chain)
+            volumes: helpers.generateChainVolumes(this.chain)
           }
         }
       }
@@ -340,11 +340,11 @@ export class CosmosStatefulSetGenerator implements IGenerator {
           { name: 'CODE_REF', value: this.chain.repo },
           { name: 'UPGRADE_DIR', value: `${this.chain.home}/cosmovisor` },
           { name: 'GOBIN', value: '/go/bin' },
-          { name: 'CHAIN_NAME', value: getChainId(this.chain) },
-          ...TemplateHelpers.defaultEnvVars(this.chain)
+          { name: 'CHAIN_NAME', value: helpers.getChainId(this.chain) },
+          ...helpers.getDefaultEnvVars(this.chain)
         ],
-        resources: TemplateHelpers.nodeResources(this.chain, this.config),
-        volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
+        resources: helpers.getNodeResources(this.chain, this.config),
+        volumeMounts: helpers.generateChainVolumeMounts(this.chain)
       });
     }
 
@@ -354,9 +354,9 @@ export class CosmosStatefulSetGenerator implements IGenerator {
       image: this.chain.image,
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
-        ...TemplateHelpers.defaultEnvVars(this.chain),
-        ...TemplateHelpers.chainEnvVars(this.chain),
-        ...TemplateHelpers.timeoutVars(this.config.timeouts || {}),
+        ...helpers.getDefaultEnvVars(this.chain),
+        ...helpers.getChainEnvVars(this.chain),
+        ...helpers.getTimeoutEnvVars(this.config.timeouts || {}),
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' },
         {
           name: 'FAUCET_ENABLED',
@@ -372,8 +372,8 @@ export class CosmosStatefulSetGenerator implements IGenerator {
         }
       ],
       command: ['bash', '-c', this.genesisScript()],
-      resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
+      resources: helpers.getNodeResources(this.chain, this.config),
+      volumeMounts: helpers.generateChainVolumeMounts(this.chain)
     });
 
     // Config init container
@@ -382,16 +382,16 @@ export class CosmosStatefulSetGenerator implements IGenerator {
       image: this.chain.image,
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
-        ...TemplateHelpers.defaultEnvVars(this.chain),
-        ...TemplateHelpers.chainEnvVars(this.chain),
-        ...TemplateHelpers.timeoutVars(this.config.timeouts || {}),
+        ...helpers.getDefaultEnvVars(this.chain),
+        ...helpers.getChainEnvVars(this.chain),
+        ...helpers.getTimeoutEnvVars(this.config.timeouts || {}),
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' },
         { name: 'METRICS', value: String(this.chain.metrics || false) }
       ],
       command: ['bash', '-c', '/scripts/update-config.sh'],
-      resources: TemplateHelpers.nodeResources(this.chain, this.config),
+      resources: helpers.getNodeResources(this.chain, this.config),
       volumeMounts: [
-        ...TemplateHelpers.generateChainVolumeMounts(this.chain),
+        ...helpers.generateChainVolumeMounts(this.chain),
         ...(this.chain.genesis
           ? [
               {
@@ -427,8 +427,8 @@ export class CosmosStatefulSetGenerator implements IGenerator {
       image: this.chain.image,
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
-        ...TemplateHelpers.defaultEnvVars(this.chain),
-        ...TemplateHelpers.chainEnvVars(this.chain),
+        ...helpers.getDefaultEnvVars(this.chain),
+        ...helpers.getChainEnvVars(this.chain),
         {
           name: 'FAUCET_ENABLED',
           value: String(this.chain.faucet?.enabled || false)
@@ -440,8 +440,8 @@ export class CosmosStatefulSetGenerator implements IGenerator {
         }))
       ],
       command: ['bash', '-c', this.validatorStartScript()],
-      resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain),
+      resources: helpers.getNodeResources(this.chain, this.config),
+      volumeMounts: helpers.generateChainVolumeMounts(this.chain),
       ...(this.chain.cometmock?.enabled
         ? {}
         : {
@@ -469,7 +469,7 @@ export class CosmosStatefulSetGenerator implements IGenerator {
         'ghcr.io/cosmology-tech/starship/exposer:latest',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
-        ...TemplateHelpers.genesisVars(
+        ...helpers.getGenesisEnvVars(
           this.chain,
           this.config.exposer?.ports?.rest || 8081
         ),
@@ -498,7 +498,7 @@ export class CosmosStatefulSetGenerator implements IGenerator {
         }
       ],
       command: ['exposer'],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.config.exposer?.resources || { cpu: '0.1', memory: '128M' }
       ),
       volumeMounts: [
@@ -559,11 +559,11 @@ export class CosmosStatefulSetGenerator implements IGenerator {
           { name: 'CODE_REF', value: this.chain.repo },
           { name: 'UPGRADE_DIR', value: `${this.chain.home}/cosmovisor` },
           { name: 'GOBIN', value: '/go/bin' },
-          { name: 'CHAIN_NAME', value: getChainId(this.chain) },
-          ...TemplateHelpers.defaultEnvVars(this.chain)
+          { name: 'CHAIN_NAME', value: helpers.getChainId(this.chain) },
+          ...helpers.getDefaultEnvVars(this.chain)
         ],
-        resources: TemplateHelpers.nodeResources(this.chain, this.config),
-        volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
+        resources: helpers.getNodeResources(this.chain, this.config),
+        volumeMounts: helpers.generateChainVolumeMounts(this.chain)
       });
     }
 
@@ -573,14 +573,14 @@ export class CosmosStatefulSetGenerator implements IGenerator {
       image: this.chain.image,
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
-        ...TemplateHelpers.defaultEnvVars(this.chain),
-        ...TemplateHelpers.chainEnvVars(this.chain),
-        ...TemplateHelpers.timeoutVars(this.config.timeouts || {}),
+        ...helpers.getDefaultEnvVars(this.chain),
+        ...helpers.getChainEnvVars(this.chain),
+        ...helpers.getTimeoutEnvVars(this.config.timeouts || {}),
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' }
       ],
       command: ['bash', '-c', this.validatorInitScript()],
-      resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
+      resources: helpers.getNodeResources(this.chain, this.config),
+      volumeMounts: helpers.generateChainVolumeMounts(this.chain)
     });
 
     // Validator config init container
@@ -589,15 +589,15 @@ export class CosmosStatefulSetGenerator implements IGenerator {
       image: this.chain.image,
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
-        ...TemplateHelpers.defaultEnvVars(this.chain),
-        ...TemplateHelpers.chainEnvVars(this.chain),
-        ...TemplateHelpers.timeoutVars(this.config.timeouts || {}),
+        ...helpers.getDefaultEnvVars(this.chain),
+        ...helpers.getChainEnvVars(this.chain),
+        ...helpers.getTimeoutEnvVars(this.config.timeouts || {}),
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' },
         { name: 'METRICS', value: String(this.chain.metrics || false) }
       ],
       command: ['bash', '-c', this.validatorConfigScript()],
-      resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
+      resources: helpers.getNodeResources(this.chain, this.config),
+      volumeMounts: helpers.generateChainVolumeMounts(this.chain)
     });
 
     return initContainers;
@@ -615,8 +615,8 @@ export class CosmosStatefulSetGenerator implements IGenerator {
       image: this.chain.image,
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
-        ...TemplateHelpers.defaultEnvVars(this.chain),
-        ...TemplateHelpers.chainEnvVars(this.chain),
+        ...helpers.getDefaultEnvVars(this.chain),
+        ...helpers.getChainEnvVars(this.chain),
         { name: 'SLOGFILE', value: 'slog.slog' },
         ...(this.chain.env || []).map((env: any) => ({
           name: env.name,
@@ -624,8 +624,8 @@ export class CosmosStatefulSetGenerator implements IGenerator {
         }))
       ],
       command: ['bash', '-c', this.validatorStartScript()],
-      resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain),
+      resources: helpers.getNodeResources(this.chain, this.config),
+      volumeMounts: helpers.generateChainVolumeMounts(this.chain),
       lifecycle: {
         postStart: {
           exec: {
@@ -685,8 +685,8 @@ exec ${this.chain.binary} start --home ${this.chain.home} --log_level info`;
     return `#!/bin/bash
 set -euo pipefail
 
-echo "Initializing validator node for ${getChainId(this.chain)}..."
-${this.chain.binary} init validator-\${HOSTNAME##*-} --chain-id ${getChainId(this.chain)} --home ${this.chain.home}
+echo "Initializing validator node for ${helpers.getChainId(this.chain)}..."
+${this.chain.binary} init validator-\${HOSTNAME##*-} --chain-id ${helpers.getChainId(this.chain)} --home ${this.chain.home}
 echo "Validator initialization completed"`;
   }
 
@@ -701,7 +701,7 @@ echo "Validator initialization completed"`;
 
   private validatorPostStartScript(): string {
     return `#!/bin/bash
-echo "Validator post-start hook for ${getChainId(this.chain)}"
+echo "Validator post-start hook for ${helpers.getChainId(this.chain)}"
 # Add any post-start logic here`;
   }
 
@@ -715,7 +715,7 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
         '-c',
         'cp /bin/faucet /faucet/faucet && chmod +x /faucet/faucet'
       ],
-      resources: TemplateHelpers.nodeResources(this.chain, this.config),
+      resources: helpers.getNodeResources(this.chain, this.config),
       volumeMounts: [{ mountPath: '/faucet', name: 'faucet' }]
     };
   }
@@ -726,16 +726,16 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
       image: this.chain.image,
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
-        ...TemplateHelpers.defaultEnvVars(this.chain),
+        ...helpers.getDefaultEnvVars(this.chain),
         { name: 'EXPOSER_PORT', value: String(exposerPort) }
       ],
       command: [
         'bash',
         '-c',
-        `echo "ICS initialization for consumer chain ${getChainId(this.chain)}"`
+        `echo "ICS initialization for consumer chain ${helpers.getChainId(this.chain)}"`
       ],
-      resources: TemplateHelpers.nodeResources(this.chain, this.config),
-      volumeMounts: TemplateHelpers.generateChainVolumeMounts(this.chain)
+      resources: helpers.getNodeResources(this.chain, this.config),
+      volumeMounts: helpers.generateChainVolumeMounts(this.chain)
     };
   }
 
@@ -786,14 +786,14 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
           value: String(this.chain.faucet!.maxCredit || 99999999)
         },
         { name: 'FAUCET_MNEMONIC', value: this.chain.faucet!.mnemonic || '' },
-        { name: 'FAUCET_CHAIN_ID', value: getChainId(this.chain) },
+        { name: 'FAUCET_CHAIN_ID', value: helpers.getChainId(this.chain) },
         {
           name: 'FAUCET_RPC_ENDPOINT',
-          value: `http://localhost:${TemplateHelpers.getPortMap().rpc}`
+          value: `http://localhost:${helpers.getPortMap().rpc}`
         }
       ],
       command: ['yarn', 'start'],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.chain.faucet!.resources || { cpu: '0.2', memory: '200M' }
       ),
       volumeMounts: [{ mountPath: '/configs', name: 'addresses' }]
@@ -814,7 +814,7 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
           name: 'FAUCET_PORT',
           value: String(this.chain.faucet!.ports?.rest || 8000)
         },
-        { name: 'FAUCET_CHAIN_ID', value: getChainId(this.chain) },
+        { name: 'FAUCET_CHAIN_ID', value: helpers.getChainId(this.chain) },
         { name: 'FAUCET_CHAIN_DENOM', value: this.chain.denom },
         { name: 'FAUCET_CHAIN_PREFIX', value: this.chain.prefix },
         {
@@ -827,15 +827,15 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
         },
         {
           name: 'FAUCET_RPC_ENDPOINT',
-          value: `http://localhost:${TemplateHelpers.getPortMap().rpc}`
+          value: `http://localhost:${helpers.getPortMap().rpc}`
         },
         {
           name: 'FAUCET_REST_ENDPOINT',
-          value: `http://localhost:${TemplateHelpers.getPortMap().rest}`
+          value: `http://localhost:${helpers.getPortMap().rest}`
         }
       ],
       command: ['sh', '-c', '/faucet/faucet'],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.chain.faucet!.resources || { cpu: '0.1', memory: '128M' }
       ),
       volumeMounts: [
@@ -961,7 +961,7 @@ class KeysConfigMap implements IGenerator {
           metadata: {
             name: 'keys',
             labels: {
-              ...TemplateHelpers.commonLabels(this.config),
+              ...helpers.getCommonLabels(this.config),
               'app.kubernetes.io/component': 'configmap',
               'app.kubernetes.io/part-of': 'global'
             }
@@ -1019,7 +1019,7 @@ class GlobalScriptsConfigMap {
       metadata: {
         name: 'setup-scripts',
         labels: {
-          ...TemplateHelpers.commonLabels(this.config),
+          ...helpers.getCommonLabels(this.config),
           'app.kubernetes.io/component': 'configmap',
           'app.kubernetes.io/part-of': 'global'
         }
@@ -1071,9 +1071,9 @@ class SetupScriptsConfigMap {
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
-        name: `setup-scripts-${TemplateHelpers.chainName(String(this.chain.id))}`,
+        name: `setup-scripts-${helpers.getChainName(String(this.chain.id))}`,
         labels: {
-          ...TemplateHelpers.commonLabels(this.config),
+          ...helpers.getCommonLabels(this.config),
           'app.kubernetes.io/component': 'chain',
           'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
           'app.kubernetes.io/part-of': String(this.chain.id),
@@ -1097,9 +1097,9 @@ class GenesisPatchConfigMap {
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
-        name: `patch-${TemplateHelpers.chainName(String(this.chain.id))}`,
+        name: `patch-${helpers.getChainName(String(this.chain.id))}`,
         labels: {
-          ...TemplateHelpers.commonLabels(this.config),
+          ...helpers.getCommonLabels(this.config),
           'app.kubernetes.io/component': 'chain',
           'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
           'app.kubernetes.io/part-of': String(this.chain.id),
@@ -1171,9 +1171,9 @@ class IcsConsumerProposalConfigMap {
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
-        name: `consumer-proposal-${TemplateHelpers.chainName(String(this.chain.id))}`,
+        name: `consumer-proposal-${helpers.getChainName(String(this.chain.id))}`,
         labels: {
-          ...TemplateHelpers.commonLabels(this.config),
+          ...helpers.getCommonLabels(this.config),
           'app.kubernetes.io/component': 'chain',
           'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
           'app.kubernetes.io/part-of': String(this.chain.id),

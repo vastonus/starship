@@ -7,7 +7,7 @@ import {
   Volume
 } from 'kubernetesjs';
 
-import { TemplateHelpers } from '../../helpers';
+import * as helpers from '../../helpers';
 import { IGenerator } from '../../types';
 import { getGeneratorVersion } from '../../version';
 import { BaseRelayerBuilder } from './base';
@@ -29,7 +29,7 @@ export class HermesConfigMapGenerator implements IGenerator {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
-        ...TemplateHelpers.commonLabels(this.config),
+        ...helpers.getCommonLabels(this.config),
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
@@ -106,7 +106,7 @@ port = ${telemetryConfig.port || 3001}
 
       const chainConfig =
         relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       const addressType = getAddressType(chain.name);
       const gasPrice = getGasPrice(chain.name, chain.denom);
 
@@ -120,8 +120,12 @@ rpc_addr = "http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657"
 grpc_addr = "http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:9090"
 ${
   eventSourceConfig.mode === 'pull'
-    ? `event_source = { mode = 'pull', interval = '${eventSourceConfig.interval || '500ms'}' }`
-    : `event_source = { mode = 'push', url = "ws://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657/websocket", batch_delay = '${eventSourceConfig.batch_delay || '500ms'}' }`
+    ? `event_source = { mode = 'pull', interval = '${
+        eventSourceConfig.interval || '500ms'
+      }' }`
+    : `event_source = { mode = 'push', url = "ws://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657/websocket", batch_delay = '${
+        eventSourceConfig.batch_delay || '500ms'
+      }' }`
 }
 trusted_node = false
 account_prefix = "${chainConfig.account_prefix || chain.prefix}"
@@ -135,7 +139,9 @@ max_tx_size = ${chainConfig.max_tx_size || 2097152}
 clock_drift = "${chainConfig.clock_drift || '5s'}"
 max_block_time = "${chainConfig.max_block_time || '30s'}"
 trusting_period = "${chainConfig.trusting_period || '75s'}"
-trust_threshold = { numerator = "${(chainConfig.trust_threshold || {}).numerator || '2'}", denominator = "${(chainConfig.trust_threshold || {}).denominator || '3'}" }
+trust_threshold = { numerator = "${
+  (chainConfig.trust_threshold || {}).numerator || '2'
+}", denominator = "${(chainConfig.trust_threshold || {}).denominator || '3'}" }
 ${addressType}
 ${gasPrice}
 `;
@@ -161,7 +167,7 @@ export class HermesServiceGenerator implements IGenerator {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
-        ...TemplateHelpers.commonLabels(this.config),
+        ...helpers.getCommonLabels(this.config),
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
@@ -223,7 +229,7 @@ export class HermesStatefulSetGenerator implements IGenerator {
         metadata: {
           name: fullname,
           labels: {
-            ...TemplateHelpers.commonLabels(this.config),
+            ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'relayer',
             'app.kubernetes.io/part-of': 'starship',
             'app.kubernetes.io/role': this.relayer.type,
@@ -283,7 +289,7 @@ export class HermesStatefulSetGenerator implements IGenerator {
       args: [
         '# Install exposer binary from the image\ncp /bin/exposer /exposer/exposer\nchmod +x /exposer/exposer'
       ],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.relayer.resources || { cpu: '0.1', memory: '100M' }
       ),
       volumeMounts: [{ mountPath: '/exposer', name: 'exposer' }]
@@ -294,7 +300,7 @@ export class HermesStatefulSetGenerator implements IGenerator {
       const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       initContainers.push({
         name: `init-${chainName}`,
         image: 'ghcr.io/cosmology-tech/starship/wait-for-service:v0.1.0',
@@ -340,7 +346,7 @@ export class HermesStatefulSetGenerator implements IGenerator {
       env,
       command: ['bash', '-c'],
       args: [command],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       volumeMounts: [
@@ -366,7 +372,7 @@ export class HermesStatefulSetGenerator implements IGenerator {
       args: [
         'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nhermes start'
       ],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       securityContext: {
@@ -391,7 +397,7 @@ export class HermesStatefulSetGenerator implements IGenerator {
       ],
       command: ['bash', '-c'],
       args: ['/exposer/exposer'],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.config.exposer?.resources || { cpu: '0.1', memory: '100M' }
       ),
       securityContext: {
@@ -443,7 +449,7 @@ echo $MNEMONIC_CLI > $RELAYER_DIR/mnemonic-cli.txt
       const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       command += `
 echo "Creating key for ${chainId}..."
 hermes keys add \\
@@ -471,8 +477,14 @@ bash -e /scripts/transfer-tokens.sh \\
 hermes create channel \\
   ${channel['new-connection'] ? '--new-client-connection --yes \\' : ''}
   ${channel['b-chain'] ? `--b-chain ${channel['b-chain']} \\` : ''}
-  ${channel['a-connection'] ? `--a-connection ${channel['a-connection']} \\` : ''}
-  ${channel['channel-version'] ? `--channel-version ${channel['channel-version']} \\` : ''}
+  ${
+    channel['a-connection'] ? `--a-connection ${channel['a-connection']} \\` : ''
+  }
+  ${
+    channel['channel-version']
+      ? `--channel-version ${channel['channel-version']} \\`
+      : ''
+  }
   ${channel.order ? `--order ${channel.order} \\` : ''}
   --a-chain ${channel['a-chain']} \\
   --a-port ${channel['a-port']} \\
