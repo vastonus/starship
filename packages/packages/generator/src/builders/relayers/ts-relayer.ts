@@ -1,27 +1,26 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
-import { ConfigMap, StatefulSet } from 'kubernetesjs';
+import { ConfigMap, Container, StatefulSet, Volume } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../../helpers';
 import { getGeneratorVersion } from '../../version';
 import {
   BaseRelayerBuilder,
-  IRelayerConfigMapGenerator,
-  IRelayerStatefulSetGenerator,
 } from './base';
+import { IGenerator, Manifest } from '../../types';
 
 /**
  * ConfigMap generator for TS Relayer
  */
-export class TsRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
+export class TsRelayerConfigMapGenerator implements IGenerator {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  configMap(): ConfigMap {
+  generate(): Array<ConfigMap> {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
@@ -33,7 +32,7 @@ export class TsRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
       },
     };
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata,
@@ -41,7 +40,7 @@ export class TsRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
         'app.yaml': this.generateAppConfig(),
         'registry.yaml': this.generateRegistryConfig(),
       },
-    };
+    }];
   }
 
   private generateAppConfig(): string {
@@ -218,21 +217,20 @@ ${chains
 /**
  * StatefulSet generator for TS Relayer
  */
-export class TsRelayerStatefulSetGenerator
-  implements IRelayerStatefulSetGenerator
+export class TsRelayerStatefulSetGenerator implements IGenerator
 {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  statefulSet(): StatefulSet {
+  generate(): Array<StatefulSet> {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
 
-    return {
+    return [{
       apiVersion: 'apps/v1',
       kind: 'StatefulSet',
       metadata: {
@@ -280,11 +278,11 @@ export class TsRelayerStatefulSetGenerator
           },
         },
       },
-    };
+    }];
   }
 
-  private generateInitContainers(): any[] {
-    const initContainers = [];
+  private generateInitContainers(): Container[] {
+    const initContainers: Container[] = [];
 
     // Add wait init containers for all chains
     this.relayer.chains.forEach((chainId) => {
@@ -315,7 +313,7 @@ export class TsRelayerStatefulSetGenerator
     return initContainers;
   }
 
-  private generateTsRelayerInitContainer(): any {
+  private generateTsRelayerInitContainer(): Container {
     const image =
       this.relayer.image || 'ghcr.io/cosmology-tech/starship/ts-relayer:0.9.0';
     const env = [
@@ -349,8 +347,8 @@ export class TsRelayerStatefulSetGenerator
     };
   }
 
-  private generateContainers(): any[] {
-    const containers = [];
+  private generateContainers(): Container[] {
+    const containers: Container[] = [];
 
     // Main ts-relayer container
     containers.push({
@@ -380,7 +378,7 @@ export class TsRelayerStatefulSetGenerator
     return containers;
   }
 
-  private generateVolumes(): any[] {
+  private generateVolumes(): Volume[] {
     return [
       { name: 'relayer', emptyDir: {} },
       {
@@ -459,22 +457,11 @@ ts-relayer tx channel ${channel['a-chain']} ${channel['b-chain']} \\
  * Main TS Relayer builder
  */
 export class TsRelayerBuilder extends BaseRelayerBuilder {
-  private configMapGenerator: TsRelayerConfigMapGenerator;
-  private statefulSetGenerator: TsRelayerStatefulSetGenerator;
-
-  constructor(config: StarshipConfig, relayer: Relayer) {
-    super(config, relayer);
-    this.configMapGenerator = new TsRelayerConfigMapGenerator(config, relayer);
-    this.statefulSetGenerator = new TsRelayerStatefulSetGenerator(
-      config,
-      relayer
-    );
-  }
-
-  buildManifests(): (ConfigMap | StatefulSet)[] {
-    return [
-      this.configMapGenerator.configMap(),
-      this.statefulSetGenerator.statefulSet(),
+  constructor(relayer: Relayer, config: StarshipConfig) {
+    super(relayer, config);
+    this.generators = [
+      new TsRelayerConfigMapGenerator(relayer, config),
+      new TsRelayerStatefulSetGenerator(relayer, config),
     ];
   }
 }

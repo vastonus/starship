@@ -2,20 +2,20 @@ import { StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, Deployment, Service } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../helpers';
-import { Manifest } from '../types';
+import { IGenerator, IManifestGenerator, Manifest } from '../types';
 
 /**
  * ConfigMap generator for Registry service
  * Handles chain configurations and asset lists
  */
-export class RegistryConfigMapGenerator {
+export class RegistryConfigMapGenerator implements IGenerator {
   private config: StarshipConfig;
 
   constructor(config: StarshipConfig) {
     this.config = config;
   }
 
-  generate(): ConfigMap {
+  generate(): Array<ConfigMap> {
     const chainConfigs: Record<string, string> = {};
     const assetLists: Record<string, string> = {};
 
@@ -37,7 +37,7 @@ export class RegistryConfigMapGenerator {
       });
     });
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
@@ -52,22 +52,22 @@ export class RegistryConfigMapGenerator {
         ...chainConfigs,
         ...assetLists,
       },
-    };
+    }];
   }
 }
 
 /**
  * Service generator for Registry service
  */
-export class RegistryServiceGenerator {
+export class RegistryServiceGenerator implements IGenerator {
   private config: StarshipConfig;
 
   constructor(config: StarshipConfig) {
     this.config = config;
   }
 
-  generate(): Service {
-    return {
+  generate(): Array<Service> {
+    return [{
       apiVersion: 'v1',
       kind: 'Service',
       metadata: {
@@ -95,21 +95,21 @@ export class RegistryServiceGenerator {
           },
         ],
       },
-    };
+    }];
   }
 }
 
 /**
  * Deployment generator for Registry service
  */
-export class RegistryDeploymentGenerator {
+export class RegistryDeploymentGenerator implements IGenerator {
   private config: StarshipConfig;
 
   constructor(config: StarshipConfig) {
     this.config = config;
   }
 
-  generate(): Deployment {
+  generate(): Array<Deployment> {
     const volumeMounts = this.config.chains.map((chain) => ({
       name: `chain-${TemplateHelpers.chainName(String(chain.id))}`,
       mountPath: `/chains/${chain.id}`,
@@ -122,7 +122,7 @@ export class RegistryDeploymentGenerator {
       },
     }));
 
-    return {
+    return [{
       apiVersion: 'apps/v1',
       kind: 'Deployment',
       metadata: {
@@ -224,7 +224,7 @@ export class RegistryDeploymentGenerator {
           },
         },
       },
-    };
+    }];
   }
 }
 
@@ -232,31 +232,24 @@ export class RegistryDeploymentGenerator {
  * Main Registry builder
  * Orchestrates ConfigMap, Service, and Deployment generation and file output
  */
-export class RegistryBuilder {
+export class RegistryBuilder implements IGenerator {
   private config: StarshipConfig;
-  private configMapGenerator: RegistryConfigMapGenerator;
-  private serviceGenerator: RegistryServiceGenerator;
-  private deploymentGenerator: RegistryDeploymentGenerator;
+  private generators: Array<IGenerator>;
 
   constructor(config: StarshipConfig) {
     this.config = config;
-    this.configMapGenerator = new RegistryConfigMapGenerator(config);
-    this.serviceGenerator = new RegistryServiceGenerator(config);
-    this.deploymentGenerator = new RegistryDeploymentGenerator(config);
+    this.generators = [
+      new RegistryConfigMapGenerator(config),
+      new RegistryServiceGenerator(config),
+      new RegistryDeploymentGenerator(config),
+    ];
   }
 
-  /**
-   * Build all Kubernetes manifests for the Registry service
-   */
-  buildManifests(): Manifest[] {
+  generate(): Array<Manifest> {
     if (!this.config.registry) {
       return [];
     }
 
-    return [
-      this.configMapGenerator.generate(),
-      this.serviceGenerator.generate(),
-      this.deploymentGenerator.generate(),
-    ];
+    return this.generators.flatMap((generator) => generator.generate());
   }
 }

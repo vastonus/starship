@@ -3,20 +3,20 @@ import { Deployment, ConfigMap, Service } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../helpers';
 import { getGeneratorVersion } from '../version';
-import { Manifest } from '../types';
+import { IGenerator, Manifest } from '../types';
 
 /**
  * ConfigMap generator for Explorer service
  * Handles chain configurations for the explorer
  */
-export class ExplorerConfigMapGenerator {
+export class ExplorerConfigMapGenerator implements IGenerator {
   private config: StarshipConfig;
 
   constructor(config: StarshipConfig) {
     this.config = config;
   }
 
-  generate(): ConfigMap {
+  generate(): Array<ConfigMap> {
     const chainConfigs: Record<string, string> = {};
 
     this.config.chains.forEach((chain) => {
@@ -55,7 +55,7 @@ export class ExplorerConfigMapGenerator {
       });
     });
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
@@ -67,22 +67,22 @@ export class ExplorerConfigMapGenerator {
         },
       },
       data: chainConfigs,
-    };
+    }];
   }
 }
 
 /**
  * Service generator for Explorer service
  */
-export class ExplorerServiceGenerator {
+export class ExplorerServiceGenerator implements IGenerator {
   private config: StarshipConfig;
 
   constructor(config: StarshipConfig) {
     this.config = config;
   }
 
-  generate(): Service {
-    return {
+  generate(): Array<Service> {
+    return [{
       apiVersion: 'v1',
       kind: 'Service',
       metadata: {
@@ -107,22 +107,22 @@ export class ExplorerServiceGenerator {
           'app.kubernetes.io/name': 'explorer',
         },
       },
-    };
+    }];
   }
 }
 
 /**
  * Deployment generator for Explorer service
  */
-export class ExplorerDeploymentGenerator {
+export class ExplorerDeploymentGenerator implements IGenerator {
   private config: StarshipConfig;
 
   constructor(config: StarshipConfig) {
     this.config = config;
   }
 
-  generate(): Deployment {
-    return {
+  generate(): Array<Deployment> {
+    return [{
       apiVersion: 'apps/v1',
       kind: 'Deployment',
       metadata: {
@@ -187,7 +187,7 @@ export class ExplorerDeploymentGenerator {
           },
         },
       },
-    };
+    }];
   }
 }
 
@@ -195,27 +195,20 @@ export class ExplorerDeploymentGenerator {
  * Main Explorer builder
  * Orchestrates ConfigMap, Service, and Deployment generation and file output
  */
-export class ExplorerBuilder {
+export class ExplorerBuilder implements IGenerator {
   private config: StarshipConfig;
-  private configMapGenerator: ExplorerConfigMapGenerator;
-  private serviceGenerator: ExplorerServiceGenerator;
-  private deploymentGenerator: ExplorerDeploymentGenerator;
+  private generators: Array<IGenerator>;
 
   constructor(config: StarshipConfig) {
     this.config = config;
-    this.configMapGenerator = new ExplorerConfigMapGenerator(config);
-    this.serviceGenerator = new ExplorerServiceGenerator(config);
-    this.deploymentGenerator = new ExplorerDeploymentGenerator(config);
+    this.generators = [
+      new ExplorerConfigMapGenerator(config),
+      new ExplorerServiceGenerator(config),
+      new ExplorerDeploymentGenerator(config),
+    ];
   }
 
-  /**
-   * Build all Kubernetes manifests for the Explorer service
-   */
-  buildManifests(): Manifest[] {
-    return [
-      this.configMapGenerator.generate(),
-      this.serviceGenerator.generate(),
-      this.deploymentGenerator.generate(),
-    ];
+  generate(): Array<Manifest> {
+    return this.generators.flatMap((generator) => generator.generate());
   }
 }

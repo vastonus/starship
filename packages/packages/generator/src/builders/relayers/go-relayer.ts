@@ -1,27 +1,24 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
-import { ConfigMap, StatefulSet } from 'kubernetesjs';
+import { ConfigMap, Container, StatefulSet, Volume } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../../helpers';
 import { getGeneratorVersion } from '../../version';
-import {
-  BaseRelayerBuilder,
-  IRelayerConfigMapGenerator,
-  IRelayerStatefulSetGenerator,
-} from './base';
+import { BaseRelayerBuilder } from './base';
+import { IGenerator } from '../../types';
 
 /**
  * ConfigMap generator for Go Relayer
  */
-export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
+export class GoRelayerConfigMapGenerator implements IGenerator {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  configMap(): ConfigMap {
+  generate(): Array<ConfigMap> {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
@@ -46,12 +43,12 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
       data[`${chainId}.json`] = this.generateChainConfig(chainId, chain);
     });
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata,
       data,
-    };
+    }];
   }
 
   private generatePathConfig(): string {
@@ -144,21 +141,19 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
 /**
  * StatefulSet generator for Go Relayer
  */
-export class GoRelayerStatefulSetGenerator
-  implements IRelayerStatefulSetGenerator
-{
+export class GoRelayerStatefulSetGenerator implements IGenerator {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  statefulSet(): StatefulSet {
+  generate(): Array<StatefulSet> {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
 
-    return {
+    return [{
       apiVersion: 'apps/v1',
       kind: 'StatefulSet',
       metadata: {
@@ -206,11 +201,11 @@ export class GoRelayerStatefulSetGenerator
           },
         },
       },
-    };
+    }];
   }
 
-  private generateInitContainers(): any[] {
-    const initContainers = [];
+  private generateInitContainers(): Container[] {
+    const initContainers: Container[] = [];
 
     // Add wait init containers for all chains
     this.relayer.chains.forEach((chainId) => {
@@ -241,7 +236,7 @@ export class GoRelayerStatefulSetGenerator
     return initContainers;
   }
 
-  private generateGoRelayerInitContainer(): any {
+  private generateGoRelayerInitContainer(): Container {
     const image =
       this.relayer.image || 'ghcr.io/cosmology-tech/starship/go-relayer:v2.4.1';
     const env = [
@@ -275,8 +270,8 @@ export class GoRelayerStatefulSetGenerator
     };
   }
 
-  private generateContainers(): any[] {
-    const containers = [];
+  private generateContainers(): Container[] {
+    const containers: Container[] = [];
 
     // Main go-relayer container
     containers.push({
@@ -306,7 +301,7 @@ export class GoRelayerStatefulSetGenerator
     return containers;
   }
 
-  private generateVolumes(): any[] {
+  private generateVolumes(): Volume[] {
     return [
       { name: 'relayer', emptyDir: {} },
       {
@@ -389,22 +384,11 @@ rly tx channel ${pathName} --src-port ${channel['a-port']} --dst-port ${channel[
  * Main Go Relayer builder
  */
 export class GoRelayerBuilder extends BaseRelayerBuilder {
-  private configMapGenerator: GoRelayerConfigMapGenerator;
-  private statefulSetGenerator: GoRelayerStatefulSetGenerator;
-
-  constructor(config: StarshipConfig, relayer: Relayer) {
-    super(config, relayer);
-    this.configMapGenerator = new GoRelayerConfigMapGenerator(config, relayer);
-    this.statefulSetGenerator = new GoRelayerStatefulSetGenerator(
-      config,
-      relayer
-    );
-  }
-
-  buildManifests(): (ConfigMap | StatefulSet)[] {
-    return [
-      this.configMapGenerator.configMap(),
-      this.statefulSetGenerator.statefulSet(),
+  constructor(relayer: Relayer, config: StarshipConfig) {
+    super(relayer, config);
+    this.generators = [
+      new GoRelayerConfigMapGenerator(relayer, config),
+      new GoRelayerStatefulSetGenerator(relayer, config),
     ];
   }
 }

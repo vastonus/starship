@@ -3,22 +3,22 @@ import { StarshipConfig, Frontend } from '@starship-ci/types';
 import { TemplateHelpers } from '../helpers';
 import { getGeneratorVersion } from '../version';
 import { Deployment, Service } from 'kubernetesjs';
-import { Manifest } from '../types';
+import { IGenerator, Manifest } from '../types';
 
 /**
  * Service generator for Frontend services
  */
-export class FrontendServiceGenerator {
+export class FrontendServiceGenerator implements IGenerator {
   private config: StarshipConfig;
   private frontend: Frontend;
 
-  constructor(config: StarshipConfig, frontend: Frontend) {
+  constructor(frontend: Frontend, config: StarshipConfig) {
     this.config = config;
     this.frontend = frontend;
   }
 
-  generate(): Service {
-    return {
+  generate(): Array<Service> {
+    return [{
       apiVersion: 'v1',
       kind: 'Service',
       metadata: {
@@ -46,24 +46,24 @@ export class FrontendServiceGenerator {
           'app.kubernetes.io/name': this.frontend.name,
         },
       },
-    };
+    }];
   }
 }
 
 /**
  * Deployment generator for Frontend services
  */
-export class FrontendDeploymentGenerator {
+export class FrontendDeploymentGenerator implements IGenerator {
   private config: StarshipConfig;
   private frontend: Frontend;
 
-  constructor(config: StarshipConfig, frontend: Frontend) {
+  constructor(frontend: Frontend,config: StarshipConfig) {
     this.config = config;
     this.frontend = frontend;
   }
 
-  generate(): Deployment {
-    return {
+  generate(): Array<Deployment> {
+    return [{
       apiVersion: 'apps/v1',
       kind: 'Deployment',
       metadata: {
@@ -124,41 +124,28 @@ export class FrontendDeploymentGenerator {
           },
         },
       },
-    };
+    }];
   }
 }
 
 /**
  * Main Frontend builder
  */
-export class FrontendBuilder {
+export class FrontendBuilder implements IGenerator {
   private config: StarshipConfig;
+  private generators: Array<IGenerator>;
 
   constructor(config: StarshipConfig) {
     this.config = config;
+    this.generators = [];
+    
+    config.frontends.forEach((frontend) => {
+      this.generators.push(new FrontendServiceGenerator(frontend, config));
+      this.generators.push(new FrontendDeploymentGenerator(frontend, config));
+    });
   }
 
-  buildManifests(): Manifest[] {
-    const manifests: Manifest[] = [];
-
-    if (!this.config.frontends || this.config.frontends.length === 0) {
-      return manifests;
-    }
-
-    this.config.frontends.forEach((frontend) => {
-      const serviceGenerator = new FrontendServiceGenerator(
-        this.config,
-        frontend
-      );
-      const deploymentGenerator = new FrontendDeploymentGenerator(
-        this.config,
-        frontend
-      );
-
-      manifests.push(serviceGenerator.generate());
-      manifests.push(deploymentGenerator.generate());
-    });
-
-    return manifests;
+  generate(): Array<Manifest> {
+    return this.generators.flatMap((generator) => generator.generate());
   }
 }

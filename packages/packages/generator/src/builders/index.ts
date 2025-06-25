@@ -81,8 +81,8 @@ export class BuilderManager {
     let allManifests: any[] = [];
 
     builders.forEach((builder) => {
-      if (builder.buildManifests) {
-        const manifests = builder.buildManifests();
+      if (builder.generate) {
+        const manifests = builder.generate();
         allManifests = allManifests.concat(manifests);
       }
     });

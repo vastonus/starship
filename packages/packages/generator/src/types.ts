@@ -7,11 +7,6 @@ import {
 } from '@starship-ci/types';
 import { ConfigMap, Deployment, Service, StatefulSet } from 'kubernetesjs';
 
-export interface EnvVar {
-  name: string;
-  value: string | { valueFrom: any };
-}
-
 export type Manifest = ConfigMap | Service | Deployment | StatefulSet;
 
 export interface GeneratorContext {

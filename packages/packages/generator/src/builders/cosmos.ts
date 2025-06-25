@@ -4,15 +4,17 @@ import { ConfigMap, Container, Service, StatefulSet } from 'kubernetesjs';
 import * as path from 'path';
 
 import { DefaultsManager } from '../defaults';
-import { TemplateHelpers } from '../helpers';
+import { TemplateHelpers, getChainId, getHostname } from '../helpers';
 import { ScriptManager } from '../scripts';
 import { getGeneratorVersion } from '../version';
+import { IGenerator, Manifest } from '../types';
+import { CosmosServiceGenerator } from './chains/cosmos/service';
 
 /**
  * ConfigMap generator for Cosmos chains
  * Handles scripts, genesis patches, and ICS consumer proposals
  */
-export class CosmosConfigMapGenerator {
+export class CosmosConfigMapGenerator implements IGenerator {
   private scriptManager: ScriptManager;
   private defaultsManager: DefaultsManager;
   private config: StarshipConfig;
@@ -133,13 +135,21 @@ export class CosmosConfigMapGenerator {
       },
     };
   }
+
+  generate(): Manifest[] {
+    return [
+      this.scriptsConfigMap(),
+      this.genesisPatchConfigMap(),
+      this.icsConsumerProposalConfigMap(),
+    ];
+  }
 }
 
 /**
  * StatefulSet generator for Cosmos chains
  * Handles genesis and validator StatefulSets with proper container and init container management
  */
-export class CosmosStatefulSetGenerator {
+export class CosmosStatefulSetGenerator implements IGenerator {
   private scriptManager: ScriptManager;
   private defaultsManager: DefaultsManager;
   private config: StarshipConfig;
@@ -281,11 +291,15 @@ export class CosmosStatefulSetGenerator {
     };
   }
 
+  generate(): Manifest[] {
+    return [this.genesisStatefulSet(), this.validatorStatefulSet()];
+  }
+
   /**
    * Create init containers for genesis node
    */
-  private genesisInitContainers(): any[] {
-    const initContainers: any[] = [];
+  private genesisInitContainers(): Container[] {
+    const initContainers: Container[] = [];
     const exposerPort = this.config.exposer?.ports?.rest || 8081;
 
     // Build images init container if needed
@@ -404,8 +418,8 @@ export class CosmosStatefulSetGenerator {
   /**
    * Create main containers for genesis node
    */
-  private genesisContainers(): any[] {
-    const containers: any[] = [];
+  private genesisContainers(): Container[] {
+    const containers: Container[] = [];
 
     // Main validator container
     containers.push({
@@ -504,8 +518,8 @@ export class CosmosStatefulSetGenerator {
   /**
    * Create init containers for validator nodes
    */
-  private validatorInitContainers(): any[] {
-    const initContainers: any[] = [];
+  private validatorInitContainers(): Container[] {
+    const initContainers: Container[] = [];
 
     // Build images init container if needed
     if (this.chain.build?.enabled || this.chain.upgrade?.enabled) {
@@ -592,8 +606,8 @@ export class CosmosStatefulSetGenerator {
   /**
    * Create main containers for validator nodes
    */
-  private validatorContainers(): any[] {
-    const containers: any[] = [];
+  private validatorContainers(): Container[] {
+    const containers: Container[] = [];
 
     // Main validator container
     containers.push({
@@ -691,7 +705,7 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
 # Add any post-start logic here`;
   }
 
-  private faucetInitContainer(): any {
+  private faucetInitContainer(): Container {
     return {
       name: 'init-faucet',
       image: this.chain.faucet!.image,
@@ -706,7 +720,7 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
     };
   }
 
-  private icsInitContainer(exposerPort: number): any {
+  private icsInitContainer(exposerPort: number): Container {
     return {
       name: 'init-ics',
       image: this.chain.image,
@@ -725,14 +739,14 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
     };
   }
 
-  private faucetContainer(): any {
+  private faucetContainer(): Container {
     if (this.chain.faucet?.type === 'cosmjs') {
       return this.cosmjsFaucetContainer();
     }
     return this.starshipFaucetContainer();
   }
 
-  private cosmjsFaucetContainer(): any {
+  private cosmjsFaucetContainer(): Container {
     return {
       name: 'faucet',
       image: this.chain.faucet!.image,
@@ -836,7 +850,7 @@ echo "Validator post-start hook for ${getChainId(this.chain)}"
  * Main Cosmos builder
  * Orchestrates ConfigMap, Service, and StatefulSet generation and file output
  */
-export class CosmosBuilder {
+export class CosmosBuilder implements IGenerator {
   private config: StarshipConfig;
   private scriptManager: ScriptManager;
 
@@ -845,8 +859,8 @@ export class CosmosBuilder {
     this.scriptManager = new ScriptManager();
   }
 
-  buildManifests(): (ConfigMap | Service | StatefulSet)[] {
-    const manifests: (ConfigMap | Service | StatefulSet)[] = [];
+  generate(): Manifest[] {
+    const manifests: Manifest[] = [];
     if (!this.config.chains) {
       return manifests;
     }
@@ -862,10 +876,7 @@ export class CosmosBuilder {
 
     // Keys ConfigMap
     const keysConfigMap = new KeysConfigMap(this.config);
-    const keysCm = keysConfigMap.configMap();
-    if (keysCm) {
-      manifests.push(keysCm);
-    }
+    manifests.push(...keysConfigMap.generate());
 
     // Global Scripts ConfigMap
     const globalScripts = new GlobalScriptsConfigMap(this.config);
@@ -879,12 +890,7 @@ export class CosmosBuilder {
       const serviceGenerator = new CosmosServiceGenerator(chain, this.config);
 
       // Genesis Service (always needed)
-      manifests.push(serviceGenerator.genesisService());
-
-      // Validator Service (only if numValidators > 1)
-      if ((chain.numValidators || 1) > 1) {
-        manifests.push(serviceGenerator.validatorService());
-      }
+      manifests.push(...serviceGenerator.generate());
 
       // Use sophisticated StatefulSet generator
       const statefulSetGenerator = new CosmosStatefulSetGenerator(
@@ -930,25 +936,25 @@ export class CosmosBuilder {
   }
 }
 
-class KeysConfigMap {
+class KeysConfigMap implements IGenerator {
   constructor(
     private config: StarshipConfig,
     private projectRoot: string = process.cwd()
   ) {}
 
-  configMap(): ConfigMap | null {
+  generate(): Manifest[] {
     const keysFilePath = path.join(this.projectRoot, 'configs', 'keys.json');
 
     if (!fs.existsSync(keysFilePath)) {
       console.warn(
         `Warning: 'configs/keys.json' not found. Skipping Keys ConfigMap.`
       );
-      return null;
+      return [];
     }
 
     try {
       const keysFileContent = fs.readFileSync(keysFilePath, 'utf-8');
-      return {
+      return [{
         apiVersion: 'v1',
         kind: 'ConfigMap',
         metadata: {
@@ -961,8 +967,9 @@ class KeysConfigMap {
         },
         data: {
           'keys.json': keysFileContent,
+          },
         },
-      };
+      ];
     } catch (error) {
       console.warn(
         `Warning: Could not read 'configs/keys.json'. Error: ${(error as Error).message}. Skipping.`

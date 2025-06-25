@@ -132,8 +132,13 @@ export class CosmosServiceGenerator implements IGenerator {
     this.chain = chain;
     this.serviceGenerators = [
       new CosmosGenesisServiceGenerator(this.chain, this.config),
-      new CosmosValidatorServiceGenerator(this.chain, this.config),
     ];
+    // Add validator service if numValidators > 1
+    if (this.chain.numValidators && this.chain.numValidators > 1) {
+      this.serviceGenerators.push(
+        new CosmosValidatorServiceGenerator(this.chain, this.config)
+      );
+    }
   }
 
   generate(): Array<Manifest> {

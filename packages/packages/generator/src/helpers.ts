@@ -1,6 +1,6 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
+import { EnvVar } from 'kubernetesjs';
 
-import { EnvVar } from './types';
 import { getGeneratorVersion } from './version';
 
 export class TemplateHelpers {
@@ -91,11 +91,9 @@ export class TemplateHelpers {
       { name: 'GENESIS_PORT', value: String(port) },
       {
         name: 'NAMESPACE',
-        value: {
-          valueFrom: {
-            fieldRef: {
-              fieldPath: 'metadata.namespace',
-            },
+        valueFrom: {
+          fieldRef: {
+            fieldPath: 'metadata.namespace',
           },
         },
       },

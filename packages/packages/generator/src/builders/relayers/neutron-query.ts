@@ -1,30 +1,26 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
-import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
+import { ConfigMap, Container, EnvVar, Service, StatefulSet, Volume } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../../helpers';
 import { getGeneratorVersion } from '../../version';
-import {
-  BaseRelayerBuilder,
-  IRelayerConfigMapGenerator,
-  IRelayerServiceGenerator,
-  IRelayerStatefulSetGenerator,
-} from './base';
+import { BaseRelayerBuilder } from './base';
+import { IGenerator } from '../../types';
 
 /**
  * ConfigMap generator for Neutron Query Relayer
  */
 export class NeutronQueryConfigMapGenerator
-  implements IRelayerConfigMapGenerator
+  implements IGenerator
 {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  configMap(): ConfigMap {
+  generate(): Array<ConfigMap> {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
@@ -36,14 +32,14 @@ export class NeutronQueryConfigMapGenerator
       },
     };
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata,
       data: {
         'config.json': this.generateNeutronQueryConfig(),
       },
-    };
+    }];
   }
 
   private generateNeutronQueryConfig(): string {
@@ -126,16 +122,16 @@ export class NeutronQueryConfigMapGenerator
 /**
  * Service generator for Neutron Query Relayer
  */
-export class NeutronQueryServiceGenerator implements IRelayerServiceGenerator {
+export class NeutronQueryServiceGenerator implements IGenerator {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  service(): Service {
+  generate(): Array<Service> {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
@@ -156,7 +152,7 @@ export class NeutronQueryServiceGenerator implements IRelayerServiceGenerator {
       },
     ];
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'Service',
       metadata,
@@ -167,7 +163,7 @@ export class NeutronQueryServiceGenerator implements IRelayerServiceGenerator {
           'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`,
         },
       },
-    };
+    }];
   }
 }
 
@@ -175,20 +171,20 @@ export class NeutronQueryServiceGenerator implements IRelayerServiceGenerator {
  * StatefulSet generator for Neutron Query Relayer
  */
 export class NeutronQueryStatefulSetGenerator
-  implements IRelayerStatefulSetGenerator
+  implements IGenerator
 {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  statefulSet(): StatefulSet {
+  generate(): Array<StatefulSet> {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
 
-    return {
+    return [{
       apiVersion: 'apps/v1',
       kind: 'StatefulSet',
       metadata: {
@@ -236,11 +232,11 @@ export class NeutronQueryStatefulSetGenerator
           },
         },
       },
-    };
+    }];
   }
 
-  private generateInitContainers(): any[] {
-    const initContainers = [];
+  private generateInitContainers(): Container[] {
+    const initContainers: Container[] = [];
 
     // Add wait init containers for all chains
     this.relayer.chains.forEach((chainId) => {
@@ -271,7 +267,7 @@ export class NeutronQueryStatefulSetGenerator
     return initContainers;
   }
 
-  private generateNeutronQueryInitContainer(): any {
+  private generateNeutronQueryInitContainer(): Container {
     const image =
       this.relayer.image ||
       'ghcr.io/cosmology-tech/starship/neutron-query-relayer:v0.2.0';
@@ -298,8 +294,8 @@ export class NeutronQueryStatefulSetGenerator
     };
   }
 
-  private generateContainers(): any[] {
-    const containers = [];
+  private generateContainers(): Container[] {
+    const containers: Container[] = [];
 
     // Main neutron-query-relayer container
     containers.push({
@@ -329,7 +325,7 @@ export class NeutronQueryStatefulSetGenerator
     return containers;
   }
 
-  private generateVolumes(): any[] {
+  private generateVolumes(): Volume[] {
     return [
       { name: 'relayer', emptyDir: {} },
       {
@@ -341,7 +337,7 @@ export class NeutronQueryStatefulSetGenerator
     ];
   }
 
-  private generateEnvironmentVariables(): any[] {
+  private generateEnvironmentVariables(): EnvVar[] {
     const relayerConfig = this.relayer.config || {};
 
     return [
@@ -402,28 +398,12 @@ echo "Chain ${chainId} setup completed"
  * Main Neutron Query Relayer builder
  */
 export class NeutronQueryRelayerBuilder extends BaseRelayerBuilder {
-  private configMapGenerator: NeutronQueryConfigMapGenerator;
-  private serviceGenerator: NeutronQueryServiceGenerator;
-  private statefulSetGenerator: NeutronQueryStatefulSetGenerator;
-
-  constructor(config: StarshipConfig, relayer: Relayer) {
-    super(config, relayer);
-    this.configMapGenerator = new NeutronQueryConfigMapGenerator(
-      config,
-      relayer
-    );
-    this.serviceGenerator = new NeutronQueryServiceGenerator(config, relayer);
-    this.statefulSetGenerator = new NeutronQueryStatefulSetGenerator(
-      config,
-      relayer
-    );
-  }
-
-  buildManifests(): (ConfigMap | Service | StatefulSet)[] {
-    return [
-      this.configMapGenerator.configMap(),
-      this.serviceGenerator.service(),
-      this.statefulSetGenerator.statefulSet(),
+  constructor(relayer: Relayer, config: StarshipConfig) {
+    super(relayer, config);
+    this.generators = [
+      new NeutronQueryConfigMapGenerator(relayer, config),
+      new NeutronQueryServiceGenerator(relayer, config),
+      new NeutronQueryStatefulSetGenerator(relayer, config),
     ];
   }
 }

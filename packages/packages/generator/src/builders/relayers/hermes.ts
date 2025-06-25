@@ -1,29 +1,25 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
-import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
+import { ConfigMap, Container, Service, StatefulSet, Volume } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../../helpers';
 import { getGeneratorVersion } from '../../version';
-import {
-  BaseRelayerBuilder,
-  IRelayerConfigMapGenerator,
-  IRelayerServiceGenerator,
-  IRelayerStatefulSetGenerator,
-  RelayerHelpers,
-} from './base';
+import { BaseRelayerBuilder } from './base';
+import { IGenerator } from '../../types';
+import { getAddressType, getGasPrice } from './utils';
 
 /**
  * ConfigMap generator for Hermes relayer
  */
-export class HermesConfigMapGenerator implements IRelayerConfigMapGenerator {
+export class HermesConfigMapGenerator implements IGenerator {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  configMap(): ConfigMap {
+  generate(): Array<ConfigMap> {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
@@ -37,7 +33,7 @@ export class HermesConfigMapGenerator implements IRelayerConfigMapGenerator {
 
     const configToml = this.generateHermesConfig();
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata,
@@ -48,7 +44,7 @@ export class HermesConfigMapGenerator implements IRelayerConfigMapGenerator {
           'key_name = "$1-cli"'
         ),
       },
-    };
+    }];
   }
 
   private generateHermesConfig(): string {
@@ -103,8 +99,8 @@ port = ${telemetryConfig.port || 3001}
       const chainConfig =
         relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
       const chainName = TemplateHelpers.chainName(String(chain.id));
-      const addressType = RelayerHelpers.getAddressType(chain.name);
-      const gasPrice = RelayerHelpers.getGasPrice(chain.name, chain.denom);
+      const addressType = getAddressType(chain.name);
+      const gasPrice = getGasPrice(chain.name, chain.denom);
 
       configToml += `
 [[chains]]
@@ -144,16 +140,16 @@ ${gasPrice}
 /**
  * Service generator for Hermes relayer
  */
-export class HermesServiceGenerator implements IRelayerServiceGenerator {
+export class HermesServiceGenerator implements IGenerator {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  service(): Service {
+  generate(): Array<Service> {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
@@ -180,7 +176,7 @@ export class HermesServiceGenerator implements IRelayerServiceGenerator {
       },
     ];
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'Service',
       metadata,
@@ -191,28 +187,27 @@ export class HermesServiceGenerator implements IRelayerServiceGenerator {
           'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`,
         },
       },
-    };
+    }];
   }
 }
 
 /**
  * StatefulSet generator for Hermes relayer
  */
-export class HermesStatefulSetGenerator
-  implements IRelayerStatefulSetGenerator
+export class HermesStatefulSetGenerator implements IGenerator
 {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  statefulSet(): StatefulSet {
+  generate(): Array<StatefulSet> {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
 
-    return {
+    return [{
       apiVersion: 'apps/v1',
       kind: 'StatefulSet',
       metadata: {
@@ -260,11 +255,11 @@ export class HermesStatefulSetGenerator
           },
         },
       },
-    };
+    }];
   }
 
-  private generateInitContainers(): any[] {
-    const initContainers = [];
+  private generateInitContainers(): Container[] {
+    const initContainers: Container[] = [];
 
     // Add exposer init container
     initContainers.push({
@@ -312,7 +307,7 @@ export class HermesStatefulSetGenerator
     return initContainers;
   }
 
-  private generateHermesInitContainer(): any {
+  private generateHermesInitContainer(): Container {
     const image =
       this.relayer.image || 'ghcr.io/cosmology-tech/starship/hermes:1.10.0';
     const env = [
@@ -346,8 +341,8 @@ export class HermesStatefulSetGenerator
     };
   }
 
-  private generateContainers(): any[] {
-    const containers = [];
+  private generateContainers(): Container[] {
+    const containers: Container[] = [];
 
     // Main hermes container
     containers.push({
@@ -402,7 +397,7 @@ export class HermesStatefulSetGenerator
     return containers;
   }
 
-  private generateVolumes(): any[] {
+  private generateVolumes(): Volume[] {
     return [
       { name: 'relayer', emptyDir: {} },
       {
@@ -483,22 +478,12 @@ hermes create channel \\
  * Main Hermes relayer builder
  */
 export class HermesRelayerBuilder extends BaseRelayerBuilder {
-  private configMapGenerator: HermesConfigMapGenerator;
-  private serviceGenerator: HermesServiceGenerator;
-  private statefulSetGenerator: HermesStatefulSetGenerator;
-
-  constructor(config: StarshipConfig, relayer: Relayer) {
-    super(config, relayer);
-    this.configMapGenerator = new HermesConfigMapGenerator(config, relayer);
-    this.serviceGenerator = new HermesServiceGenerator(config, relayer);
-    this.statefulSetGenerator = new HermesStatefulSetGenerator(config, relayer);
-  }
-
-  buildManifests(): (ConfigMap | Service | StatefulSet)[] {
-    return [
-      this.configMapGenerator.configMap(),
-      this.serviceGenerator.service(),
-      this.statefulSetGenerator.statefulSet(),
+  constructor(relayer: Relayer, config: StarshipConfig) {
+    super(relayer, config);
+    this.generators = [
+      new HermesConfigMapGenerator(relayer, config),
+      new HermesServiceGenerator(relayer, config),
+      new HermesStatefulSetGenerator(relayer, config),
     ];
   }
 }
