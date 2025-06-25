@@ -35,7 +35,7 @@ export class ExplorerConfigMapGenerator {
         rpc: [
           this.config.ingress?.enabled && this.config.ingress.host
             ? `https://rpc.${chain.id}-genesis.${this.config.ingress.host.replace('*.', '')}:443`
-            : `http://${host}:${chain.ports?.rpc || 26657}`
+            : `http://${host}:${chain.ports?.rpc || 26657}`,
         ],
         snapshot_provider: '',
         sdk_version: '0.45.6',
@@ -49,9 +49,9 @@ export class ExplorerConfigMapGenerator {
             symbol: chain.prefix?.toUpperCase(),
             exponent: '6',
             coingecko_id: chain.id,
-            logo: ''
-          }
-        ]
+            logo: '',
+          },
+        ],
       });
     });
 
@@ -63,10 +63,10 @@ export class ExplorerConfigMapGenerator {
         labels: {
           ...TemplateHelpers.commonLabels(this.config),
           'app.kubernetes.io/component': 'explorer',
-          'app.kubernetes.io/part-of': 'starship'
-        }
+          'app.kubernetes.io/part-of': 'starship',
+        },
       },
-      data: chainConfigs
+      data: chainConfigs,
     };
   }
 }
@@ -90,8 +90,8 @@ export class ExplorerServiceGenerator {
         labels: {
           ...TemplateHelpers.commonLabels(this.config),
           'app.kubernetes.io/component': 'explorer',
-          'app.kubernetes.io/part-of': 'starship'
-        }
+          'app.kubernetes.io/part-of': 'starship',
+        },
       },
       spec: {
         clusterIP: 'None',
@@ -100,13 +100,13 @@ export class ExplorerServiceGenerator {
             name: 'http',
             port: 8080,
             protocol: 'TCP',
-            targetPort: '8080'
-          }
+            targetPort: '8080',
+          },
         ],
         selector: {
-          'app.kubernetes.io/name': 'explorer'
-        }
-      }
+          'app.kubernetes.io/name': 'explorer',
+        },
+      },
     };
   }
 }
@@ -130,8 +130,8 @@ export class ExplorerDeploymentGenerator {
         labels: {
           ...TemplateHelpers.commonLabels(this.config),
           'app.kubernetes.io/component': 'explorer',
-          'app.kubernetes.io/part-of': 'starship'
-        }
+          'app.kubernetes.io/part-of': 'starship',
+        },
       },
       spec: {
         replicas: 1,
@@ -139,8 +139,8 @@ export class ExplorerDeploymentGenerator {
         selector: {
           matchLabels: {
             'app.kubernetes.io/instance': 'explorer',
-            'app.kubernetes.io/name': 'explorer'
-          }
+            'app.kubernetes.io/name': 'explorer',
+          },
         },
         template: {
           metadata: {
@@ -148,7 +148,7 @@ export class ExplorerDeploymentGenerator {
               quality: 'release',
               role: 'api-gateway',
               sla: 'high',
-              tier: 'gateway'
+              tier: 'gateway',
             },
             labels: {
               'app.kubernetes.io/instance': 'explorer',
@@ -156,8 +156,8 @@ export class ExplorerDeploymentGenerator {
                 this.config.explorer?.type || 'ping-pub',
               'app.kubernetes.io/name': 'explorer',
               'app.kubernetes.io/rawname': 'explorer',
-              'app.kubernetes.io/version': getGeneratorVersion()
-            }
+              'app.kubernetes.io/version': getGeneratorVersion(),
+            },
           },
           spec: {
             containers: [
@@ -171,22 +171,22 @@ export class ExplorerDeploymentGenerator {
                 env: [{ name: 'CHAINS_CONFIG_PATH', value: '/explorer' }],
                 ports: [{ name: 'http', containerPort: 8080, protocol: 'TCP' }],
                 volumeMounts: [
-                  { name: 'explorer-config', mountPath: '/explorer' }
+                  { name: 'explorer-config', mountPath: '/explorer' },
                 ],
                 resources: TemplateHelpers.getResourceObject(
                   this.config.explorer?.resources
-                )
-              }
+                ),
+              },
             ],
             volumes: [
               {
                 name: 'explorer-config',
-                configMap: { name: 'explorer' }
-              }
-            ]
-          }
-        }
-      }
+                configMap: { name: 'explorer' },
+              },
+            ],
+          },
+        },
+      },
     };
   }
 }
@@ -215,7 +215,7 @@ export class ExplorerBuilder {
     return [
       this.configMapGenerator.generate(),
       this.serviceGenerator.generate(),
-      this.deploymentGenerator.generate()
+      this.deploymentGenerator.generate(),
     ];
   }
 }

@@ -8,7 +8,7 @@ describe('StarshipClient', () => {
       if (['kubectl', 'docker'].includes(dep.name)) {
         return {
           ...dep,
-          installed: false
+          installed: false,
         };
       }
       return dep;

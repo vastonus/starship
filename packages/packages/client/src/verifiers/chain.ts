@@ -11,7 +11,7 @@ export const verifyChainRest = async (
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
     endpoint: 'rest',
-    status: 'failure'
+    status: 'failure',
   };
 
   if (!port) {
@@ -52,7 +52,7 @@ export const verifyChainRpc = async (
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
     endpoint: 'rpc',
-    status: 'failure'
+    status: 'failure',
   };
 
   if (!port) {
@@ -97,7 +97,7 @@ export const verifyChainFaucet = async (
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
     endpoint: 'faucet',
-    status: 'failure'
+    status: 'failure',
   };
 
   if (!port) {
@@ -142,7 +142,7 @@ export const verifyChainExposer = async (
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
     endpoint: 'exposer',
-    status: 'failure'
+    status: 'failure',
   };
 
   if (!port) {
@@ -191,7 +191,7 @@ export const verifyEthereumRest = async (
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
     endpoint: 'rest',
-    status: 'failure'
+    status: 'failure',
   };
 
   if (!port) {
@@ -205,7 +205,7 @@ export const verifyEthereumRest = async (
       jsonrpc: '2.0',
       method: 'eth_blockNumber',
       params: [],
-      id: 1
+      id: 1,
     });
     result.details = response.data;
     if (response.status !== 200) {
@@ -236,7 +236,7 @@ export const verifyEthereumRpc = async (
   const result: VerificationResult = {
     service: `chain-${chain.id}`,
     endpoint: 'rpc',
-    status: 'failure'
+    status: 'failure',
   };
 
   if (!port) {
@@ -250,7 +250,7 @@ export const verifyEthereumRpc = async (
       jsonrpc: '2.0',
       method: 'eth_syncing',
       params: [],
-      id: 1
+      id: 1,
     });
     result.details = response.data;
     if (response.status !== 200) {
@@ -285,10 +285,10 @@ export const chainVerifiers: {
     rest: verifyChainRest,
     rpc: verifyChainRpc,
     faucet: verifyChainFaucet,
-    exposer: verifyChainExposer
+    exposer: verifyChainExposer,
   },
   ethereum: {
     rest: verifyEthereumRest,
-    rpc: verifyEthereumRpc
-  }
+    rpc: verifyEthereumRpc,
+  },
 };

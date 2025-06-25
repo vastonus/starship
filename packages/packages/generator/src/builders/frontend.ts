@@ -27,8 +27,8 @@ export class FrontendServiceGenerator {
           'app.kubernetes.io/name': this.frontend.name,
           'app.kubernetes.io/component': 'frontend',
           'app.kubernetes.io/part-of': 'starship',
-          ...TemplateHelpers.commonLabels(this.config)
-        }
+          ...TemplateHelpers.commonLabels(this.config),
+        },
       },
       spec: {
         clusterIP: 'None',
@@ -38,14 +38,14 @@ export class FrontendServiceGenerator {
                 name: 'http',
                 port: this.frontend.ports.rest,
                 protocol: 'TCP',
-                targetPort: 'http'
-              }
+                targetPort: 'http',
+              },
             ]
           : [],
         selector: {
-          'app.kubernetes.io/name': this.frontend.name
-        }
-      }
+          'app.kubernetes.io/name': this.frontend.name,
+        },
+      },
     };
   }
 }
@@ -71,8 +71,8 @@ export class FrontendDeploymentGenerator {
         labels: {
           'app.kubernetes.io/component': 'frontend',
           'app.kubernetes.io/part-of': 'starship',
-          ...TemplateHelpers.commonLabels(this.config)
-        }
+          ...TemplateHelpers.commonLabels(this.config),
+        },
       },
       spec: {
         replicas: this.frontend.replicas || 1,
@@ -80,8 +80,8 @@ export class FrontendDeploymentGenerator {
         selector: {
           matchLabels: {
             'app.kubernetes.io/instance': this.frontend.name,
-            'app.kubernetes.io/name': this.frontend.name
-          }
+            'app.kubernetes.io/name': this.frontend.name,
+          },
         },
         template: {
           metadata: {
@@ -89,15 +89,15 @@ export class FrontendDeploymentGenerator {
               quality: 'release',
               role: 'frontend',
               sla: 'high',
-              tier: 'frontend'
+              tier: 'frontend',
             },
             labels: {
               'app.kubernetes.io/instance': this.frontend.name,
               'app.kubernetes.io/type': this.frontend.type,
               'app.kubernetes.io/name': this.frontend.name,
               'app.kubernetes.io/rawname': this.frontend.name,
-              'app.kubernetes.io/version': getGeneratorVersion()
-            }
+              'app.kubernetes.io/version': getGeneratorVersion(),
+            },
           },
           spec: {
             containers: [
@@ -111,19 +111,19 @@ export class FrontendDeploymentGenerator {
                       {
                         name: 'http',
                         containerPort: this.frontend.ports.rest,
-                        protocol: 'TCP'
-                      }
+                        protocol: 'TCP',
+                      },
                     ]
                   : [],
                 env: this.frontend.env || [],
                 resources: TemplateHelpers.getResourceObject(
                   this.frontend.resources || { cpu: '0.2', memory: '200M' }
-                )
-              }
-            ]
-          }
-        }
-      }
+                ),
+              },
+            ],
+          },
+        },
+      },
     };
   }
 }

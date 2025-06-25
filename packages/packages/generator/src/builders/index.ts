@@ -75,7 +75,7 @@ export class BuilderManager {
       new RegistryBuilder(this.config),
       new ExplorerBuilder(this.config),
       new FrontendBuilder(this.config),
-      new RelayerBuilder(this.config)
+      new RelayerBuilder(this.config),
     ];
 
     let allManifests: any[] = [];

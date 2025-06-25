@@ -4,20 +4,20 @@ module.exports = {
   extends: [
     'eslint:recommended',
     'plugin:@typescript-eslint/recommended', // Uses the recommended rules from the @typescript-eslint/eslint-plugin
-    'plugin:prettier/recommended'
+    'plugin:prettier/recommended',
   ],
   parserOptions: {
     ecmaVersion: 2020, // Allows for the parsing of modern ECMAScript features
     sourceType: 'module', // Allows for the use of imports
     ecmaFeatures: {
-      jsx: true // Allows for the parsing of JSX
-    }
+      jsx: true, // Allows for the parsing of JSX
+    },
   },
   env: {
     es6: true,
     browser: true,
     node: true,
-    jest: true
+    jest: true,
   },
   rules: {
     '@typescript-eslint/no-explicit-any': 'off', // Disable the rule entirely
@@ -30,26 +30,26 @@ module.exports = {
       2,
       'ForInStatement',
       'LabeledStatement',
-      'WithStatement'
+      'WithStatement',
     ],
     'no-unused-vars': [
       0,
       {
         ignoreSiblings: true,
-        argsIgnorePattern: 'React|res|next|^_'
-      }
+        argsIgnorePattern: 'React|res|next|^_',
+      },
     ],
     'prefer-const': [
       'error',
       {
-        destructuring: 'all'
-      }
+        destructuring: 'all',
+      },
     ],
     'no-unused-expressions': [
       2,
       {
-        allowTaggedTemplates: true
-      }
+        allowTaggedTemplates: true,
+      },
     ],
     'no-console': 'off',
     'comma-dangle': 2,
@@ -60,16 +60,16 @@ module.exports = {
       'single',
       {
         avoidEscape: true,
-        allowTemplateLiterals: true
-      }
+        allowTemplateLiterals: true,
+      },
     ],
     'prettier/prettier': [
       'error',
       {
         trailingComma: 'none',
         singleQuote: true,
-        printWidth: 80
-      }
-    ]
-  }
+        printWidth: 80,
+      },
+    ],
+  },
 };

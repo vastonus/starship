@@ -11,7 +11,7 @@ export const verifyRelayerRest = async (
   const result: VerificationResult = {
     service: `relayer-${relayer.name}`,
     endpoint: 'rest',
-    status: 'failure'
+    status: 'failure',
   };
 
   if (!port) {
@@ -60,7 +60,7 @@ export const verifyRelayerExposer = async (
   const result: VerificationResult = {
     service: `relayer-${relayer.name}`,
     endpoint: 'exposer',
-    status: 'failure'
+    status: 'failure',
   };
 
   if (!port) {
@@ -106,5 +106,5 @@ export const verifyRelayerExposer = async (
 
 export const relayerVerifiers: RelayerVerifierSet = {
   rest: verifyRelayerRest,
-  exposer: verifyRelayerExposer
+  exposer: verifyRelayerExposer,
 };

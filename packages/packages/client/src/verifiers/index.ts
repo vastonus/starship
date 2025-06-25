@@ -55,7 +55,7 @@ export const verifyRegistry: VerificationFunction = async (
   }
 
   const registryResults = await Promise.all([
-    verifyRegistryRest(config.registry)
+    verifyRegistryRest(config.registry),
   ]);
 
   results.push(...registryResults);
@@ -86,7 +86,7 @@ export const verify: VerificationFunction = async (config: StarshipConfig) => {
     ...chainResults,
     ...relayerResults,
     ...registryResults,
-    ...explorerResults
+    ...explorerResults,
   ];
 };
 

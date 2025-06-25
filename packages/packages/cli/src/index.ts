@@ -8,13 +8,13 @@ import {
   displayVersion,
   loadConfig,
   params,
-  usageText
+  usageText,
 } from './utils';
 
 const argv = minimist(process.argv.slice(2), {
   alias: {
-    v: 'version'
-  }
+    v: 'version',
+  },
 });
 
 if (!('tty' in argv)) {
@@ -27,7 +27,7 @@ if (argv.version) {
 }
 
 const prompter = new Inquirerer({
-  noTty: !argv.tty
+  noTty: !argv.tty,
 });
 
 const questions: Question[] = params.map((name) => ({ name, type: 'text' }));
@@ -57,7 +57,7 @@ async function main() {
   const config = loadConfig(argv);
   const commandQuestions = getQuestionsForCommand(command);
   const args = await prompter.prompt({ ...config.context }, commandQuestions, {
-    usageText
+    usageText,
   });
 
   const client = new StarshipClient(args);

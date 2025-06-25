@@ -26,14 +26,14 @@ export class RegistryConfigMapGenerator {
         api: {
           rpc: `http://${hostname}-genesis.$(NAMESPACE).svc.cluster.local:26657`,
           grpc: `http://${hostname}-genesis.$(NAMESPACE).svc.cluster.local:9090`,
-          rest: `http://${hostname}-genesis.$(NAMESPACE).svc.cluster.local:1317`
+          rest: `http://${hostname}-genesis.$(NAMESPACE).svc.cluster.local:1317`,
         },
-        assets: chain.assets || []
+        assets: chain.assets || [],
       });
 
       assetLists[`${hostname}.json`] = JSON.stringify({
         chain_name: chain.name,
-        assets: chain.assets || []
+        assets: chain.assets || [],
       });
     });
 
@@ -45,13 +45,13 @@ export class RegistryConfigMapGenerator {
         labels: {
           ...TemplateHelpers.commonLabels(this.config),
           'app.kubernetes.io/component': 'registry',
-          'app.kubernetes.io/part-of': 'starship'
-        }
+          'app.kubernetes.io/part-of': 'starship',
+        },
       },
       data: {
         ...chainConfigs,
-        ...assetLists
-      }
+        ...assetLists,
+      },
     };
   }
 }
@@ -75,26 +75,26 @@ export class RegistryServiceGenerator {
         labels: {
           ...TemplateHelpers.commonLabels(this.config),
           'app.kubernetes.io/component': 'registry',
-          'app.kubernetes.io/part-of': 'starship'
-        }
+          'app.kubernetes.io/part-of': 'starship',
+        },
       },
       spec: {
         selector: {
-          app: 'registry'
+          app: 'registry',
         },
         ports: [
           {
             name: 'http',
             port: 8080,
-            targetPort: '8080'
+            targetPort: '8080',
           },
           {
             name: 'grpc',
             port: 9090,
-            targetPort: '9090'
-          }
-        ]
-      }
+            targetPort: '9090',
+          },
+        ],
+      },
     };
   }
 }
@@ -112,14 +112,14 @@ export class RegistryDeploymentGenerator {
   generate(): Deployment {
     const volumeMounts = this.config.chains.map((chain) => ({
       name: `chain-${TemplateHelpers.chainName(String(chain.id))}`,
-      mountPath: `/chains/${chain.id}`
+      mountPath: `/chains/${chain.id}`,
     }));
 
     const volumes = this.config.chains.map((chain) => ({
       name: `chain-${TemplateHelpers.chainName(String(chain.id))}`,
       configMap: {
-        name: `chain-${TemplateHelpers.chainName(String(chain.id))}`
-      }
+        name: `chain-${TemplateHelpers.chainName(String(chain.id))}`,
+      },
     }));
 
     return {
@@ -130,37 +130,37 @@ export class RegistryDeploymentGenerator {
         labels: {
           ...TemplateHelpers.commonLabels(this.config),
           'app.kubernetes.io/component': 'registry',
-          'app.kubernetes.io/part-of': 'starship'
-        }
+          'app.kubernetes.io/part-of': 'starship',
+        },
       },
       spec: {
         replicas: 1,
         selector: {
           matchLabels: {
-            app: 'registry'
-          }
+            app: 'registry',
+          },
         },
         template: {
           metadata: {
             labels: {
               app: 'registry',
-              ...TemplateHelpers.commonLabels(this.config)
-            }
+              ...TemplateHelpers.commonLabels(this.config),
+            },
           },
           spec: {
             containers: [
               {
                 name: 'registry',
-                image: this.config.registry?.image, 
+                image: this.config.registry?.image,
                 ports: [
                   {
                     name: 'http',
-                    containerPort: 8080
+                    containerPort: 8080,
                   },
                   {
                     name: 'grpc',
-                    containerPort: 9090
-                  }
+                    containerPort: 9090,
+                  },
                 ],
                 env: [
                   {
@@ -168,58 +168,62 @@ export class RegistryDeploymentGenerator {
                     value: TemplateHelpers.chainRpcAddrs(
                       this.config.chains,
                       this.config
-                    )
+                    ),
                   },
                   {
                     name: 'REGISTRY_CHAIN_API_RPCS',
                     value: TemplateHelpers.chainRpcAddrs(
                       this.config.chains,
                       this.config
-                    )
+                    ),
                   },
                   {
                     name: 'REGISTRY_CHAIN_API_GRPCS',
                     value: TemplateHelpers.chainGrpcAddrs(
                       this.config.chains,
                       this.config
-                    )
+                    ),
                   },
                   {
                     name: 'REGISTRY_CHAIN_API_RESTS',
                     value: TemplateHelpers.chainRestAddrs(
                       this.config.chains,
                       this.config
-                    )
+                    ),
                   },
                   {
                     name: 'REGISTRY_CHAIN_CLIENT_EXPOSERS',
-                    value: TemplateHelpers.chainExposerAddrs(this.config.chains)
-                  }
+                    value: TemplateHelpers.chainExposerAddrs(
+                      this.config.chains
+                    ),
+                  },
                 ],
                 volumeMounts,
-                resources: TemplateHelpers.getResourceObject(this.config.registry?.resources),
+                resources: TemplateHelpers.getResourceObject(
+                  this.config.registry?.resources
+                ),
                 readinessProbe: {
                   httpGet: {
                     path: '/health',
-                    port: '8080'
+                    port: '8080',
                   },
                   initialDelaySeconds: 5,
-                  periodSeconds: 10
+                  periodSeconds: 10,
                 },
                 livenessProbe: {
                   httpGet: {
                     path: '/health',
-                    port: '8080'
+                    port: '8080',
                   },
                   initialDelaySeconds: 15,
-                  periodSeconds: 20
-                }
-              }
+                  periodSeconds: 20,
+                },
+              },
             ],
-            volumes
-          }
-        }
-      }
+            volumes,
+          },
+        },
+      },
     };
   }
 }
@@ -252,7 +256,7 @@ export class RegistryBuilder {
     return [
       this.configMapGenerator.generate(),
       this.serviceGenerator.generate(),
-      this.deploymentGenerator.generate()
+      this.deploymentGenerator.generate(),
     ];
   }
 }

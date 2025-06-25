@@ -7,7 +7,7 @@ import {
   BaseRelayerBuilder,
   IRelayerConfigMapGenerator,
   IRelayerServiceGenerator,
-  IRelayerStatefulSetGenerator
+  IRelayerStatefulSetGenerator,
 } from './base';
 
 /**
@@ -32,8 +32,8 @@ export class NeutronQueryConfigMapGenerator
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
-        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`
-      }
+        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`,
+      },
     };
 
     return {
@@ -41,8 +41,8 @@ export class NeutronQueryConfigMapGenerator
       kind: 'ConfigMap',
       metadata,
       data: {
-        'config.json': this.generateNeutronQueryConfig()
-      }
+        'config.json': this.generateNeutronQueryConfig(),
+      },
     };
   }
 
@@ -96,7 +96,7 @@ export class NeutronQueryConfigMapGenerator
           connection_id: relayerConfig.neutron_connection_id || 'connection-0',
           debug: relayerConfig.debug || false,
           timeout: relayerConfig.timeout || '10s',
-          tx_memo: relayerConfig.tx_memo || 'neutron-query-relayer'
+          tx_memo: relayerConfig.tx_memo || 'neutron-query-relayer',
         },
         target_chain: {
           chain_id: targetChainId,
@@ -110,13 +110,13 @@ export class NeutronQueryConfigMapGenerator
           connection_id: relayerConfig.target_connection_id || 'connection-0',
           debug: relayerConfig.debug || false,
           timeout: relayerConfig.timeout || '10s',
-          tx_memo: relayerConfig.tx_memo || 'neutron-query-relayer'
+          tx_memo: relayerConfig.tx_memo || 'neutron-query-relayer',
         },
         queries_file: relayerConfig.queries_file || '/configs/queries.json',
         check_submitted_tx: relayerConfig.check_submitted_tx !== false,
         storage_path: relayerConfig.storage_path || './storage',
-        log_level: relayerConfig.log_level || 'info'
-      }
+        log_level: relayerConfig.log_level || 'info',
+      },
     };
 
     return JSON.stringify(config, null, 2);
@@ -143,8 +143,8 @@ export class NeutronQueryServiceGenerator implements IRelayerServiceGenerator {
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
-        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`
-      }
+        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`,
+      },
     };
 
     const ports = [
@@ -152,8 +152,8 @@ export class NeutronQueryServiceGenerator implements IRelayerServiceGenerator {
         name: 'metrics',
         port: this.relayer.config?.metrics_port || 9090,
         protocol: 'TCP' as const,
-        targetPort: this.relayer.config?.metrics_port || 9090
-      }
+        targetPort: this.relayer.config?.metrics_port || 9090,
+      },
     ];
 
     return {
@@ -164,9 +164,9 @@ export class NeutronQueryServiceGenerator implements IRelayerServiceGenerator {
         clusterIP: 'None',
         ports,
         selector: {
-          'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`
-        }
-      }
+          'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`,
+        },
+      },
     };
   }
 }
@@ -198,8 +198,8 @@ export class NeutronQueryStatefulSetGenerator
           'app.kubernetes.io/component': 'relayer',
           'app.kubernetes.io/part-of': 'starship',
           'app.kubernetes.io/role': this.relayer.type,
-          'app.kubernetes.io/name': fullname
-        }
+          'app.kubernetes.io/name': fullname,
+        },
       },
       spec: {
         serviceName: fullname,
@@ -210,8 +210,8 @@ export class NeutronQueryStatefulSetGenerator
           matchLabels: {
             'app.kubernetes.io/instance': 'relayer',
             'app.kubernetes.io/type': this.relayer.type,
-            'app.kubernetes.io/name': fullname
-          }
+            'app.kubernetes.io/name': fullname,
+          },
         },
         template: {
           metadata: {
@@ -219,23 +219,23 @@ export class NeutronQueryStatefulSetGenerator
               quality: 'release',
               role: 'api-gateway',
               sla: 'high',
-              tier: 'gateway'
+              tier: 'gateway',
             },
             labels: {
               'app.kubernetes.io/instance': 'relayer',
               'app.kubernetes.io/type': this.relayer.type,
               'app.kubernetes.io/name': fullname,
               'app.kubernetes.io/rawname': this.relayer.name,
-              'app.kubernetes.io/version': getGeneratorVersion()
-            }
+              'app.kubernetes.io/version': getGeneratorVersion(),
+            },
           },
           spec: {
             initContainers: this.generateInitContainers(),
             containers: this.generateContainers(),
-            volumes: this.generateVolumes()
-          }
-        }
-      }
+            volumes: this.generateVolumes(),
+          },
+        },
+      },
     };
   }
 
@@ -254,14 +254,14 @@ export class NeutronQueryStatefulSetGenerator
         imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
         command: ['bash', '-c'],
         args: [
-          `echo "Waiting for ${chainName} service..."\nwait-for-service ${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`
+          `echo "Waiting for ${chainName} service..."\nwait-for-service ${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`,
         ],
         env: [
           {
             name: 'NAMESPACE',
-            valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
-          }
-        ]
+            valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } },
+          },
+        ],
       });
     });
 
@@ -293,8 +293,8 @@ export class NeutronQueryStatefulSetGenerator
         { mountPath: '/root', name: 'relayer' },
         { mountPath: '/configs', name: 'relayer-config' },
         { mountPath: '/keys', name: 'keys' },
-        { mountPath: '/scripts', name: 'scripts' }
-      ]
+        { mountPath: '/scripts', name: 'scripts' },
+      ],
     };
   }
 
@@ -311,19 +311,19 @@ export class NeutronQueryStatefulSetGenerator
       env: this.generateEnvironmentVariables(),
       command: ['bash', '-c'],
       args: [
-        'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nneutron-query-relayer start --config /configs/config.json'
+        'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nneutron-query-relayer start --config /configs/config.json',
       ],
       resources: TemplateHelpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       securityContext: {
         allowPrivilegeEscalation: false,
-        runAsUser: 0
+        runAsUser: 0,
       },
       volumeMounts: [
         { mountPath: '/root', name: 'relayer' },
-        { mountPath: '/configs', name: 'relayer-config' }
-      ]
+        { mountPath: '/configs', name: 'relayer-config' },
+      ],
     });
 
     return containers;
@@ -334,10 +334,10 @@ export class NeutronQueryStatefulSetGenerator
       { name: 'relayer', emptyDir: {} },
       {
         name: 'relayer-config',
-        configMap: { name: `${this.relayer.type}-${this.relayer.name}` }
+        configMap: { name: `${this.relayer.type}-${this.relayer.name}` },
       },
       { name: 'keys', configMap: { name: 'keys' } },
-      { name: 'scripts', configMap: { name: 'setup-scripts' } }
+      { name: 'scripts', configMap: { name: 'setup-scripts' } },
     ];
   }
 
@@ -349,18 +349,18 @@ export class NeutronQueryStatefulSetGenerator
       { name: 'RELAYER_INDEX', value: '${HOSTNAME##*-}' },
       {
         name: 'NAMESPACE',
-        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } },
       },
       { name: 'CONFIG_PATH', value: '/configs/config.json' },
       {
         name: 'STORAGE_PATH',
-        value: relayerConfig.storage_path || './storage'
+        value: relayerConfig.storage_path || './storage',
       },
       { name: 'LOG_LEVEL', value: relayerConfig.log_level || 'info' },
       {
         name: 'METRICS_PORT',
-        value: String(relayerConfig.metrics_port || 9090)
-      }
+        value: String(relayerConfig.metrics_port || 9090),
+      },
     ];
   }
 
@@ -423,7 +423,7 @@ export class NeutronQueryRelayerBuilder extends BaseRelayerBuilder {
     return [
       this.configMapGenerator.configMap(),
       this.serviceGenerator.service(),
-      this.statefulSetGenerator.statefulSet()
+      this.statefulSetGenerator.statefulSet(),
     ];
   }
 }

@@ -39,7 +39,7 @@ export const useRegistry = async (
   });
 
   const options = {
-    urls
+    urls,
   };
   const registry = new ChainRegistryFetcher(options);
   await registry.fetchUrls();
@@ -94,11 +94,11 @@ export const useChain = (chainName: string): ChainHook | undefined => {
       method: 'POST',
       body: JSON.stringify({
         address,
-        denom
+        denom,
       }),
       headers: {
-        'Content-type': 'application/json'
-      }
+        'Content-type': 'application/json',
+      },
     });
   };
 
@@ -109,6 +109,6 @@ export const useChain = (chainName: string): ChainHook | undefined => {
     getRpcEndpoint,
     getRestEndpoint,
     getGenesisMnemonic,
-    creditFromFaucet
+    creditFromFaucet,
   };
 };

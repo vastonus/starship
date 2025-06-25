@@ -18,12 +18,12 @@ describe('DefaultsManager', () => {
         replicas: 1,
         config: {
           rest: {
-            port: 3001 // Only override port, should keep other defaults
+            port: 3001, // Only override port, should keep other defaults
           },
           telemetry: {
-            enabled: false // Only override enabled, should keep other defaults
-          }
-        }
+            enabled: false, // Only override enabled, should keep other defaults
+          },
+        },
       };
 
       const processedRelayer = defaultsManager.processRelayer(relayerConfig);
@@ -47,14 +47,14 @@ describe('DefaultsManager', () => {
           rest: {
             enabled: false,
             host: '127.0.0.1',
-            port: 8080
+            port: 8080,
           },
           telemetry: {
             enabled: true,
             host: '127.0.0.1',
-            port: 9090
-          }
-        }
+            port: 9090,
+          },
+        },
       };
 
       const processedRelayer = defaultsManager.processRelayer(relayerConfig);
@@ -73,7 +73,7 @@ describe('DefaultsManager', () => {
         type: 'hermes',
         name: 'test-hermes',
         chains: ['chain1'],
-        replicas: 1
+        replicas: 1,
       };
 
       const processedRelayer = defaultsManager.processRelayer(relayerConfig);
@@ -92,28 +92,28 @@ describe('DefaultsManager', () => {
         type: 'hermes' as const,
         name: 'test-hermes',
         chains: ['chain1'],
-        replicas: 1
+        replicas: 1,
       };
 
       const goRelayer: Relayer = {
         type: 'go-relayer' as const,
         name: 'test-go',
         chains: ['chain1'],
-        replicas: 1
+        replicas: 1,
       };
 
       const tsRelayer: Relayer = {
         type: 'ts-relayer' as const,
         name: 'test-ts',
         chains: ['chain1'],
-        replicas: 1
+        replicas: 1,
       };
 
       const neutronRelayer: Relayer = {
         type: 'neutron-query-relayer' as const,
         name: 'test-neutron',
         chains: ['chain1'],
-        replicas: 1
+        replicas: 1,
       };
 
       // All should be processed without errors
@@ -139,11 +139,11 @@ describe('DefaultsManager', () => {
             chains: ['chain1'],
             config: {
               rest: {
-                port: 3001
-              }
-            }
-          }
-        ]
+                port: 3001,
+              },
+            },
+          },
+        ],
       };
 
       const processedConfig = applyDefaults(config);
@@ -157,7 +157,7 @@ describe('DefaultsManager', () => {
     it('should handle config with no relayers', () => {
       const config: StarshipConfig = {
         name: 'test',
-        chains: []
+        chains: [],
       };
 
       const processedConfig = applyDefaults(config);
@@ -172,17 +172,17 @@ describe('DefaultsManager', () => {
         a: 1,
         b: {
           c: 2,
-          d: 3
+          d: 3,
         },
-        e: [1, 2, 3]
+        e: [1, 2, 3],
       };
 
       const source = {
         b: {
           c: 4,
-          f: 5
+          f: 5,
         },
-        g: 6
+        g: 6,
       };
 
       const result = deepMerge(target, source);
@@ -200,16 +200,16 @@ describe('DefaultsManager', () => {
       const target: any = {
         a: 1,
         b: {
-          c: 2
-        }
+          c: 2,
+        },
       };
 
       const source: any = {
         a: undefined,
         b: {
           c: undefined,
-          d: 3
-        }
+          d: 3,
+        },
       };
 
       const result = deepMerge(target, source);
@@ -224,16 +224,16 @@ describe('DefaultsManager', () => {
       const target: any = {
         a: 1,
         b: {
-          c: 2
-        }
+          c: 2,
+        },
       };
 
       const source: any = {
         a: null,
         b: {
           c: null,
-          d: 3
-        }
+          d: 3,
+        },
       };
 
       const result = deepMerge(target, source);
@@ -257,14 +257,14 @@ describe('DefaultsManager', () => {
       const target = {
         a: 1,
         b: 'hello',
-        c: true
+        c: true,
       };
 
       const source = {
         a: 2,
         b: 'world',
         c: false,
-        d: 3
+        d: 3,
       };
 
       const result = deepMerge(target, source);

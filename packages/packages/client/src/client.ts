@@ -3,7 +3,7 @@ import {
   Frontend,
   Ports,
   Relayer,
-  StarshipConfig
+  StarshipConfig,
 } from '@starship-ci/types';
 import chalk from 'chalk';
 import deepmerge from 'deepmerge';
@@ -40,7 +40,7 @@ export const defaultStarshipContext: Partial<StarshipContext> = {
   namespace: '',
   version: '',
   timeout: '10m',
-  restartThreshold: 3
+  restartThreshold: 3,
 };
 
 export interface PodPorts {
@@ -62,17 +62,17 @@ const defaultVersion: string = 'v1.8.0';
 // TODO talk to Anmol about moving these into yaml, if not already possible?
 const defaultPorts: PodPorts = {
   explorer: {
-    rest: 8080
+    rest: 8080,
   },
   registry: {
     grpc: 9090,
-    rest: 8080
+    rest: 8080,
   },
   chains: {
     ethereum: {
       rpc: 8551,
       rest: 8545,
-      ws: 8546
+      ws: 8546,
     },
     defaultPorts: {
       rpc: 26657,
@@ -81,15 +81,15 @@ const defaultPorts: PodPorts = {
       rest: 1317,
       exposer: 8081,
       faucet: 8000,
-      cometmock: 22331
-    }
+      cometmock: 22331,
+    },
   },
   relayers: {
     defaultPorts: {
       rest: 3000,
-      exposer: 8081
-    }
-  }
+      exposer: 8081,
+    },
+  },
 };
 export interface StarshipClientI {
   ctx: StarshipContext;
@@ -116,7 +116,7 @@ export interface ExecOptions {
 const defaultExecOptions: ExecOptions = {
   log: true,
   silent: false,
-  ignoreError: true
+  ignoreError: true,
 };
 
 export const formatChainID = (input: string): string => {
@@ -347,7 +347,7 @@ export class StarshipClient implements StarshipClientI {
       'jest',
       `--testPathPattern=../${this.ctx.repo}`,
       '--verbose',
-      '--bail'
+      '--bail',
     ]);
   }
 
@@ -368,7 +368,7 @@ export class StarshipClient implements StarshipClientI {
 
   public setupHelm(): void {
     this.exec(['helm', 'repo', 'add', this.ctx.repo, this.ctx.repoUrl], {
-      ignoreError: false
+      ignoreError: false,
     });
     this.exec(['helm', 'repo', 'update'], { ignoreError: false });
     this.exec(
@@ -402,7 +402,7 @@ export class StarshipClient implements StarshipClientI {
       '--timeout',
       this.ctx.timeout,
       ...this.getDeployArgs(),
-      ...options
+      ...options,
     ];
 
     // Determine the data directory of the config file
@@ -440,7 +440,7 @@ export class StarshipClient implements StarshipClientI {
     this.exec([
       'kubectl',
       'get pods',
-      ...this.getArgs()
+      ...this.getArgs(),
       // "--all-namespaces"
     ]);
   }
@@ -448,7 +448,7 @@ export class StarshipClient implements StarshipClientI {
   public checkConnection(): void {
     const result = this.exec(['kubectl', 'get', 'nodes'], {
       log: false,
-      silent: true
+      silent: true,
     });
 
     if (result.code !== 0) {
@@ -477,7 +477,7 @@ export class StarshipClient implements StarshipClientI {
         '--no-headers',
         '-o',
         'custom-columns=:metadata.name',
-        ...this.getArgs()
+        ...this.getArgs(),
       ],
       { log: false, silent: true }
     );
@@ -508,7 +508,7 @@ export class StarshipClient implements StarshipClientI {
         '--no-headers',
         '-o',
         'custom-columns=:status.phase,:status.containerStatuses[*].ready,:status.containerStatuses[*].restartCount,:status.containerStatuses[*].state.waiting.reason',
-        ...this.getArgs()
+        ...this.getArgs(),
       ],
       { log: false, silent: true }
     ).trim();
@@ -546,7 +546,7 @@ export class StarshipClient implements StarshipClientI {
       phase,
       ready,
       restartCount: restarts,
-      reason
+      reason,
     });
 
     if (restarts > this.ctx.restartThreshold) {
@@ -732,7 +732,7 @@ export class StarshipClient implements StarshipClientI {
         '>',
         '/dev/null',
         '2>&1',
-        '&'
+        '&',
       ]);
       this.log(
         chalk.yellow(
@@ -764,7 +764,7 @@ export class StarshipClient implements StarshipClientI {
         '>',
         '/dev/null',
         '2>&1',
-        '&'
+        '&',
       ]);
       this.log(
         chalk.yellow(
@@ -789,7 +789,7 @@ export class StarshipClient implements StarshipClientI {
         '>',
         '/dev/null',
         '2>&1',
-        '&'
+        '&',
       ]);
       this.log(
         chalk.yellow(
@@ -814,7 +814,7 @@ export class StarshipClient implements StarshipClientI {
         '>',
         '/dev/null',
         '2>&1',
-        '&'
+        '&',
       ]);
       this.log(
         chalk.yellow(
@@ -923,7 +923,7 @@ export class StarshipClient implements StarshipClientI {
         "'grep'",
         '|',
         'awk',
-        "'{print $2}'"
+        "'{print $2}'",
       ],
       { log: false, silent: true }
     );
