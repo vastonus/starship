@@ -11,7 +11,7 @@ export const verifyRegistryRest = async (
   const result: VerificationResult = {
     service: 'registry',
     endpoint: 'rest',
-    status: 'failure',
+    status: 'failure'
   };
 
   if (!port) {

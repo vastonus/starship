@@ -28,7 +28,7 @@ export class TemplateHelpers {
     return {
       ...this.selectorLabels(config),
       'app.kubernetes.io/version': getGeneratorVersion(),
-      'app.kubernetes.io/managed-by': 'starship',
+      'app.kubernetes.io/managed-by': 'starship'
     };
   }
 
@@ -37,7 +37,7 @@ export class TemplateHelpers {
    */
   static selectorLabels(config: StarshipConfig): Record<string, string> {
     return {
-      'starship.io/name': config.name,
+      'starship.io/name': config.name
     };
   }
 
@@ -52,7 +52,7 @@ export class TemplateHelpers {
       { name: 'CHAIN_DIR', value: chain.home || '' },
       { name: 'CODE_REPO', value: chain.repo || '' },
       { name: 'DAEMON_HOME', value: chain.home || '' },
-      { name: 'DAEMON_NAME', value: chain.binary || '' },
+      { name: 'DAEMON_NAME', value: chain.binary || '' }
     ];
   }
 
@@ -72,7 +72,7 @@ export class TemplateHelpers {
     for (const [key, value] of Object.entries(timeouts)) {
       envVars.push({
         name: key.toUpperCase(),
-        value: String(value),
+        value: String(value)
       });
     }
 
@@ -86,17 +86,17 @@ export class TemplateHelpers {
     return [
       {
         name: 'GENESIS_HOST',
-        value: `${TemplateHelpers.chainName(String(chain.id))}-genesis`,
+        value: `${TemplateHelpers.chainName(String(chain.id))}-genesis`
       },
       { name: 'GENESIS_PORT', value: String(port) },
       {
         name: 'NAMESPACE',
         valueFrom: {
           fieldRef: {
-            fieldPath: 'metadata.namespace',
-          },
-        },
-      },
+            fieldPath: 'metadata.namespace'
+          }
+        }
+      }
     ];
   }
 
@@ -114,12 +114,12 @@ export class TemplateHelpers {
       return {
         limits: {
           cpu: resources.cpu,
-          memory: resources.memory,
+          memory: resources.memory
         },
         requests: {
           cpu: resources.cpu,
-          memory: resources.memory,
-        },
+          memory: resources.memory
+        }
       };
     }
 
@@ -138,7 +138,7 @@ export class TemplateHelpers {
     return this.getResourceObject(
       context.resources?.node || {
         cpu: '0.5',
-        memory: '500M',
+        memory: '500M'
       }
     );
   }
@@ -156,7 +156,7 @@ export class TemplateHelpers {
       rpc: 26657,
       metrics: 26660,
       exposer: 8081,
-      faucet: 8000,
+      faucet: 8000
     };
   }
 
@@ -293,17 +293,17 @@ export class TemplateHelpers {
           name: 'NAMESPACE',
           valueFrom: {
             fieldRef: {
-              fieldPath: 'metadata.namespace',
-            },
-          },
-        },
+              fieldPath: 'metadata.namespace'
+            }
+          }
+        }
       ],
       command: [
         '/bin/sh',
         '-c',
-        `${waitScript}\necho "Ready to start"\nexit 0`,
+        `${waitScript}\necho "Ready to start"\nexit 0`
       ],
-      resources: this.getResourceObject({ cpu: '0.1', memory: '128M' }),
+      resources: this.getResourceObject({ cpu: '0.1', memory: '128M' })
     };
   }
 
@@ -319,8 +319,8 @@ export class TemplateHelpers {
 
     return {
       imagePullSecrets: imagePullSecrets.map((secret) => ({
-        name: secret.name,
-      })),
+        name: secret.name
+      }))
     };
   }
 
@@ -339,16 +339,16 @@ export class TemplateHelpers {
     return [
       {
         mountPath: chain.home,
-        name: 'node',
+        name: 'node'
       },
       {
         mountPath: '/configs',
-        name: 'addresses',
+        name: 'addresses'
       },
       {
         mountPath: '/scripts',
-        name: 'scripts',
-      },
+        name: 'scripts'
+      }
     ];
   }
 
@@ -359,20 +359,20 @@ export class TemplateHelpers {
     const volumes = [
       {
         name: 'node',
-        emptyDir: {},
+        emptyDir: {}
       },
       {
         name: 'addresses',
         configMap: {
-          name: 'keys',
-        },
+          name: 'keys'
+        }
       },
       {
         name: 'scripts',
         configMap: {
-          name: `setup-scripts-${this.chainName(String(chain.id))}`,
-        },
-      },
+          name: `setup-scripts-${this.chainName(String(chain.id))}`
+        }
+      }
     ];
 
     // Add patch volume if genesis override exists
@@ -380,8 +380,8 @@ export class TemplateHelpers {
       volumes.push({
         name: 'patch',
         configMap: {
-          name: `patch-${this.chainName(String(chain.id))}`,
-        },
+          name: `patch-${this.chainName(String(chain.id))}`
+        }
       });
     }
 
@@ -397,10 +397,12 @@ export function getChainId(chain: Chain): string {
   return String(chain.id);
 }
 
-export function getCommonLabels(config: StarshipConfig): Record<string, string> {
+export function getCommonLabels(
+  config: StarshipConfig
+): Record<string, string> {
   return {
     'starship.io/name': String(config.name),
     'app.kubernetes.io/version': getGeneratorVersion(),
-    'app.kubernetes.io/managed-by': 'starship',
+    'app.kubernetes.io/managed-by': 'starship'
   };
 }

@@ -12,7 +12,7 @@ import {
   multiValidatorConfig,
   outputDir,
   singleChainConfig,
-  twoChainConfig,
+  twoChainConfig
 } from './test-utils/config';
 
 describe('Cosmos Generator Tests', () => {
@@ -152,8 +152,8 @@ describe('Cosmos Generator Tests', () => {
             ...singleChainConfig.chains[0],
             ics: {
               enabled: true,
-              provider: 'cosmoshub-4',
-            },
+              provider: 'cosmoshub-4'
+            }
           },
           {
             id: 'cosmoshub-4',
@@ -163,9 +163,9 @@ describe('Cosmos Generator Tests', () => {
             binary: 'gaiad',
             image: 'cosmoshub:latest',
             home: '/root/.gaia',
-            numValidators: 1,
-          },
-        ],
+            numValidators: 1
+          }
+        ]
       };
 
       const builder = new CosmosBuilder(icsConfig);
@@ -225,11 +225,11 @@ describe('Cosmos Generator Tests', () => {
             ...twoChainConfig.chains[0],
             ics: {
               enabled: true,
-              provider: 'cosmoshub-4',
-            },
+              provider: 'cosmoshub-4'
+            }
           },
-          twoChainConfig.chains[1],
-        ],
+          twoChainConfig.chains[1]
+        ]
       };
       const processedIcsConfig = applyDefaults(icsConfig);
       const icsBuilder = new CosmosBuilder(processedIcsConfig);
@@ -250,7 +250,7 @@ describe('Cosmos Generator Tests', () => {
         buildManifestCount: buildManifests.length,
         customManifestCount: customManifests.length,
         icsManifestCount: icsManifests.length,
-        hasConsumerProposal: !!consumerProposal,
+        hasConsumerProposal: !!consumerProposal
       }).toMatchSnapshot('different-chain-configurations');
     });
 
@@ -315,7 +315,7 @@ describe('Cosmos Generator Tests', () => {
         chainCount: processedConfig.chains.length,
         manifestCount: manifests.length,
         hasScripts: !!processedConfig.chains[0].scripts,
-        hasFaucet: !!processedConfig.chains[0].faucet,
+        hasFaucet: !!processedConfig.chains[0].faucet
       }).toMatchSnapshot('apply-defaults-result');
     });
 
@@ -330,7 +330,7 @@ describe('Cosmos Generator Tests', () => {
       // Snapshot test
       expect({
         serviceName: services[0]?.metadata?.name,
-        chainId: processedConfig.chains[0].id,
+        chainId: processedConfig.chains[0].id
       }).toMatchSnapshot('chain-name-conversion');
     });
   });
@@ -380,7 +380,7 @@ describe('Cosmos Generator Tests', () => {
         serviceLabels: genesisService.metadata.labels,
         statefulSetLabels: genesisStatefulSet.metadata.labels,
         serviceCount: services.length,
-        statefulSetCount: statefulSets.length,
+        statefulSetCount: statefulSets.length
       }).toMatchSnapshot('resource-labels');
     });
 

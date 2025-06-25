@@ -1,12 +1,11 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
-import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
 
 import { DefaultsManager } from '../../defaults';
+import { IGenerator, Manifest } from '../../types';
 import { GoRelayerBuilder } from './go-relayer';
 import { HermesRelayerBuilder } from './hermes';
 import { NeutronQueryRelayerBuilder } from './neutron-query';
 import { TsRelayerBuilder } from './ts-relayer';
-import { IGenerator, Manifest } from '../../types';
 
 // Export all individual builders and components
 export * from './base';
@@ -15,11 +14,14 @@ export * from './hermes';
 export * from './neutron-query';
 export * from './ts-relayer';
 
-const relayerBuilderRegistry: Record<string, new (relayer: Relayer, config: StarshipConfig) => IGenerator> = {
+const relayerBuilderRegistry: Record<
+  string,
+  new (relayer: Relayer, config: StarshipConfig) => IGenerator
+> = {
   hermes: HermesRelayerBuilder,
   'go-relayer': GoRelayerBuilder,
   'ts-relayer': TsRelayerBuilder,
-  'neutron-query-relayer': NeutronQueryRelayerBuilder,
+  'neutron-query-relayer': NeutronQueryRelayerBuilder
 };
 
 function createBuilder(relayer: Relayer, config: StarshipConfig): IGenerator {

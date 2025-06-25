@@ -13,7 +13,7 @@ function loadConfig(filename: string) {
   return {
     configPath,
     configAsYaml,
-    config,
+    config
   };
 }
 

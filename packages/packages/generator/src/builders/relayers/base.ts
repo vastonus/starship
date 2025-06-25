@@ -35,8 +35,8 @@ export class BaseRelayerBuilder implements IGenerator {
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
-        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`,
-      },
+        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`
+      }
     };
   }
 
@@ -79,10 +79,10 @@ export class BaseRelayerBuilder implements IGenerator {
       { name: 'relayer', emptyDir: {} },
       {
         name: 'relayer-config',
-        configMap: { name: `${this.relayer.type}-${this.relayer.name}` },
+        configMap: { name: `${this.relayer.type}-${this.relayer.name}` }
       },
       { name: 'keys', configMap: { name: 'keys' } },
-      { name: 'scripts', configMap: { name: 'setup-scripts' } },
+      { name: 'scripts', configMap: { name: 'setup-scripts' } }
     ];
   }
 
@@ -94,8 +94,8 @@ export class BaseRelayerBuilder implements IGenerator {
       { name: 'KEYS_CONFIG', value: '/keys/keys.json' },
       {
         name: 'NAMESPACE',
-        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } },
-      },
+        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+      }
     ];
   }
 
@@ -113,14 +113,14 @@ export class BaseRelayerBuilder implements IGenerator {
         imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
         command: ['bash', '-c'],
         args: [
-          `echo "Waiting for ${chainName} service..."\nwait-for-service ${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`,
+          `echo "Waiting for ${chainName} service..."\nwait-for-service ${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`
         ],
         env: [
           {
             name: 'NAMESPACE',
-            valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } },
-          },
-        ],
+            valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+          }
+        ]
       };
     });
   }
@@ -133,7 +133,7 @@ export class BaseRelayerBuilder implements IGenerator {
       { mountPath: '/root', name: 'relayer' },
       { mountPath: '/configs', name: 'relayer-config' },
       { mountPath: '/keys', name: 'keys' },
-      { mountPath: '/scripts', name: 'scripts' },
+      { mountPath: '/scripts', name: 'scripts' }
     ];
   }
 }

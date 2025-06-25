@@ -1,7 +1,13 @@
-import { StarshipConfig, Chain } from '@starship-ci/types';
-import { TemplateHelpers, getChainId, getCommonLabels, getHostname } from '../../../helpers';
+import { Chain, StarshipConfig } from '@starship-ci/types';
 import { Service } from 'kubernetesjs';
-import { Manifest, IGenerator } from '../../../types';
+
+import {
+  getChainId,
+  getCommonLabels,
+  getHostname,
+  TemplateHelpers
+} from '../../../helpers';
+import { IGenerator, Manifest } from '../../../types';
 
 class CosmosGenesisServiceGenerator implements IGenerator {
   private config: StarshipConfig;
@@ -20,7 +26,7 @@ class CosmosGenesisServiceGenerator implements IGenerator {
       'app.kubernetes.io/type': `${getChainId(this.chain)}-service`,
       'app.kubernetes.io/role': 'genesis',
       'starship.io/chain-name': this.chain.name,
-      'starship.io/chain-id': getChainId(this.chain),
+      'starship.io/chain-id': getChainId(this.chain)
     };
   }
 
@@ -30,7 +36,7 @@ class CosmosGenesisServiceGenerator implements IGenerator {
       name,
       port,
       protocol: 'TCP' as const,
-      targetPort: String(port),
+      targetPort: String(port)
     }));
 
     // Add metrics port if enabled
@@ -39,25 +45,27 @@ class CosmosGenesisServiceGenerator implements IGenerator {
         name: 'metrics',
         port: 26660,
         protocol: 'TCP' as const,
-        targetPort: '26660',
+        targetPort: '26660'
       });
     }
 
-    return [{
-      apiVersion: 'v1',
-      kind: 'Service',
-      metadata: {
-        name: `${getHostname(this.chain)}-genesis`,
-        labels: this.labels(),
-      },
-      spec: {
-        clusterIP: 'None',
-        ports,
-        selector: {
-          'app.kubernetes.io/name': `${getHostname(this.chain)}-genesis`,
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'Service',
+        metadata: {
+          name: `${getHostname(this.chain)}-genesis`,
+          labels: this.labels()
         },
-      },
-    }];
+        spec: {
+          clusterIP: 'None',
+          ports,
+          selector: {
+            'app.kubernetes.io/name': `${getHostname(this.chain)}-genesis`
+          }
+        }
+      }
+    ];
   }
 }
 
@@ -78,7 +86,7 @@ class CosmosValidatorServiceGenerator implements IGenerator {
       'app.kubernetes.io/role': 'validator',
       'app.kubernetes.io/type': `${getChainId(this.chain)}-service`,
       'starship.io/chain-name': this.chain.name,
-      'starship.io/chain-id': getChainId(this.chain),
+      'starship.io/chain-id': getChainId(this.chain)
     };
   }
 
@@ -88,7 +96,7 @@ class CosmosValidatorServiceGenerator implements IGenerator {
       name,
       port,
       protocol: 'TCP' as const,
-      targetPort: String(port),
+      targetPort: String(port)
     }));
 
     if (this.chain.metrics) {
@@ -96,25 +104,27 @@ class CosmosValidatorServiceGenerator implements IGenerator {
         name: 'metrics',
         port: 26660,
         protocol: 'TCP' as const,
-        targetPort: '26660',
+        targetPort: '26660'
       });
     }
 
-    return [{
-      apiVersion: 'v1',
-      kind: 'Service',
-      metadata: {
-        name: `${getHostname(this.chain)}-validator`,
-        labels: this.labels(),
-      },
-      spec: {
-        clusterIP: 'None',
-        ports,
-        selector: {
-          'app.kubernetes.io/name': `${getHostname(this.chain)}-validator`,
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'Service',
+        metadata: {
+          name: `${getHostname(this.chain)}-validator`,
+          labels: this.labels()
         },
-      },
-    }];
+        spec: {
+          clusterIP: 'None',
+          ports,
+          selector: {
+            'app.kubernetes.io/name': `${getHostname(this.chain)}-validator`
+          }
+        }
+      }
+    ];
   }
 }
 
@@ -131,7 +141,7 @@ export class CosmosServiceGenerator implements IGenerator {
     this.config = config;
     this.chain = chain;
     this.serviceGenerators = [
-      new CosmosGenesisServiceGenerator(this.chain, this.config),
+      new CosmosGenesisServiceGenerator(this.chain, this.config)
     ];
     // Add validator service if numValidators > 1
     if (this.chain.numValidators && this.chain.numValidators > 1) {

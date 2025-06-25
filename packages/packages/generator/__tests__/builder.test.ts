@@ -11,7 +11,7 @@ import {
   outputDir,
   singleChainConfig,
   twoChainConfig,
-  twoChainWithHermesConfig,
+  twoChainWithHermesConfig
 } from './test-utils/config';
 
 describe('BuilderManager Tests', () => {
@@ -357,14 +357,14 @@ describe('BuilderManager Tests', () => {
         registry: {
           enabled: true,
           image: 'registry:latest',
-          ports: { rest: 8080 },
+          ports: { rest: 8080 }
         },
         explorer: {
           enabled: true,
           type: 'ping-pub' as const,
           image: 'explorer:latest',
-          ports: { rest: 8081 },
-        },
+          ports: { rest: 8081 }
+        }
       };
 
       const manager = new BuilderManager(fullConfig);
@@ -385,7 +385,7 @@ describe('BuilderManager Tests', () => {
         'configmaps',
         'explorer',
         'osmosis',
-        'registry',
+        'registry'
       ]);
 
       // Verify each component has correct files
@@ -413,9 +413,9 @@ describe('BuilderManager Tests', () => {
           {
             ...singleChainConfig.chains[0],
             name: 'test-chain' as any,
-            id: 'test-chain-1',
-          },
-        ],
+            id: 'test-chain-1'
+          }
+        ]
       };
 
       const manager = new BuilderManager(specialConfig);
@@ -440,7 +440,7 @@ describe('BuilderManager Tests', () => {
         { name: 'multi', config: twoChainConfig },
         { name: 'build', config: buildChainConfig },
         { name: 'cosmjs', config: cosmjsFaucetConfig },
-        { name: 'cometmock', config: cometmockConfig },
+        { name: 'cometmock', config: cometmockConfig }
       ];
 
       const allFileStructures: Record<string, Record<string, string[]>> = {};

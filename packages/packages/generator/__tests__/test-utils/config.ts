@@ -17,44 +17,44 @@ export const singleChainConfig: StarshipConfig = {
         rpc: 26653,
         exposer: 38083,
         faucet: 8003,
-        'grpc-web': 9091,
+        'grpc-web': 9091
       },
       resources: {
         cpu: '0.5',
-        memory: '500M',
+        memory: '500M'
       },
       faucet: {
         enabled: true,
         type: 'starship',
-        concurrency: 2,
+        concurrency: 2
       },
       balances: [
         {
           address: 'osmo1e9ucjn5fjmetky5wezzcsccp7hqcwzrrhthpf5',
-          amount: '2000000000000uosmo',
-        },
+          amount: '2000000000000uosmo'
+        }
       ],
       genesis: {
         app_state: {
           staking: {
             params: {
-              unbonding_time: '5s',
-            },
+              unbonding_time: '5s'
+            }
           },
           gamm: {
             params: {
               pool_creation_fee: [
                 {
                   amount: '500000',
-                  denom: 'uosmo',
-                },
-              ],
-            },
-          },
-        },
-      },
-    },
-  ],
+                  denom: 'uosmo'
+                }
+              ]
+            }
+          }
+        }
+      }
+    }
+  ]
 };
 
 // Based on starship/tests/e2e/configs/multi-validator.yaml
@@ -69,11 +69,11 @@ export const multiValidatorConfig: StarshipConfig = {
         rest: 1313,
         rpc: 26653,
         exposer: 38083,
-        faucet: 8000,
+        faucet: 8000
       },
       resources: {
         cpu: '0.3',
-        memory: '600M',
+        memory: '600M'
       },
       faucet: {
         enabled: true,
@@ -81,11 +81,11 @@ export const multiValidatorConfig: StarshipConfig = {
         concurrency: 2,
         resources: {
           cpu: '0.1',
-          memory: '200M',
-        },
-      },
-    },
-  ],
+          memory: '200M'
+        }
+      }
+    }
+  ]
 };
 
 // Based on starship/tests/e2e/configs/one-custom-chain.yaml
@@ -109,14 +109,14 @@ export const customChainConfig: StarshipConfig = {
         rest: 1313,
         rpc: 26653,
         exposer: 38083,
-        faucet: 8003,
+        faucet: 8003
       },
       resources: {
         cpu: '0.5',
-        memory: '500M',
-      },
-    },
-  ],
+        memory: '500M'
+      }
+    }
+  ]
 };
 
 // Based on starship/tests/e2e/configs/one-chain-cosmjs-faucet.yaml
@@ -131,19 +131,19 @@ export const cosmjsFaucetConfig: StarshipConfig = {
         rest: 1313,
         rpc: 26653,
         exposer: 38083,
-        faucet: 8003,
+        faucet: 8003
       },
       resources: {
         cpu: '0.5',
-        memory: '500M',
+        memory: '500M'
       },
       faucet: {
         enabled: true,
         type: 'cosmjs',
-        concurrency: 2,
-      },
-    },
-  ],
+        concurrency: 2
+      }
+    }
+  ]
 };
 
 // Based on starship/tests/e2e/configs/build-chain.yaml
@@ -156,19 +156,19 @@ export const buildChainConfig: StarshipConfig = {
       numValidators: 2,
       build: {
         enabled: true,
-        source: 'v7.0.0',
+        source: 'v7.0.0'
       },
       ports: {
         rest: 1318,
         rpc: 26658,
-        exposer: 38088,
+        exposer: 38088
       },
       resources: {
         cpu: '2',
-        memory: '2Gi',
-      },
-    },
-  ],
+        memory: '2Gi'
+      }
+    }
+  ]
 };
 
 // Based on starship/tests/e2e/configs/one-chain-cometmock.yaml
@@ -181,21 +181,21 @@ export const cometmockConfig: StarshipConfig = {
       numValidators: 1,
       ports: {
         rpc: 26653,
-        exposer: 38083,
+        exposer: 38083
       },
       resources: {
         cpu: '0.3',
-        memory: '300M',
+        memory: '300M'
       },
       faucet: {
-        enabled: false,
+        enabled: false
       },
       cometmock: {
         enabled: true,
-        image: 'ghcr.io/informalsystems/cometmock:v0.37.x',
-      },
-    },
-  ],
+        image: 'ghcr.io/informalsystems/cometmock:v0.37.x'
+      }
+    }
+  ]
 };
 
 // Based on starship/tests/e2e/configs/two-chain.yaml (but only chains, no relayers)
@@ -210,23 +210,23 @@ export const twoChainConfig: StarshipConfig = {
         rest: 1313,
         rpc: 26653,
         exposer: 38083,
-        faucet: 8001,
-      },
+        faucet: 8001
+      }
     },
     {
       id: 'cosmoshub-4',
       name: 'cosmoshub',
       numValidators: 2,
       faucet: {
-        enabled: false,
+        enabled: false
       },
       ports: {
         rest: 1317,
         rpc: 26657,
-        exposer: 38087,
-      },
-    },
-  ],
+        exposer: 38087
+      }
+    }
+  ]
 };
 
 // Ethereum chain (should be skipped by generator)
@@ -239,10 +239,10 @@ export const ethereumConfig: StarshipConfig = {
       numValidators: 1,
       ports: {
         rest: 8545,
-        rpc: 8551,
-      },
-    },
-  ],
+        rpc: 8551
+      }
+    }
+  ]
 };
 
 // Based on starship/tests/e2e/configs/two-chain.yaml
@@ -257,22 +257,22 @@ export const twoChainWithHermesConfig: StarshipConfig = {
         rest: 1313,
         rpc: 26653,
         exposer: 38083,
-        faucet: 8001,
-      },
+        faucet: 8001
+      }
     },
     {
       id: 'cosmoshub-4',
       name: 'cosmoshub',
       numValidators: 2,
       faucet: {
-        enabled: false,
+        enabled: false
       },
       ports: {
         rest: 1317,
         rpc: 26657,
-        exposer: 38087,
-      },
-    },
+        exposer: 38087
+      }
+    }
   ],
   relayers: [
     {
@@ -282,38 +282,38 @@ export const twoChainWithHermesConfig: StarshipConfig = {
       chains: ['osmosis-1', 'cosmoshub-4'],
       config: {
         global: {
-          log_level: 'info',
+          log_level: 'info'
         },
         rest: {
-          enabled: true,
+          enabled: true
         },
         telemetry: {
-          enabled: false,
+          enabled: false
         },
         event_source: {
-          mode: 'pull',
-        },
+          mode: 'pull'
+        }
       },
       ports: {
         rest: 3000,
-        exposer: 3002,
-      },
-    },
+        exposer: 3002
+      }
+    }
   ],
   explorer: {
     enabled: true,
     type: 'ping-pub',
     ports: {
-      rest: 8080,
-    },
+      rest: 8080
+    }
   },
   registry: {
     enabled: true,
     image: 'ghcr.io/cosmology-tech/starship/registry:latest',
     ports: {
-      rest: 8081,
-    },
-  },
+      rest: 8081
+    }
+  }
 };
 
 // Based on starship/tests/e2e/configs/two-chain-gorelayer.yaml
@@ -328,8 +328,8 @@ export const twoChainWithGoRelayerConfig: StarshipConfig = {
         rest: 1313,
         rpc: 26653,
         exposer: 38083,
-        faucet: 8001,
-      },
+        faucet: 8001
+      }
     },
     {
       id: 'cosmoshub-4',
@@ -339,25 +339,25 @@ export const twoChainWithGoRelayerConfig: StarshipConfig = {
         rest: 1317,
         rpc: 26657,
         exposer: 38087,
-        faucet: 8000,
-      },
-    },
+        faucet: 8000
+      }
+    }
   ],
   relayers: [
     {
       name: 'osmos-cosmos',
       type: 'go-relayer',
       replicas: 1,
-      chains: ['osmosis-1', 'cosmoshub-4'],
-    },
+      chains: ['osmosis-1', 'cosmoshub-4']
+    }
   ],
   registry: {
     enabled: true,
     image: 'ghcr.io/cosmology-tech/starship/registry:latest',
     ports: {
-      rest: 8081,
-    },
-  },
+      rest: 8081
+    }
+  }
 };
 
 // Config for testing neutron query relayer
@@ -374,8 +374,8 @@ export const neutronRelayerConfig: StarshipConfig = {
       ports: {
         rest: 1317,
         rpc: 26657,
-        exposer: 38087,
-      },
+        exposer: 38087
+      }
     },
     {
       id: 'osmosis-1',
@@ -385,9 +385,9 @@ export const neutronRelayerConfig: StarshipConfig = {
         rest: 1313,
         rpc: 26653,
         exposer: 38083,
-        faucet: 8001,
-      },
-    },
+        faucet: 8001
+      }
+    }
   ],
   relayers: [
     {
@@ -397,8 +397,8 @@ export const neutronRelayerConfig: StarshipConfig = {
       chains: ['neutron-1', 'osmosis-1'],
       config: {
         RELAYER_NEUTRON_CHAIN_TIMEOUT: '1000s',
-        RELAYER_NEUTRON_CHAIN_GAS_PRICES: '0.5untrn',
-      },
-    },
-  ],
+        RELAYER_NEUTRON_CHAIN_GAS_PRICES: '0.5untrn'
+      }
+    }
+  ]
 };

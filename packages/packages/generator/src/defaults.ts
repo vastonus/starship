@@ -3,7 +3,7 @@ import {
   FaucetConfig,
   Relayer,
   Script,
-  StarshipConfig,
+  StarshipConfig
 } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
@@ -67,8 +67,8 @@ export class DefaultsManager {
           defaultRelayers: {},
           defaultScripts: {},
           defaultCometmock: {
-            image: 'ghcr.io/informalsystems/cometmock:v0.37.x',
-          },
+            image: 'ghcr.io/informalsystems/cometmock:v0.37.x'
+          }
         };
       }
     } catch (error) {
@@ -79,8 +79,8 @@ export class DefaultsManager {
         defaultRelayers: {},
         defaultScripts: {},
         defaultCometmock: {
-          image: 'ghcr.io/informalsystems/cometmock:v0.37.x',
-        },
+          image: 'ghcr.io/informalsystems/cometmock:v0.37.x'
+        }
       };
     }
   }
@@ -152,7 +152,7 @@ export class DefaultsManager {
     // Merge configurations (chain config takes precedence)
     const mergedChain = {
       ...defaultChain,
-      ...chainConfig,
+      ...chainConfig
     };
 
     // Set computed properties
@@ -166,14 +166,14 @@ export class DefaultsManager {
       enabled: true,
       type: 'starship' as const,
       ...defaultFaucet,
-      ...mergedChain.faucet,
+      ...mergedChain.faucet
     };
 
     // Process cometmock configuration
     const cometmockConfig = {
       enabled: false,
       ...this.getDefaultCometmock(),
-      ...mergedChain.cometmock,
+      ...mergedChain.cometmock
     };
 
     // Process upgrade/build settings
@@ -192,7 +192,7 @@ export class DefaultsManager {
     const scripts = {
       ...defaultScripts,
       ...chainDefaultScripts,
-      ...mergedChain.scripts,
+      ...mergedChain.scripts
     };
 
     return {
@@ -204,7 +204,7 @@ export class DefaultsManager {
       cometmock: cometmockConfig,
       upgrade: upgradeConfig,
       build: buildConfig,
-      scripts,
+      scripts
     } as Chain;
   }
 
@@ -242,7 +242,7 @@ export function applyDefaults(config: StarshipConfig): StarshipConfig {
 
   const processedConfig: StarshipConfig = {
     ...config,
-    chains: processedChains,
+    chains: processedChains
   };
 
   if (config.relayers && config.relayers?.length > 0) {

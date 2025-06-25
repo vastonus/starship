@@ -2,11 +2,9 @@ import { Relayer, StarshipConfig } from '@starship-ci/types';
 import { ConfigMap, Container, StatefulSet, Volume } from 'kubernetesjs';
 
 import { TemplateHelpers } from '../../helpers';
+import { IGenerator } from '../../types';
 import { getGeneratorVersion } from '../../version';
-import {
-  BaseRelayerBuilder,
-} from './base';
-import { IGenerator, Manifest } from '../../types';
+import { BaseRelayerBuilder } from './base';
 
 /**
  * ConfigMap generator for TS Relayer
@@ -28,19 +26,21 @@ export class TsRelayerConfigMapGenerator implements IGenerator {
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
-        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`,
-      },
+        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`
+      }
     };
 
-    return [{
-      apiVersion: 'v1',
-      kind: 'ConfigMap',
-      metadata,
-      data: {
-        'app.yaml': this.generateAppConfig(),
-        'registry.yaml': this.generateRegistryConfig(),
-      },
-    }];
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata,
+        data: {
+          'app.yaml': this.generateAppConfig(),
+          'registry.yaml': this.generateRegistryConfig()
+        }
+      }
+    ];
   }
 
   private generateAppConfig(): string {
@@ -61,10 +61,10 @@ export class TsRelayerConfigMapGenerator implements IGenerator {
       chains[chainId] = {
         chain_id: chainId,
         rpc: [
-          `http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`,
+          `http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`
         ],
         rest: [
-          `http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:1317`,
+          `http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:1317`
         ],
         chain_name: chain.name,
         pretty_name: chainConfig.pretty_name || chain.name,
@@ -72,7 +72,7 @@ export class TsRelayerConfigMapGenerator implements IGenerator {
         denom: chain.denom,
         decimals: chainConfig.decimals || 6,
         gas_price: chainConfig.gas_price || '0.01',
-        hd_path: chain.hdPath || "m/44'/118'/0'/0/0",
+        hd_path: chain.hdPath || "m/44'/118'/0'/0/0"
       };
     });
 
@@ -100,10 +100,10 @@ export class TsRelayerConfigMapGenerator implements IGenerator {
         api_port: globalConfig.api_port || 3000,
         timeout: globalConfig.timeout || 10000,
         memo: globalConfig.memo || '',
-        ...globalConfig,
+        ...globalConfig
       },
       chains,
-      cl: [],
+      cl: []
     };
 
     if (this.relayer.channels && this.relayer.channels.length > 0) {
@@ -113,16 +113,16 @@ export class TsRelayerConfigMapGenerator implements IGenerator {
             chain_id: channel['a-chain'],
             connection_id: channel['a-connection'] || '',
             channel_id: '', // Will be filled during channel creation
-            port_id: channel['a-port'],
+            port_id: channel['a-port']
           },
           dst: {
             chain_id: channel['b-chain'] || '',
             connection_id: '', // Will be filled during connection creation
             channel_id: '', // Will be filled during channel creation
-            port_id: channel['b-port'],
+            port_id: channel['b-port']
           },
           new_connection: channel['new-connection'] || false,
-          order: channel.order || 'unordered',
+          order: channel.order || 'unordered'
         });
       });
     }
@@ -164,40 +164,40 @@ ${Object.entries(appConfig)
               fixed_min_gas_price: chainConfig.gas_price || 0.01,
               low_gas_price: chainConfig.gas_price || 0.01,
               average_gas_price: chainConfig.gas_price || 0.01,
-              high_gas_price: chainConfig.gas_price || 0.01,
-            },
-          ],
+              high_gas_price: chainConfig.gas_price || 0.01
+            }
+          ]
         },
         staking: {
           staking_tokens: [
             {
-              denom: chain.denom,
-            },
-          ],
+              denom: chain.denom
+            }
+          ]
         },
         codebase: {
           git_repo: chainConfig.git_repo || '',
           recommended_version: chainConfig.version || '',
           compatible_versions: chainConfig.compatible_versions || [],
           genesis: {
-            genesis_url: chainConfig.genesis_url || '',
-          },
+            genesis_url: chainConfig.genesis_url || ''
+          }
         },
         apis: {
           rpc: [
             {
               address: `http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`,
-              provider: 'starship',
-            },
+              provider: 'starship'
+            }
           ],
           rest: [
             {
               address: `http://${chainName}-genesis.$(NAMESPACE).svc.cluster.local:1317`,
-              provider: 'starship',
-            },
-          ],
+              provider: 'starship'
+            }
+          ]
         },
-        explorers: [],
+        explorers: []
       });
     });
 
@@ -217,8 +217,7 @@ ${chains
 /**
  * StatefulSet generator for TS Relayer
  */
-export class TsRelayerStatefulSetGenerator implements IGenerator
-{
+export class TsRelayerStatefulSetGenerator implements IGenerator {
   private config: StarshipConfig;
   private relayer: Relayer;
 
@@ -230,55 +229,57 @@ export class TsRelayerStatefulSetGenerator implements IGenerator
   generate(): Array<StatefulSet> {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
 
-    return [{
-      apiVersion: 'apps/v1',
-      kind: 'StatefulSet',
-      metadata: {
-        name: fullname,
-        labels: {
-          ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/component': 'relayer',
-          'app.kubernetes.io/part-of': 'starship',
-          'app.kubernetes.io/role': this.relayer.type,
-          'app.kubernetes.io/name': fullname,
+    return [
+      {
+        apiVersion: 'apps/v1',
+        kind: 'StatefulSet',
+        metadata: {
+          name: fullname,
+          labels: {
+            ...TemplateHelpers.commonLabels(this.config),
+            'app.kubernetes.io/component': 'relayer',
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/role': this.relayer.type,
+            'app.kubernetes.io/name': fullname
+          }
         },
-      },
-      spec: {
-        serviceName: fullname,
-        replicas: this.relayer.replicas || 1,
-        podManagementPolicy: 'Parallel',
-        revisionHistoryLimit: 3,
-        selector: {
-          matchLabels: {
-            'app.kubernetes.io/instance': 'relayer',
-            'app.kubernetes.io/type': this.relayer.type,
-            'app.kubernetes.io/name': fullname,
-          },
-        },
-        template: {
-          metadata: {
-            annotations: {
-              quality: 'release',
-              role: 'api-gateway',
-              sla: 'high',
-              tier: 'gateway',
-            },
-            labels: {
+        spec: {
+          serviceName: fullname,
+          replicas: this.relayer.replicas || 1,
+          podManagementPolicy: 'Parallel',
+          revisionHistoryLimit: 3,
+          selector: {
+            matchLabels: {
               'app.kubernetes.io/instance': 'relayer',
               'app.kubernetes.io/type': this.relayer.type,
-              'app.kubernetes.io/name': fullname,
-              'app.kubernetes.io/rawname': this.relayer.name,
-              'app.kubernetes.io/version': getGeneratorVersion(),
+              'app.kubernetes.io/name': fullname
+            }
+          },
+          template: {
+            metadata: {
+              annotations: {
+                quality: 'release',
+                role: 'api-gateway',
+                sla: 'high',
+                tier: 'gateway'
+              },
+              labels: {
+                'app.kubernetes.io/instance': 'relayer',
+                'app.kubernetes.io/type': this.relayer.type,
+                'app.kubernetes.io/name': fullname,
+                'app.kubernetes.io/rawname': this.relayer.name,
+                'app.kubernetes.io/version': getGeneratorVersion()
+              }
             },
-          },
-          spec: {
-            initContainers: this.generateInitContainers(),
-            containers: this.generateContainers(),
-            volumes: this.generateVolumes(),
-          },
-        },
-      },
-    }];
+            spec: {
+              initContainers: this.generateInitContainers(),
+              containers: this.generateContainers(),
+              volumes: this.generateVolumes()
+            }
+          }
+        }
+      }
+    ];
   }
 
   private generateInitContainers(): Container[] {
@@ -296,14 +297,14 @@ export class TsRelayerStatefulSetGenerator implements IGenerator
         imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
         command: ['bash', '-c'],
         args: [
-          `echo "Waiting for ${chainName} service..."\nwait-for-service ${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`,
+          `echo "Waiting for ${chainName} service..."\nwait-for-service ${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`
         ],
         env: [
           {
             name: 'NAMESPACE',
-            valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } },
-          },
-        ],
+            valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+          }
+        ]
       });
     });
 
@@ -322,8 +323,8 @@ export class TsRelayerStatefulSetGenerator implements IGenerator
       { name: 'RELAYER_INDEX', value: '${HOSTNAME##*-}' },
       {
         name: 'NAMESPACE',
-        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } },
-      },
+        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+      }
     ];
 
     const command = this.generateTsRelayerInitCommand();
@@ -342,8 +343,8 @@ export class TsRelayerStatefulSetGenerator implements IGenerator
         { mountPath: '/root', name: 'relayer' },
         { mountPath: '/configs', name: 'relayer-config' },
         { mountPath: '/keys', name: 'keys' },
-        { mountPath: '/scripts', name: 'scripts' },
-      ],
+        { mountPath: '/scripts', name: 'scripts' }
+      ]
     };
   }
 
@@ -360,19 +361,19 @@ export class TsRelayerStatefulSetGenerator implements IGenerator
       env: [{ name: 'RELAYER_DIR', value: '/root/.ts-relayer' }],
       command: ['bash', '-c'],
       args: [
-        'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nts-relayer start',
+        'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nts-relayer start'
       ],
       resources: TemplateHelpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       securityContext: {
         allowPrivilegeEscalation: false,
-        runAsUser: 0,
+        runAsUser: 0
       },
       volumeMounts: [
         { mountPath: '/root', name: 'relayer' },
-        { mountPath: '/configs', name: 'relayer-config' },
-      ],
+        { mountPath: '/configs', name: 'relayer-config' }
+      ]
     });
 
     return containers;
@@ -383,10 +384,10 @@ export class TsRelayerStatefulSetGenerator implements IGenerator
       { name: 'relayer', emptyDir: {} },
       {
         name: 'relayer-config',
-        configMap: { name: `${this.relayer.type}-${this.relayer.name}` },
+        configMap: { name: `${this.relayer.type}-${this.relayer.name}` }
       },
       { name: 'keys', configMap: { name: 'keys' } },
-      { name: 'scripts', configMap: { name: 'setup-scripts' } },
+      { name: 'scripts', configMap: { name: 'setup-scripts' } }
     ];
   }
 
@@ -461,7 +462,7 @@ export class TsRelayerBuilder extends BaseRelayerBuilder {
     super(relayer, config);
     this.generators = [
       new TsRelayerConfigMapGenerator(relayer, config),
-      new TsRelayerStatefulSetGenerator(relayer, config),
+      new TsRelayerStatefulSetGenerator(relayer, config)
     ];
   }
 }

@@ -3,7 +3,7 @@ import {
   FaucetConfig,
   Relayer,
   Script,
-  StarshipConfig,
+  StarshipConfig
 } from '@starship-ci/types';
 import { ConfigMap, Deployment, Service, StatefulSet } from 'kubernetesjs';
 

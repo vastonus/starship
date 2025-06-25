@@ -24,8 +24,8 @@ describe('StarshipClient verify', () => {
         return Promise.resolve({
           status: 200,
           data: {
-            supply: [{ amount: '1000000' }],
-          },
+            supply: [{ amount: '1000000' }]
+          }
         });
       }
 
@@ -39,10 +39,10 @@ describe('StarshipClient verify', () => {
           data: {
             result: {
               sync_info: {
-                latest_block_height: '100',
-              },
-            },
-          },
+                latest_block_height: '100'
+              }
+            }
+          }
         });
       }
 
@@ -60,8 +60,8 @@ describe('StarshipClient verify', () => {
         return Promise.resolve({
           status: 200,
           data: {
-            chainId: chain?.id || 'unknown',
-          },
+            chainId: chain?.id || 'unknown'
+          }
         });
       }
 
@@ -70,8 +70,8 @@ describe('StarshipClient verify', () => {
         return Promise.resolve({
           status: 200,
           data: {
-            chains: config.config.chains?.map((chain) => chain.id) || [],
-          },
+            chains: config.config.chains?.map((chain) => chain.id) || []
+          }
         });
       }
 
@@ -79,7 +79,7 @@ describe('StarshipClient verify', () => {
       if (url.includes('8080')) {
         return Promise.resolve({
           status: 200,
-          data: '<html><body>Ping Dashboard</body></html>',
+          data: '<html><body>Ping Dashboard</body></html>'
         });
       }
 
@@ -157,12 +157,12 @@ describe('StarshipClient verify', () => {
       ...config.config,
       explorer: {
         ...config.config.explorer,
-        enabled: false,
+        enabled: false
       },
       registry: {
         ...config.config.registry,
-        enabled: false,
-      },
+        enabled: false
+      }
     };
     client.setConfig(disabledConfig);
 
@@ -173,8 +173,8 @@ describe('StarshipClient verify', () => {
         return Promise.resolve({
           status: 200,
           data: {
-            supply: [{ amount: '1000000' }],
-          },
+            supply: [{ amount: '1000000' }]
+          }
         });
       }
 
@@ -188,10 +188,10 @@ describe('StarshipClient verify', () => {
           data: {
             result: {
               sync_info: {
-                latest_block_height: '100',
-              },
-            },
-          },
+                latest_block_height: '100'
+              }
+            }
+          }
         });
       }
 
@@ -209,8 +209,8 @@ describe('StarshipClient verify', () => {
         return Promise.resolve({
           status: 200,
           data: {
-            chainId: chain?.id || 'unknown',
-          },
+            chainId: chain?.id || 'unknown'
+          }
         });
       }
 

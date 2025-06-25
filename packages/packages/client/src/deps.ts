@@ -12,17 +12,17 @@ export const dependencies: Dependency[] = [
     name: 'kubectl',
     url: 'https://kubernetes.io/docs/tasks/tools/',
     macUrl: 'https://docs.docker.com/desktop/install/mac-install/',
-    installed: !!shell.which('kubectl'),
+    installed: !!shell.which('kubectl')
   },
   {
     name: 'docker',
     url: 'https://docs.docker.com/get-docker/',
     macUrl: 'https://docs.docker.com/desktop/install/mac-install/',
-    installed: !!shell.which('docker'),
+    installed: !!shell.which('docker')
   },
   {
     name: 'helm',
     url: 'https://helm.sh/docs/intro/install/',
-    installed: !!shell.which('helm'),
-  },
+    installed: !!shell.which('helm')
+  }
 ];

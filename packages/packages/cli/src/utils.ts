@@ -36,12 +36,12 @@ export const params: string[] = [
   'repoUrl',
   'chart',
   'namespace',
-  'timeout',
+  'timeout'
 ];
 
 export const loadConfig = (argv: any): Config => {
   const context: StarshipContext = {
-    ...defaultStarshipContext,
+    ...defaultStarshipContext
   } as StarshipContext;
   let starship: StarshipConfig = {} as StarshipConfig;
 

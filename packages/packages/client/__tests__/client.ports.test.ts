@@ -16,9 +16,9 @@ describe('StarshipClient', () => {
           exposer: 98988,
           faucet: 1000000,
           grpc: 909090,
-          rest: 6767676,
-        },
-      },
+          rest: 6767676
+        }
+      }
     });
     const portYaml = join(outputDir, 'custom-pod-ports.yaml');
     const relativePortYaml = relative(process.cwd(), portYaml);

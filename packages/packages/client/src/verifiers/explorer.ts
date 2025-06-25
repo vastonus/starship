@@ -11,7 +11,7 @@ export const verifyExplorerRest = async (
   const result: VerificationResult = {
     service: 'explorer',
     endpoint: 'rest',
-    status: 'failure',
+    status: 'failure'
   };
 
   if (!port) {
@@ -23,8 +23,8 @@ export const verifyExplorerRest = async (
   try {
     const response = await axios.get(`http://localhost:${port}`, {
       headers: {
-        Accept: 'text/html',
-      },
+        Accept: 'text/html'
+      }
     });
     result.details = response.data;
 

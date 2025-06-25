@@ -14,12 +14,12 @@ export const createClient = () => {
   const ctx: TestClientCtx = {
     commands: [],
     logs: [],
-    code: -1,
+    code: -1
   };
 
   const client = new StarshipClient({
     name: 'osmojs',
-    config: relative(process.cwd(), config.configPath),
+    config: relative(process.cwd(), config.configPath)
   });
 
   const handler = {
@@ -37,7 +37,7 @@ export const createClient = () => {
         };
       }
       return originalMethod;
-    },
+    }
   };
 
   const proxiedClient: StarshipClient = new Proxy(client, handler);
@@ -74,7 +74,7 @@ export const createClient = () => {
 
   return {
     client: proxiedClient,
-    ctx,
+    ctx
   };
 };
 

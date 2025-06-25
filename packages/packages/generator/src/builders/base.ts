@@ -1,7 +1,5 @@
-import { ConfigMap, Deployment, Service, StatefulSet } from 'kubernetesjs';
-
 import { DefaultsManager } from '../defaults';
-import { GeneratorContext, Manifest } from '../types';
+import { GeneratorContext } from '../types';
 
 export interface IBuilder {
   generateFiles(outputDir?: string): Promise<void>;

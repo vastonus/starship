@@ -5,7 +5,7 @@ import {
   neutronRelayerConfig,
   singleChainConfig,
   twoChainWithGoRelayerConfig,
-  twoChainWithHermesConfig,
+  twoChainWithHermesConfig
 } from './test-utils/config';
 
 describe('RelayerBuilder', () => {
@@ -86,9 +86,9 @@ describe('RelayerBuilder', () => {
             name: 'ts-rly',
             type: 'ts-relayer' as const,
             replicas: 1,
-            chains: ['osmosis-1', 'cosmoshub-4'],
-          },
-        ],
+            chains: ['osmosis-1', 'cosmoshub-4']
+          }
+        ]
       };
 
       const builder = new RelayerBuilder(tsRelayerConfig);
@@ -158,9 +158,9 @@ describe('RelayerBuilder', () => {
             name: 'go-rly',
             type: 'go-relayer' as const,
             replicas: 1,
-            chains: ['osmosis-1', 'cosmoshub-4'],
-          },
-        ],
+            chains: ['osmosis-1', 'cosmoshub-4']
+          }
+        ]
       };
 
       const builder = new RelayerBuilder(multiRelayerConfig);
@@ -199,9 +199,9 @@ describe('RelayerBuilder', () => {
           {
             ...twoChainWithHermesConfig.relayers![0],
             name: 'custom-hermes',
-            image: 'custom/hermes:latest',
-          },
-        ],
+            image: 'custom/hermes:latest'
+          }
+        ]
       };
 
       const builder = new RelayerBuilder(customImageConfig);
@@ -239,8 +239,8 @@ describe('RelayerBuilder', () => {
             numValidators: 1,
             prefix: 'neutron',
             denom: 'untrn',
-            home: '/root/.neutrond',
-          },
+            home: '/root/.neutrond'
+          }
         ],
         relayers: [
           {
@@ -250,20 +250,20 @@ describe('RelayerBuilder', () => {
             chains: ['osmosis-1', 'cosmoshub-4'],
             config: {
               global: { log_level: 'debug' },
-              rest: { enabled: true, port: 3001 },
-            },
+              rest: { enabled: true, port: 3001 }
+            }
           },
           {
             name: 'go-relay',
             type: 'go-relayer' as const,
             replicas: 2,
-            chains: ['osmosis-1', 'cosmoshub-4'],
+            chains: ['osmosis-1', 'cosmoshub-4']
           },
           {
             name: 'ts-relay',
             type: 'ts-relayer' as const,
             replicas: 1,
-            chains: ['osmosis-1', 'neutron-1'],
+            chains: ['osmosis-1', 'neutron-1']
           },
           {
             name: 'neutron-query-relay',
@@ -271,10 +271,10 @@ describe('RelayerBuilder', () => {
             replicas: 1,
             chains: ['neutron-1', 'osmosis-1'],
             config: {
-              RELAYER_NEUTRON_CHAIN_TIMEOUT: '2000s',
-            },
-          },
-        ],
+              RELAYER_NEUTRON_CHAIN_TIMEOUT: '2000s'
+            }
+          }
+        ]
       };
 
       const builder = new RelayerBuilder(allRelayersConfig);
@@ -359,7 +359,7 @@ describe('RelayerBuilder', () => {
         configMapLabels: configMap.metadata.labels,
         serviceLabels: service.metadata.labels,
         statefulSetLabels: statefulSet.metadata.labels,
-        statefulSetSelector: statefulSet.spec.selector.matchLabels,
+        statefulSetSelector: statefulSet.spec.selector.matchLabels
       }).toMatchSnapshot('relayer-labels-and-selectors');
     });
 
@@ -426,7 +426,7 @@ describe('RelayerBuilder', () => {
         containerCount: containers.length,
         initContainerCount: initContainers.length,
         relayerContainerImage: relayerContainer.image,
-        hasExposerContainer: !!exposerContainer,
+        hasExposerContainer: !!exposerContainer
       }).toMatchSnapshot('hermes-container-configuration');
     });
 
@@ -527,7 +527,7 @@ describe('RelayerBuilder', () => {
       expect({
         pathJson,
         osmosisConfigExists: !!configMap.data['osmosis-1.json'],
-        cosmoshubConfigExists: !!configMap.data['cosmoshub-4.json'],
+        cosmoshubConfigExists: !!configMap.data['cosmoshub-4.json']
       }).toMatchSnapshot('go-relayer-config-content');
     });
   });

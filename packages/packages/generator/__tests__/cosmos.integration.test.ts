@@ -10,7 +10,7 @@ import {
   ethereumConfig,
   outputDir,
   singleChainConfig,
-  twoChainConfig,
+  twoChainConfig
 } from './test-utils/config';
 
 describe('Cosmos Integration Tests', () => {
@@ -45,7 +45,7 @@ describe('Cosmos Integration Tests', () => {
         serviceCount: services.length,
         statefulSetCount: statefulSets.length,
         configMapCount: configMaps.length,
-        totalManifests: manifests.length,
+        totalManifests: manifests.length
       }).toMatchSnapshot('complete-single-chain-setup-builder');
     });
 
@@ -67,7 +67,7 @@ describe('Cosmos Integration Tests', () => {
       // Snapshot test
       expect({
         osmosisCount: osmosisManifests.length,
-        cosmoshubCount: cosmoshubManifests.length,
+        cosmoshubCount: cosmoshubManifests.length
       }).toMatchSnapshot('mixed-chain-types-setup');
     });
   });
@@ -94,7 +94,7 @@ describe('Cosmos Integration Tests', () => {
       // Snapshot test for resource labels and annotations
       expect({
         serviceLabels: genesisService.metadata.labels,
-        serviceName: genesisService.metadata.name,
+        serviceName: genesisService.metadata.name
       }).toMatchSnapshot('resource-labels-annotations');
     });
 
@@ -148,7 +148,7 @@ describe('Cosmos Integration Tests', () => {
         ),
         hasDenom: !!validatorContainer?.env?.find(
           (e: any) => e.name === 'DENOM'
-        ),
+        )
       }).toMatchSnapshot('environment-variables');
     });
 
@@ -173,7 +173,7 @@ describe('Cosmos Integration Tests', () => {
       // Snapshot port configuration
       expect({
         portCount: ports.length,
-        hasRpcPort: !!rpcPort,
+        hasRpcPort: !!rpcPort
       }).toMatchSnapshot('port-mappings');
     });
 
@@ -182,7 +182,7 @@ describe('Cosmos Integration Tests', () => {
       const configs = [
         { name: 'cosmjs-faucet', config: cosmjsFaucetConfig },
         { name: 'build-enabled', config: buildChainConfig },
-        { name: 'cometmock', config: cometmockConfig },
+        { name: 'cometmock', config: cometmockConfig }
       ];
 
       const specialConfigs = {} as Record<string, any>;
@@ -217,7 +217,7 @@ describe('Cosmos Integration Tests', () => {
       // Snapshot the empty result
       expect({
         ethereumSkipped: true,
-        manifestCount: manifests.length,
+        manifestCount: manifests.length
       }).toMatchSnapshot('skip-ethereum-chains');
     });
 
@@ -227,9 +227,9 @@ describe('Cosmos Integration Tests', () => {
         chains: [
           {
             // Missing required fields
-            id: 'incomplete-1',
-          },
-        ],
+            id: 'incomplete-1'
+          }
+        ]
       };
 
       // Should handle gracefully without throwing
@@ -242,7 +242,7 @@ describe('Cosmos Integration Tests', () => {
       // Snapshot the result
       expect({
         handled: true,
-        error: null,
+        error: null
       }).toMatchSnapshot('invalid-config-handling');
     });
 
@@ -251,18 +251,18 @@ describe('Cosmos Integration Tests', () => {
         {
           name: 'complete-chain',
           chain: singleChainConfig.chains[0],
-          shouldPass: true,
+          shouldPass: true
         },
         {
           name: 'missing-binary',
           chain: { ...singleChainConfig.chains[0], binary: undefined },
-          shouldPass: false,
+          shouldPass: false
         },
         {
           name: 'missing-denom',
           chain: { ...singleChainConfig.chains[0], denom: undefined },
-          shouldPass: false,
-        },
+          shouldPass: false
+        }
       ];
 
       const validationResults = {} as Record<string, any>;
@@ -276,13 +276,13 @@ describe('Cosmos Integration Tests', () => {
           validationResults[name] = {
             success: true,
             manifestCount: manifests.length,
-            error: null,
+            error: null
           };
         } catch (error: any) {
           validationResults[name] = {
             success: false,
             manifestCount: 0,
-            error: error?.message || 'Unknown error',
+            error: error?.message || 'Unknown error'
           };
         }
 
@@ -304,13 +304,13 @@ describe('Cosmos Integration Tests', () => {
           {
             ...singleChainConfig.chains[0],
             id: 'osmosis-starship',
-            faucet: { type: 'starship' as const, enabled: true },
+            faucet: { type: 'starship' as const, enabled: true }
           },
           {
             ...cosmjsFaucetConfig.chains[0],
-            id: 'osmosis-cosmjs',
-          },
-        ],
+            id: 'osmosis-cosmjs'
+          }
+        ]
       };
 
       const builder = new CosmosBuilder(complexConfig);
@@ -339,7 +339,7 @@ describe('Cosmos Integration Tests', () => {
         totalManifests: manifests.length,
         statefulSetCount: statefulSets.length,
         hasStarshipChain: !!starshipStatefulSet,
-        hasCosmjsChain: !!cosmjsStatefulSet,
+        hasCosmjsChain: !!cosmjsStatefulSet
       }).toMatchSnapshot('complex-multi-faucet-setup');
     });
   });

@@ -12,17 +12,17 @@ export class StarshipInstaller {
     docker: {
       mac: 'Please install Docker. Follow: https://docs.docker.com/desktop/install/mac-install/',
       linux:
-        'Please install Docker. Follow: https://docs.docker.com/engine/install/ubuntu/',
+        'Please install Docker. Follow: https://docs.docker.com/engine/install/ubuntu/'
     },
     kubectl: {
       mac: 'brew install kubectl',
-      linux: `curl -Lks "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" > ~/.local/bin/kubectl && chmod +x ~/.local/bin/kubectl`,
+      linux: `curl -Lks "https://dl.k8s.io/release/$(curl -L -s https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl" > ~/.local/bin/kubectl && chmod +x ~/.local/bin/kubectl`
     },
     helm: {
       mac: 'brew install helm',
       linux:
-        'curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash',
-    },
+        'curl https://raw.githubusercontent.com/helm/helm/master/scripts/get-helm-3 | bash'
+    }
   };
 
   async checkAndInstallBinary(binaryName: string) {

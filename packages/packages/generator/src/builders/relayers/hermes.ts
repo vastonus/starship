@@ -1,10 +1,16 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
-import { ConfigMap, Container, Service, StatefulSet, Volume } from 'kubernetesjs';
+import {
+  ConfigMap,
+  Container,
+  Service,
+  StatefulSet,
+  Volume
+} from 'kubernetesjs';
 
 import { TemplateHelpers } from '../../helpers';
+import { IGenerator } from '../../types';
 import { getGeneratorVersion } from '../../version';
 import { BaseRelayerBuilder } from './base';
-import { IGenerator } from '../../types';
 import { getAddressType, getGasPrice } from './utils';
 
 /**
@@ -27,24 +33,26 @@ export class HermesConfigMapGenerator implements IGenerator {
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
-        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`,
-      },
+        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`
+      }
     };
 
     const configToml = this.generateHermesConfig();
 
-    return [{
-      apiVersion: 'v1',
-      kind: 'ConfigMap',
-      metadata,
-      data: {
-        'config.toml': configToml,
-        'config-cli.toml': configToml.replace(
-          /key_name = "([^"]+)"/g,
-          'key_name = "$1-cli"'
-        ),
-      },
-    }];
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata,
+        data: {
+          'config.toml': configToml,
+          'config-cli.toml': configToml.replace(
+            /key_name = "([^"]+)"/g,
+            'key_name = "$1-cli"'
+          )
+        }
+      }
+    ];
   }
 
   private generateHermesConfig(): string {
@@ -157,8 +165,8 @@ export class HermesServiceGenerator implements IGenerator {
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
-        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`,
-      },
+        'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`
+      }
     };
 
     const ports = [
@@ -166,36 +174,37 @@ export class HermesServiceGenerator implements IGenerator {
         name: 'rest',
         port: 3000,
         protocol: 'TCP' as const,
-        targetPort: this.relayer.config?.rest?.port || 3000,
+        targetPort: this.relayer.config?.rest?.port || 3000
       },
       {
         name: 'exposer',
         port: this.config.exposer?.ports?.rest || 8081,
         protocol: 'TCP' as const,
-        targetPort: this.config.exposer?.ports?.rest || 8081,
-      },
+        targetPort: this.config.exposer?.ports?.rest || 8081
+      }
     ];
 
-    return [{
-      apiVersion: 'v1',
-      kind: 'Service',
-      metadata,
-      spec: {
-        clusterIP: 'None',
-        ports,
-        selector: {
-          'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`,
-        },
-      },
-    }];
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'Service',
+        metadata,
+        spec: {
+          clusterIP: 'None',
+          ports,
+          selector: {
+            'app.kubernetes.io/name': `${this.relayer.type}-${this.relayer.name}`
+          }
+        }
+      }
+    ];
   }
 }
 
 /**
  * StatefulSet generator for Hermes relayer
  */
-export class HermesStatefulSetGenerator implements IGenerator
-{
+export class HermesStatefulSetGenerator implements IGenerator {
   private config: StarshipConfig;
   private relayer: Relayer;
 
@@ -207,55 +216,57 @@ export class HermesStatefulSetGenerator implements IGenerator
   generate(): Array<StatefulSet> {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
 
-    return [{
-      apiVersion: 'apps/v1',
-      kind: 'StatefulSet',
-      metadata: {
-        name: fullname,
-        labels: {
-          ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/component': 'relayer',
-          'app.kubernetes.io/part-of': 'starship',
-          'app.kubernetes.io/role': this.relayer.type,
-          'app.kubernetes.io/name': fullname,
+    return [
+      {
+        apiVersion: 'apps/v1',
+        kind: 'StatefulSet',
+        metadata: {
+          name: fullname,
+          labels: {
+            ...TemplateHelpers.commonLabels(this.config),
+            'app.kubernetes.io/component': 'relayer',
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/role': this.relayer.type,
+            'app.kubernetes.io/name': fullname
+          }
         },
-      },
-      spec: {
-        serviceName: fullname,
-        replicas: this.relayer.replicas || 1,
-        podManagementPolicy: 'Parallel',
-        revisionHistoryLimit: 3,
-        selector: {
-          matchLabels: {
-            'app.kubernetes.io/instance': 'relayer',
-            'app.kubernetes.io/type': this.relayer.type,
-            'app.kubernetes.io/name': fullname,
-          },
-        },
-        template: {
-          metadata: {
-            annotations: {
-              quality: 'release',
-              role: 'api-gateway',
-              sla: 'high',
-              tier: 'gateway',
-            },
-            labels: {
+        spec: {
+          serviceName: fullname,
+          replicas: this.relayer.replicas || 1,
+          podManagementPolicy: 'Parallel',
+          revisionHistoryLimit: 3,
+          selector: {
+            matchLabels: {
               'app.kubernetes.io/instance': 'relayer',
               'app.kubernetes.io/type': this.relayer.type,
-              'app.kubernetes.io/name': fullname,
-              'app.kubernetes.io/rawname': this.relayer.name,
-              'app.kubernetes.io/version': getGeneratorVersion(),
+              'app.kubernetes.io/name': fullname
+            }
+          },
+          template: {
+            metadata: {
+              annotations: {
+                quality: 'release',
+                role: 'api-gateway',
+                sla: 'high',
+                tier: 'gateway'
+              },
+              labels: {
+                'app.kubernetes.io/instance': 'relayer',
+                'app.kubernetes.io/type': this.relayer.type,
+                'app.kubernetes.io/name': fullname,
+                'app.kubernetes.io/rawname': this.relayer.name,
+                'app.kubernetes.io/version': getGeneratorVersion()
+              }
             },
-          },
-          spec: {
-            initContainers: this.generateInitContainers(),
-            containers: this.generateContainers(),
-            volumes: this.generateVolumes(),
-          },
-        },
-      },
-    }];
+            spec: {
+              initContainers: this.generateInitContainers(),
+              containers: this.generateContainers(),
+              volumes: this.generateVolumes()
+            }
+          }
+        }
+      }
+    ];
   }
 
   private generateInitContainers(): Container[] {
@@ -270,12 +281,12 @@ export class HermesStatefulSetGenerator implements IGenerator
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       command: ['bash', '-c'],
       args: [
-        '# Install exposer binary from the image\ncp /bin/exposer /exposer/exposer\nchmod +x /exposer/exposer',
+        '# Install exposer binary from the image\ncp /bin/exposer /exposer/exposer\nchmod +x /exposer/exposer'
       ],
       resources: TemplateHelpers.getResourceObject(
         this.relayer.resources || { cpu: '0.1', memory: '100M' }
       ),
-      volumeMounts: [{ mountPath: '/exposer', name: 'exposer' }],
+      volumeMounts: [{ mountPath: '/exposer', name: 'exposer' }]
     });
 
     // Add wait init containers for all chains
@@ -290,14 +301,14 @@ export class HermesStatefulSetGenerator implements IGenerator
         imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
         command: ['bash', '-c'],
         args: [
-          `echo "Waiting for ${chainName} service..."\nwait-for-service ${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`,
+          `echo "Waiting for ${chainName} service..."\nwait-for-service ${chainName}-genesis.$(NAMESPACE).svc.cluster.local:26657`
         ],
         env: [
           {
             name: 'NAMESPACE',
-            valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } },
-          },
-        ],
+            valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+          }
+        ]
       });
     });
 
@@ -316,8 +327,8 @@ export class HermesStatefulSetGenerator implements IGenerator
       { name: 'RELAYER_INDEX', value: '${HOSTNAME##*-}' },
       {
         name: 'NAMESPACE',
-        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } },
-      },
+        valueFrom: { fieldRef: { fieldPath: 'metadata.namespace' } }
+      }
     ];
 
     const command = this.generateHermesInitCommand();
@@ -336,8 +347,8 @@ export class HermesStatefulSetGenerator implements IGenerator
         { mountPath: '/root', name: 'relayer' },
         { mountPath: '/configs', name: 'relayer-config' },
         { mountPath: '/keys', name: 'keys' },
-        { mountPath: '/scripts', name: 'scripts' },
-      ],
+        { mountPath: '/scripts', name: 'scripts' }
+      ]
     };
   }
 
@@ -353,19 +364,19 @@ export class HermesStatefulSetGenerator implements IGenerator
       env: [{ name: 'RELAYER_DIR', value: '/root/.hermes' }],
       command: ['bash', '-c'],
       args: [
-        'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nhermes start',
+        'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nhermes start'
       ],
       resources: TemplateHelpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       securityContext: {
         allowPrivilegeEscalation: false,
-        runAsUser: 0,
+        runAsUser: 0
       },
       volumeMounts: [
         { mountPath: '/root', name: 'relayer' },
-        { mountPath: '/configs', name: 'relayer-config' },
-      ],
+        { mountPath: '/configs', name: 'relayer-config' }
+      ]
     });
 
     // Exposer container
@@ -376,7 +387,7 @@ export class HermesStatefulSetGenerator implements IGenerator
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
         { name: 'EXPOSER_HTTP_PORT', value: '8081' },
-        { name: 'EXPOSER_GRPC_PORT', value: '9099' },
+        { name: 'EXPOSER_GRPC_PORT', value: '9099' }
       ],
       command: ['bash', '-c'],
       args: ['/exposer/exposer'],
@@ -385,13 +396,13 @@ export class HermesStatefulSetGenerator implements IGenerator
       ),
       securityContext: {
         allowPrivilegeEscalation: false,
-        runAsUser: 0,
+        runAsUser: 0
       },
       volumeMounts: [
         { mountPath: '/root', name: 'relayer' },
         { mountPath: '/configs', name: 'relayer-config' },
-        { mountPath: '/exposer', name: 'exposer' },
-      ],
+        { mountPath: '/exposer', name: 'exposer' }
+      ]
     });
 
     return containers;
@@ -402,11 +413,11 @@ export class HermesStatefulSetGenerator implements IGenerator
       { name: 'relayer', emptyDir: {} },
       {
         name: 'relayer-config',
-        configMap: { name: `${this.relayer.type}-${this.relayer.name}` },
+        configMap: { name: `${this.relayer.type}-${this.relayer.name}` }
       },
       { name: 'keys', configMap: { name: 'keys' } },
       { name: 'scripts', configMap: { name: 'setup-scripts' } },
-      { name: 'exposer', emptyDir: {} },
+      { name: 'exposer', emptyDir: {} }
     ];
   }
 
@@ -483,7 +494,7 @@ export class HermesRelayerBuilder extends BaseRelayerBuilder {
     this.generators = [
       new HermesConfigMapGenerator(relayer, config),
       new HermesServiceGenerator(relayer, config),
-      new HermesStatefulSetGenerator(relayer, config),
+      new HermesStatefulSetGenerator(relayer, config)
     ];
   }
 }

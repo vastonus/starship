@@ -14,7 +14,7 @@ export class Inquirerer {
     if (!noTty) {
       this.rl = readline.createInterface({
         input: process.stdin,
-        output: process.stdout,
+        output: process.stdout
       });
     } else {
       this.rl = null;
