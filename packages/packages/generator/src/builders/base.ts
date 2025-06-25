@@ -1,22 +1,10 @@
 import { ConfigMap, Deployment, Service, StatefulSet } from 'kubernetesjs';
 
 import { DefaultsManager } from '../defaults';
-import { GeneratorContext } from '../types';
+import { GeneratorContext, Manifest } from '../types';
 
 export interface IBuilder {
   generateFiles(outputDir?: string): Promise<void>;
-}
-
-export interface IServiceGenerator {
-  service(): Service;
-}
-
-export interface IDeploymentGenerator {
-  deployment(): Deployment;
-}
-
-export interface IManifestGenerator {
-  buildManifests(): Array<Service | Deployment | ConfigMap | StatefulSet>;
 }
 
 export abstract class BaseBuilder implements IBuilder {

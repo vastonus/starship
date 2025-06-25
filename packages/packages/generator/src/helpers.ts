@@ -37,7 +37,7 @@ export class TemplateHelpers {
    */
   static selectorLabels(config: StarshipConfig): Record<string, string> {
     return {
-      'app.kubernetes.io/instance': config.name,
+      'starship.io/name': config.name,
     };
   }
 
@@ -397,4 +397,12 @@ export function getHostname(chain: Chain): string {
 
 export function getChainId(chain: Chain): string {
   return String(chain.id);
+}
+
+export function getCommonLabels(config: StarshipConfig): Record<string, string> {
+  return {
+    'starship.io/name': String(config.name),
+    'app.kubernetes.io/version': getGeneratorVersion(),
+    'app.kubernetes.io/managed-by': 'starship',
+  };
 }

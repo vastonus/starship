@@ -42,3 +42,11 @@ export interface ProcessedChain extends Chain {
     address: string;
   }>;
 }
+
+export interface IGenerator {
+  generate(): Array<Manifest>;
+}
+
+export interface IManifestGenerator {
+  buildManifests(): Array<Manifest>;
+}
