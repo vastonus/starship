@@ -252,7 +252,7 @@ export class RegistryBuilder implements IGenerator {
   }
 
   generate(): Array<Manifest> {
-    if (!this.config.registry) {
+    if (!this.config.registry || this.config.registry?.enabled === false) {
       return [];
     }
 
