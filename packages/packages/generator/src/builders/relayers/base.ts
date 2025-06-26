@@ -1,40 +1,27 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
-import { ConfigMap, Service, StatefulSet } from 'kubernetesjs';
+import { Container, EnvVar, Volume, VolumeMount } from 'kubernetesjs';
 
-import { TemplateHelpers } from '../../helpers';
-
-/**
- * Interface for relayer builders
- */
-export interface IRelayerBuilder {
-  buildManifests(): (ConfigMap | Service | StatefulSet)[];
-}
-
-/**
- * Interface for relayer generators
- */
-export interface IRelayerConfigMapGenerator {
-  configMap(): ConfigMap;
-}
-
-export interface IRelayerServiceGenerator {
-  service(): Service;
-}
-
-export interface IRelayerStatefulSetGenerator {
-  statefulSet(): StatefulSet;
-}
+import * as helpers from '../../helpers';
+import { IGenerator, Manifest } from '../../types';
 
 /**
  * Base class for relayer builders with common functionality
  */
-export abstract class BaseRelayerBuilder implements IRelayerBuilder {
+export class BaseRelayerBuilder implements IGenerator {
   protected config: StarshipConfig;
   protected relayer: Relayer;
+  protected generators: IGenerator[] = [];
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
+  }
+
+  /**
+   * Generate all manifests for the relayer by running sub-generators
+   */
+  public generate(): Manifest[] {
+    return this.generators.flatMap((generator) => generator.generate());
   }
 
   /**
@@ -44,7 +31,7 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
     return {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
-        ...TemplateHelpers.commonLabels(this.config),
+        ...helpers.getCommonLabels(this.config),
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
@@ -69,7 +56,7 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
    */
   protected getChainHostname(chainId: string): string {
     const chain = this.getChainConfig(chainId);
-    return TemplateHelpers.chainName(String(chain.id));
+    return helpers.getChainName(String(chain.id));
   }
 
   /**
@@ -87,7 +74,7 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
   /**
    * Generate common volumes for relayers
    */
-  protected generateVolumes(): any[] {
+  protected generateVolumes(): Volume[] {
     return [
       { name: 'relayer', emptyDir: {} },
       {
@@ -102,7 +89,7 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
   /**
    * Generate common environment variables
    */
-  protected generateCommonEnv(): any[] {
+  protected generateCommonEnv(): EnvVar[] {
     return [
       { name: 'KEYS_CONFIG', value: '/keys/keys.json' },
       {
@@ -115,10 +102,10 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
   /**
    * Generate wait init containers for all chains
    */
-  protected generateWaitInitContainers(): any[] {
+  protected generateWaitInitContainers(): Container[] {
     return this.relayer.chains.map((chainId) => {
       const chain = this.getChainConfig(chainId);
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
 
       return {
         name: `init-${chainName}`,
@@ -141,50 +128,12 @@ export abstract class BaseRelayerBuilder implements IRelayerBuilder {
   /**
    * Generate common volume mounts
    */
-  protected generateCommonVolumeMounts(): any[] {
+  protected generateCommonVolumeMounts(): VolumeMount[] {
     return [
       { mountPath: '/root', name: 'relayer' },
       { mountPath: '/configs', name: 'relayer-config' },
       { mountPath: '/keys', name: 'keys' },
       { mountPath: '/scripts', name: 'scripts' }
     ];
-  }
-
-  abstract buildManifests(): (ConfigMap | Service | StatefulSet)[];
-}
-
-/**
- * Shared utilities for relayer configuration
- */
-export class RelayerHelpers {
-  /**
-   * Get address type configuration for chain
-   */
-  static getAddressType(chainName: string): string {
-    if (chainName === 'evmos') {
-      return "address_type = { derivation = 'ethermint', proto_type = { pk_type = '/ethermint.crypto.v1.ethsecp256k1.PubKey' } }";
-    } else if (chainName === 'injective') {
-      return "address_type = { derivation = 'ethermint', proto_type = { pk_type = '/injective.crypto.v1beta1.ethsecp256k1.PubKey' } }";
-    } else {
-      return "address_type = { derivation = 'cosmos' }";
-    }
-  }
-
-  /**
-   * Get gas price configuration for chain
-   */
-  static getGasPrice(chainName: string, denom?: string): string {
-    if (chainName === 'evmos' || chainName === 'injective') {
-      return `gas_price = { price = 2500000, denom = "${denom}" }`;
-    } else {
-      return `gas_price = { price = 1.25, denom = "${denom}" }`;
-    }
-  }
-
-  /**
-   * Check if relayer type needs a service
-   */
-  static needsService(relayerType: string): boolean {
-    return relayerType === 'hermes' || relayerType === 'neutron-query-relayer';
   }
 }

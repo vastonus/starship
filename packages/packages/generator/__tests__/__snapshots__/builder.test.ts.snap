@@ -105,10 +105,10 @@ exports[`BuilderManager Tests Advanced Configuration Testing should handle Comet
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "keys",
     },
@@ -734,10 +734,10 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts",
     },
@@ -748,15 +748,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "cosmoshub-4",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub-4-genesis",
-        "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "genesis",
         "app.kubernetes.io/type": "cosmoshub-4-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "cosmoshub-4",
         "starship.io/chain-name": "cosmoshub",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "cosmoshub-4-genesis",
     },
@@ -830,7 +829,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "cosmoshub-4",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub-4-genesis",
         "app.kubernetes.io/part-of": "cosmoshub-4",
@@ -838,6 +836,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "cosmoshub-4-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "cosmoshub",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "cosmoshub-4-genesis",
     },
@@ -965,11 +964,9 @@ exec gaiad start --home /root/.gaia --log_level info",
                 },
                 {
                   "name": "NAMESPACE",
-                  "value": {
-                    "valueFrom": {
-                      "fieldRef": {
-                        "fieldPath": "metadata.namespace",
-                      },
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
                     },
                   },
                 },
@@ -1836,306 +1833,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub",
         "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-cosmoshub-4",
-    },
-  },
-  "explorer/configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "cosmoshub-4.json": "{"chain_name":"cosmoshub-4","coingecko":"cosmoshub","api":"http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:1317","rpc":["http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26653"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"cosmos","logo":"","assets":[{"base":"uatom","symbol":"COSMOS","exponent":"6","coingecko_id":"cosmoshub-4","logo":""}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-  },
-  "explorer/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "replicas": 1,
-      "revisionHistoryLimit": 3,
-      "selector": {
-        "matchLabels": {
-          "app.kubernetes.io/instance": "explorer",
-          "app.kubernetes.io/name": "explorer",
-        },
-      },
-      "template": {
-        "metadata": {
-          "annotations": {
-            "quality": "release",
-            "role": "api-gateway",
-            "sla": "high",
-            "tier": "gateway",
-          },
-          "labels": {
-            "app.kubernetes.io/instance": "explorer",
-            "app.kubernetes.io/name": "explorer",
-            "app.kubernetes.io/rawname": "explorer",
-            "app.kubernetes.io/type": "ping-pub",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "CHAINS_CONFIG_PATH",
-                  "value": "/explorer",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/ping-pub:latest",
-              "imagePullPolicy": "IfNotPresent",
-              "name": "explorer",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                  "protocol": "TCP",
-                },
-              ],
-              "resources": {
-                "limits": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-                "requests": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/explorer",
-                  "name": "explorer-config",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "explorer",
-              },
-              "name": "explorer-config",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "explorer/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "clusterIP": "None",
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "protocol": "TCP",
-          "targetPort": "8080",
-        },
-      ],
-      "selector": {
-        "app.kubernetes.io/name": "explorer",
-      },
-    },
-  },
-  "registry/config-configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "cosmoshub-4.json": "{"chain_name":"cosmoshub","assets":[{"base":"uatom","description":"The native staking and governance token of the Cosmos Hub.","name":"Cosmos Hub Atom","display":"atom","symbol":"ATOM","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/cosmoshub/images/atom.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/cosmoshub/images/atom.svg"},"denom_units":[{"denom":"uatom","exponent":0},{"denom":"atom","exponent":6}],"coingecko_id":"atom"}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry-config",
-    },
-  },
-  "registry/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "registry",
-        },
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "registry",
-            "app.kubernetes.io/instance": "starship-generator-test",
-            "app.kubernetes.io/managed-by": "starship",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_RPCS",
-                  "value": "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RPCS",
-                  "value": "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_GRPCS",
-                  "value": "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:9091",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RESTS",
-                  "value": "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:1317",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_EXPOSERS",
-                  "value": "http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:8081",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/registry:latest",
-              "livenessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 15,
-                "periodSeconds": 20,
-              },
-              "name": "registry",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                },
-                {
-                  "containerPort": 9090,
-                  "name": "grpc",
-                },
-              ],
-              "readinessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 5,
-                "periodSeconds": 10,
-              },
-              "resources": {
-                "limits": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-                "requests": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/chains/cosmoshub-4",
-                  "name": "chain-cosmoshub-4",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "chain-cosmoshub-4",
-              },
-              "name": "chain-cosmoshub-4",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "registry/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "targetPort": "8080",
-        },
-        {
-          "name": "grpc",
-          "port": 9090,
-          "targetPort": "9090",
-        },
-      ],
-      "selector": {
-        "app": "registry",
-      },
     },
   },
 }
@@ -2246,10 +1951,10 @@ exports[`BuilderManager Tests Advanced Configuration Testing should handle CosmJ
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "keys",
     },
@@ -2875,144 +2580,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts",
-    },
-  },
-  "explorer/configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "osmosis-1.json": "{"chain_name":"osmosis-1","coingecko":"osmosis","api":"http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1313","rpc":["http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26653"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"osmo","logo":"","assets":[{"base":"uosmo","symbol":"OSMO","exponent":"6","coingecko_id":"osmosis-1","logo":""}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-  },
-  "explorer/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "replicas": 1,
-      "revisionHistoryLimit": 3,
-      "selector": {
-        "matchLabels": {
-          "app.kubernetes.io/instance": "explorer",
-          "app.kubernetes.io/name": "explorer",
-        },
-      },
-      "template": {
-        "metadata": {
-          "annotations": {
-            "quality": "release",
-            "role": "api-gateway",
-            "sla": "high",
-            "tier": "gateway",
-          },
-          "labels": {
-            "app.kubernetes.io/instance": "explorer",
-            "app.kubernetes.io/name": "explorer",
-            "app.kubernetes.io/rawname": "explorer",
-            "app.kubernetes.io/type": "ping-pub",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "CHAINS_CONFIG_PATH",
-                  "value": "/explorer",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/ping-pub:latest",
-              "imagePullPolicy": "IfNotPresent",
-              "name": "explorer",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                  "protocol": "TCP",
-                },
-              ],
-              "resources": {
-                "limits": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-                "requests": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/explorer",
-                  "name": "explorer-config",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "explorer",
-              },
-              "name": "explorer-config",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "explorer/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "clusterIP": "None",
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "protocol": "TCP",
-          "targetPort": "8080",
-        },
-      ],
-      "selector": {
-        "app.kubernetes.io/name": "explorer",
-      },
     },
   },
   "osmosis/genesis-service.yaml": {
@@ -3021,15 +2594,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
-        "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "genesis",
         "app.kubernetes.io/type": "osmosis-1-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-genesis",
     },
@@ -3103,7 +2675,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
         "app.kubernetes.io/part-of": "osmosis-1",
@@ -3111,6 +2682,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "osmosis-1-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-genesis",
     },
@@ -3251,11 +2823,9 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                 },
                 {
                   "name": "NAMESPACE",
-                  "value": {
-                    "valueFrom": {
-                      "fieldRef": {
-                        "fieldPath": "metadata.namespace",
-                      },
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
                     },
                   },
                 },
@@ -4197,174 +3767,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-osmosis-1",
-    },
-  },
-  "registry/config-configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "osmosis-1.json": "{"chain_name":"osmosis","assets":[{"base":"uosmo","description":"The native token of Osmosis","name":"Osmosis","display":"osmo","symbol":"OSMO","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.svg"},"denom_units":[{"denom":"uosmo","exponent":0},{"denom":"osmo","exponent":6}],"coingecko_id":"osmosis","keywords":["staking","dex"]},{"base":"uion","name":"Ion","display":"ion","symbol":"ION","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.svg"},"denom_units":[{"denom":"uion","exponent":0},{"denom":"ion","exponent":6}],"coingecko_id":"ion","keywords":["memecoin"]}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry-config",
-    },
-  },
-  "registry/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "registry",
-        },
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "registry",
-            "app.kubernetes.io/instance": "starship-generator-test",
-            "app.kubernetes.io/managed-by": "starship",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_RPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_GRPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:9091",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RESTS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1317",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_EXPOSERS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:8081",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/registry:latest",
-              "livenessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 15,
-                "periodSeconds": 20,
-              },
-              "name": "registry",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                },
-                {
-                  "containerPort": 9090,
-                  "name": "grpc",
-                },
-              ],
-              "readinessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 5,
-                "periodSeconds": 10,
-              },
-              "resources": {
-                "limits": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-                "requests": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/chains/osmosis-1",
-                  "name": "chain-osmosis-1",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "chain-osmosis-1",
-              },
-              "name": "chain-osmosis-1",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "registry/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "targetPort": "8080",
-        },
-        {
-          "name": "grpc",
-          "port": 9090,
-          "targetPort": "9090",
-        },
-      ],
-      "selector": {
-        "app": "registry",
-      },
     },
   },
 }
@@ -4475,10 +3885,10 @@ exports[`BuilderManager Tests Advanced Configuration Testing should handle build
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "keys",
     },
@@ -5104,144 +4514,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts",
-    },
-  },
-  "explorer/configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "core-1.json": "{"chain_name":"core-1","coingecko":"persistencecore","api":"http://core-1-genesis.$(NAMESPACE).svc.cluster.local:1318","rpc":["http://core-1-genesis.$(NAMESPACE).svc.cluster.local:26658"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"persistence","logo":"","assets":[{"base":"uxprt","symbol":"PERSISTENCE","exponent":"6","coingecko_id":"core-1","logo":""}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-  },
-  "explorer/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "replicas": 1,
-      "revisionHistoryLimit": 3,
-      "selector": {
-        "matchLabels": {
-          "app.kubernetes.io/instance": "explorer",
-          "app.kubernetes.io/name": "explorer",
-        },
-      },
-      "template": {
-        "metadata": {
-          "annotations": {
-            "quality": "release",
-            "role": "api-gateway",
-            "sla": "high",
-            "tier": "gateway",
-          },
-          "labels": {
-            "app.kubernetes.io/instance": "explorer",
-            "app.kubernetes.io/name": "explorer",
-            "app.kubernetes.io/rawname": "explorer",
-            "app.kubernetes.io/type": "ping-pub",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "CHAINS_CONFIG_PATH",
-                  "value": "/explorer",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/ping-pub:latest",
-              "imagePullPolicy": "IfNotPresent",
-              "name": "explorer",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                  "protocol": "TCP",
-                },
-              ],
-              "resources": {
-                "limits": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-                "requests": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/explorer",
-                  "name": "explorer-config",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "explorer",
-              },
-              "name": "explorer-config",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "explorer/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "clusterIP": "None",
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "protocol": "TCP",
-          "targetPort": "8080",
-        },
-      ],
-      "selector": {
-        "app.kubernetes.io/name": "explorer",
-      },
     },
   },
   "persistencecore/genesis-service.yaml": {
@@ -5250,15 +4528,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "core-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "core-1-genesis",
-        "app.kubernetes.io/part-of": "core-1",
         "app.kubernetes.io/role": "genesis",
         "app.kubernetes.io/type": "core-1-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "core-1",
         "starship.io/chain-name": "persistencecore",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "core-1-genesis",
     },
@@ -5332,7 +4609,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "core-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "core-1-genesis",
         "app.kubernetes.io/part-of": "core-1",
@@ -5340,6 +4616,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "core-1-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "persistencecore",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "core-1-genesis",
     },
@@ -5480,11 +4757,9 @@ exec persistenceCore start --home /root/.persistenceCore --log_level info",
                 },
                 {
                   "name": "NAMESPACE",
-                  "value": {
-                    "valueFrom": {
-                      "fieldRef": {
-                        "fieldPath": "metadata.namespace",
-                      },
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
                     },
                   },
                 },
@@ -6529,12 +5804,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "persistencecore",
         "app.kubernetes.io/part-of": "core-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-core-1",
     },
@@ -6545,15 +5820,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "core-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "core-1-genesis",
-        "app.kubernetes.io/part-of": "core-1",
+        "app.kubernetes.io/name": "core-1-validator",
         "app.kubernetes.io/role": "validator",
         "app.kubernetes.io/type": "core-1-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "core-1",
         "starship.io/chain-name": "persistencecore",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "core-1-validator",
     },
@@ -6627,7 +5901,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "core-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "core-1-genesis",
         "app.kubernetes.io/part-of": "core-1",
@@ -6635,6 +5908,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "core-1-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "persistencecore",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "core-1-validator",
     },
@@ -7031,166 +6305,6 @@ echo "Validator initialization completed"",
       },
     },
   },
-  "registry/config-configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "core-1.json": "{"chain_name":"persistencecore","assets":[]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry-config",
-    },
-  },
-  "registry/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "registry",
-        },
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "registry",
-            "app.kubernetes.io/instance": "starship-generator-test",
-            "app.kubernetes.io/managed-by": "starship",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_RPCS",
-                  "value": "http://core-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RPCS",
-                  "value": "http://core-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_GRPCS",
-                  "value": "http://core-1-genesis.$(NAMESPACE).svc.cluster.local:9091",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RESTS",
-                  "value": "http://core-1-genesis.$(NAMESPACE).svc.cluster.local:1317",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_EXPOSERS",
-                  "value": "http://core-1-genesis.$(NAMESPACE).svc.cluster.local:8081",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/registry:latest",
-              "livenessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 15,
-                "periodSeconds": 20,
-              },
-              "name": "registry",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                },
-                {
-                  "containerPort": 9090,
-                  "name": "grpc",
-                },
-              ],
-              "readinessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 5,
-                "periodSeconds": 10,
-              },
-              "resources": {
-                "limits": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-                "requests": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/chains/core-1",
-                  "name": "chain-core-1",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "chain-core-1",
-              },
-              "name": "chain-core-1",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "registry/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "targetPort": "8080",
-        },
-        {
-          "name": "grpc",
-          "port": 9090,
-          "targetPort": "9090",
-        },
-      ],
-      "selector": {
-        "app": "registry",
-      },
-    },
-  },
 }
 `;
 
@@ -7299,10 +6413,10 @@ exports[`BuilderManager Tests Advanced Configuration Testing should handle relay
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "keys",
     },
@@ -7928,10 +7042,10 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts",
     },
@@ -7942,15 +7056,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "cosmoshub-4",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub-4-genesis",
-        "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "genesis",
         "app.kubernetes.io/type": "cosmoshub-4-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "cosmoshub-4",
         "starship.io/chain-name": "cosmoshub",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "cosmoshub-4-genesis",
     },
@@ -8024,7 +7137,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "cosmoshub-4",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub-4-genesis",
         "app.kubernetes.io/part-of": "cosmoshub-4",
@@ -8032,6 +7144,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "cosmoshub-4-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "cosmoshub",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "cosmoshub-4-genesis",
     },
@@ -8172,11 +7285,9 @@ exec gaiad start --home /root/.gaia --log_level info",
                 },
                 {
                   "name": "NAMESPACE",
-                  "value": {
-                    "valueFrom": {
-                      "fieldRef": {
-                        "fieldPath": "metadata.namespace",
-                      },
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
                     },
                   },
                 },
@@ -9043,12 +8154,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub",
         "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-cosmoshub-4",
     },
@@ -9059,15 +8170,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "cosmoshub-4",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "cosmoshub-4-genesis",
-        "app.kubernetes.io/part-of": "cosmoshub-4",
+        "app.kubernetes.io/name": "cosmoshub-4-validator",
         "app.kubernetes.io/role": "validator",
         "app.kubernetes.io/type": "cosmoshub-4-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "cosmoshub-4",
         "starship.io/chain-name": "cosmoshub",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "cosmoshub-4-validator",
     },
@@ -9141,7 +8251,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "cosmoshub-4",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub-4-genesis",
         "app.kubernetes.io/part-of": "cosmoshub-4",
@@ -9149,6 +8258,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "cosmoshub-4-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "cosmoshub",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "cosmoshub-4-validator",
     },
@@ -9471,10 +8581,10 @@ echo "Validator initialization completed"",
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "explorer",
     },
@@ -9485,10 +8595,10 @@ echo "Validator initialization completed"",
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "explorer",
     },
@@ -9539,11 +8649,11 @@ echo "Validator initialization completed"",
               "resources": {
                 "limits": {
                   "cpu": "0.2",
-                  "memory": "200M",
+                  "memory": "512Mi",
                 },
                 "requests": {
                   "cpu": "0.2",
-                  "memory": "200M",
+                  "memory": "512Mi",
                 },
               },
               "volumeMounts": [
@@ -9572,10 +8682,10 @@ echo "Validator initialization completed"",
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "explorer",
     },
@@ -9600,15 +8710,14 @@ echo "Validator initialization completed"",
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
-        "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "genesis",
         "app.kubernetes.io/type": "osmosis-1-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-genesis",
     },
@@ -9682,7 +8791,6 @@ echo "Validator initialization completed"",
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
         "app.kubernetes.io/part-of": "osmosis-1",
@@ -9690,6 +8798,7 @@ echo "Validator initialization completed"",
         "app.kubernetes.io/type": "osmosis-1-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-genesis",
     },
@@ -9830,11 +8939,9 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                 },
                 {
                   "name": "NAMESPACE",
-                  "value": {
-                    "valueFrom": {
-                      "fieldRef": {
-                        "fieldPath": "metadata.namespace",
-                      },
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
                     },
                   },
                 },
@@ -10795,12 +9902,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-osmosis-1",
     },
@@ -10811,15 +9918,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis-1-genesis",
-        "app.kubernetes.io/part-of": "osmosis-1",
+        "app.kubernetes.io/name": "osmosis-1-validator",
         "app.kubernetes.io/role": "validator",
         "app.kubernetes.io/type": "osmosis-1-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-validator",
     },
@@ -10893,7 +9999,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
         "app.kubernetes.io/part-of": "osmosis-1",
@@ -10901,6 +10006,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "osmosis-1-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-validator",
     },
@@ -11223,10 +10329,10 @@ echo "Validator initialization completed"",
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "registry-config",
     },
@@ -11237,10 +10343,10 @@ echo "Validator initialization completed"",
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "registry",
     },
@@ -11255,9 +10361,9 @@ echo "Validator initialization completed"",
         "metadata": {
           "labels": {
             "app": "registry",
-            "app.kubernetes.io/instance": "starship-generator-test",
             "app.kubernetes.io/managed-by": "starship",
             "app.kubernetes.io/version": "4.0.0-alpha.0",
+            "starship.io/name": "starship-generator-test",
           },
         },
         "spec": {
@@ -11313,16 +10419,7 @@ echo "Validator initialization completed"",
                 "initialDelaySeconds": 5,
                 "periodSeconds": 10,
               },
-              "resources": {
-                "limits": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-                "requests": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-              },
+              "resources": {},
               "volumeMounts": [
                 {
                   "mountPath": "/chains/osmosis-1",
@@ -11359,10 +10456,10 @@ echo "Validator initialization completed"",
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "registry",
     },
@@ -11554,12 +10651,12 @@ gas_price = { price = 1.25, denom = "uatom" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-osmos-cosmos",
     },
@@ -11570,12 +10667,12 @@ gas_price = { price = 1.25, denom = "uatom" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-osmos-cosmos",
     },
@@ -11606,12 +10703,12 @@ gas_price = { price = 1.25, denom = "uatom" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-osmos-cosmos",
     },
@@ -11963,302 +11060,7 @@ bash -e /scripts/transfer-tokens.sh \\
 }
 `;
 
-exports[`BuilderManager Tests Advanced Configuration Testing should skip Ethereum chains appropriately: ethereum-skip-yaml-files 1`] = `
-{
-  "explorer/configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "1337.json": "{"chain_name":1337,"coingecko":"ethereum","api":"http://1337-genesis.$(NAMESPACE).svc.cluster.local:8545","rpc":["http://1337-genesis.$(NAMESPACE).svc.cluster.local:8551"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":60,"min_tx_fee":"3000","addr_prefix":"eth","logo":"","assets":[{"base":"wei","symbol":"ETH","exponent":"6","coingecko_id":1337,"logo":""}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-  },
-  "explorer/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "replicas": 1,
-      "revisionHistoryLimit": 3,
-      "selector": {
-        "matchLabels": {
-          "app.kubernetes.io/instance": "explorer",
-          "app.kubernetes.io/name": "explorer",
-        },
-      },
-      "template": {
-        "metadata": {
-          "annotations": {
-            "quality": "release",
-            "role": "api-gateway",
-            "sla": "high",
-            "tier": "gateway",
-          },
-          "labels": {
-            "app.kubernetes.io/instance": "explorer",
-            "app.kubernetes.io/name": "explorer",
-            "app.kubernetes.io/rawname": "explorer",
-            "app.kubernetes.io/type": "ping-pub",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "CHAINS_CONFIG_PATH",
-                  "value": "/explorer",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/ping-pub:latest",
-              "imagePullPolicy": "IfNotPresent",
-              "name": "explorer",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                  "protocol": "TCP",
-                },
-              ],
-              "resources": {
-                "limits": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-                "requests": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/explorer",
-                  "name": "explorer-config",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "explorer",
-              },
-              "name": "explorer-config",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "explorer/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "clusterIP": "None",
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "protocol": "TCP",
-          "targetPort": "8080",
-        },
-      ],
-      "selector": {
-        "app.kubernetes.io/name": "explorer",
-      },
-    },
-  },
-  "registry/config-configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "1337.json": "{"chain_name":"ethereum","assets":[{"base":"wei","name":"Ether","description":"The native token of Ethereum","display":"eth","symbol":"ETH","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/ethereum/images/eth-white.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/_non-cosmos/ethereum/images/eth-white.svg"},"denom_units":[{"denom":"wei","exponent":0},{"denom":"gwei","exponent":9},{"denom":"ether","exponent":18,"aliases":["ether"]}],"coingecko_id":"ethereum"}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry-config",
-    },
-  },
-  "registry/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "registry",
-        },
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "registry",
-            "app.kubernetes.io/instance": "starship-generator-test",
-            "app.kubernetes.io/managed-by": "starship",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_RPCS",
-                  "value": "http://1337-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RPCS",
-                  "value": "http://1337-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_GRPCS",
-                  "value": "http://1337-genesis.$(NAMESPACE).svc.cluster.local:9091",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RESTS",
-                  "value": "http://1337-genesis.$(NAMESPACE).svc.cluster.local:1317",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_EXPOSERS",
-                  "value": "http://1337-genesis.$(NAMESPACE).svc.cluster.local:8081",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/registry:latest",
-              "livenessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 15,
-                "periodSeconds": 20,
-              },
-              "name": "registry",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                },
-                {
-                  "containerPort": 9090,
-                  "name": "grpc",
-                },
-              ],
-              "readinessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 5,
-                "periodSeconds": 10,
-              },
-              "resources": {
-                "limits": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-                "requests": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/chains/1337",
-                  "name": "chain-1337",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "chain-1337",
-              },
-              "name": "chain-1337",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "registry/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "targetPort": "8080",
-        },
-        {
-          "name": "grpc",
-          "port": 9090,
-          "targetPort": "9090",
-        },
-      ],
-      "selector": {
-        "app": "registry",
-      },
-    },
-  },
-}
-`;
+exports[`BuilderManager Tests Advanced Configuration Testing should skip Ethereum chains appropriately: ethereum-skip-yaml-files 1`] = `{}`;
 
 exports[`BuilderManager Tests Complex Configuration Scenarios should handle configuration with all builders enabled: full-builders-yaml-files 1`] = `
 {
@@ -12365,10 +11167,10 @@ exports[`BuilderManager Tests Complex Configuration Scenarios should handle conf
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "full-testnet",
       },
       "name": "keys",
     },
@@ -12994,10 +11796,10 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "full-testnet",
       },
       "name": "setup-scripts",
     },
@@ -13011,10 +11813,10 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "full-testnet",
       },
       "name": "explorer",
     },
@@ -13025,10 +11827,10 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "full-testnet",
       },
       "name": "explorer",
     },
@@ -13079,11 +11881,11 @@ $CHAIN_BIN tendermint show-node-id
               "resources": {
                 "limits": {
                   "cpu": "0.2",
-                  "memory": "200M",
+                  "memory": "512Mi",
                 },
                 "requests": {
                   "cpu": "0.2",
-                  "memory": "200M",
+                  "memory": "512Mi",
                 },
               },
               "volumeMounts": [
@@ -13112,10 +11914,10 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "full-testnet",
       },
       "name": "explorer",
     },
@@ -13161,12 +11963,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "genesis-patch",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "full-testnet",
       },
       "name": "patch-osmosis-1",
     },
@@ -13177,15 +11979,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
-        "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "genesis",
         "app.kubernetes.io/type": "osmosis-1-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "full-testnet",
       },
       "name": "osmosis-1-genesis",
     },
@@ -13265,7 +12066,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
         "app.kubernetes.io/part-of": "osmosis-1",
@@ -13273,6 +12073,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "osmosis-1-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "full-testnet",
       },
       "name": "osmosis-1-genesis",
     },
@@ -13413,11 +12214,9 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                 },
                 {
                   "name": "NAMESPACE",
-                  "value": {
-                    "valueFrom": {
-                      "fieldRef": {
-                        "fieldPath": "metadata.namespace",
-                      },
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
                     },
                   },
                 },
@@ -14388,12 +13187,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "full-testnet",
       },
       "name": "setup-scripts-osmosis-1",
     },
@@ -14407,10 +13206,10 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "full-testnet",
       },
       "name": "registry-config",
     },
@@ -14421,10 +13220,10 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "full-testnet",
       },
       "name": "registry",
     },
@@ -14439,9 +13238,9 @@ $CHAIN_BIN tendermint show-node-id
         "metadata": {
           "labels": {
             "app": "registry",
-            "app.kubernetes.io/instance": "full-testnet",
             "app.kubernetes.io/managed-by": "starship",
             "app.kubernetes.io/version": "4.0.0-alpha.0",
+            "starship.io/name": "full-testnet",
           },
         },
         "spec": {
@@ -14497,16 +13296,7 @@ $CHAIN_BIN tendermint show-node-id
                 "initialDelaySeconds": 5,
                 "periodSeconds": 10,
               },
-              "resources": {
-                "limits": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-                "requests": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-              },
+              "resources": {},
               "volumeMounts": [
                 {
                   "mountPath": "/chains/osmosis-1",
@@ -14533,10 +13323,10 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "full-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "full-testnet",
       },
       "name": "registry",
     },
@@ -14574,11 +13364,6 @@ exports[`BuilderManager Tests Directory Organization Validation should organize 
     "validator-service.yaml",
     "validator-statefulset.yaml",
   ],
-  "explorer": [
-    "configmap.yaml",
-    "deployment.yaml",
-    "service.yaml",
-  ],
   "osmosis": [
     "genesis-service.yaml",
     "genesis-statefulset.yaml",
@@ -14586,19 +13371,13 @@ exports[`BuilderManager Tests Directory Organization Validation should organize 
     "validator-service.yaml",
     "validator-statefulset.yaml",
   ],
-  "registry": [
-    "config-configmap.yaml",
-    "deployment.yaml",
-    "service.yaml",
-  ],
 }
 `;
 
 exports[`BuilderManager Tests File Content Validation should generate valid YAML with correct resource types: resource-type-counts 1`] = `
 {
-  "ConfigMap": 6,
-  "Deployment": 2,
-  "Service": 3,
+  "ConfigMap": 4,
+  "Service": 1,
   "StatefulSet": 1,
 }
 `;
@@ -14708,10 +13487,10 @@ exports[`BuilderManager Tests File Organization Edge Cases should handle chains 
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "special-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "special-testnet",
       },
       "name": "keys",
     },
@@ -15337,304 +14116,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "special-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "special-testnet",
       },
       "name": "setup-scripts",
-    },
-  },
-  "explorer/configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "test-chain-1.json": "{"chain_name":"test-chain-1","coingecko":"test-chain","api":"http://test-chain-1-genesis.$(NAMESPACE).svc.cluster.local:1313","rpc":["http://test-chain-1-genesis.$(NAMESPACE).svc.cluster.local:26653"],"snapshot_provider":"","sdk_version":"0.45.6","min_tx_fee":"3000","logo":"","assets":[{"exponent":"6","coingecko_id":"test-chain-1","logo":""}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "special-testnet",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-  },
-  "explorer/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "special-testnet",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "replicas": 1,
-      "revisionHistoryLimit": 3,
-      "selector": {
-        "matchLabels": {
-          "app.kubernetes.io/instance": "explorer",
-          "app.kubernetes.io/name": "explorer",
-        },
-      },
-      "template": {
-        "metadata": {
-          "annotations": {
-            "quality": "release",
-            "role": "api-gateway",
-            "sla": "high",
-            "tier": "gateway",
-          },
-          "labels": {
-            "app.kubernetes.io/instance": "explorer",
-            "app.kubernetes.io/name": "explorer",
-            "app.kubernetes.io/rawname": "explorer",
-            "app.kubernetes.io/type": "ping-pub",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "CHAINS_CONFIG_PATH",
-                  "value": "/explorer",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/ping-pub:latest",
-              "imagePullPolicy": "IfNotPresent",
-              "name": "explorer",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                  "protocol": "TCP",
-                },
-              ],
-              "resources": {
-                "limits": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-                "requests": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/explorer",
-                  "name": "explorer-config",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "explorer",
-              },
-              "name": "explorer-config",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "explorer/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "special-testnet",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "clusterIP": "None",
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "protocol": "TCP",
-          "targetPort": "8080",
-        },
-      ],
-      "selector": {
-        "app.kubernetes.io/name": "explorer",
-      },
-    },
-  },
-  "registry/config-configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "test-chain-1.json": "{"chain_name":"test-chain","assets":[]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "special-testnet",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry-config",
-    },
-  },
-  "registry/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "special-testnet",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "registry",
-        },
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "registry",
-            "app.kubernetes.io/instance": "special-testnet",
-            "app.kubernetes.io/managed-by": "starship",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_RPCS",
-                  "value": "http://test-chain-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RPCS",
-                  "value": "http://test-chain-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_GRPCS",
-                  "value": "http://test-chain-1-genesis.$(NAMESPACE).svc.cluster.local:9091",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RESTS",
-                  "value": "http://test-chain-1-genesis.$(NAMESPACE).svc.cluster.local:1317",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_EXPOSERS",
-                  "value": "http://test-chain-1-genesis.$(NAMESPACE).svc.cluster.local:8081",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/registry:latest",
-              "livenessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 15,
-                "periodSeconds": 20,
-              },
-              "name": "registry",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                },
-                {
-                  "containerPort": 9090,
-                  "name": "grpc",
-                },
-              ],
-              "readinessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 5,
-                "periodSeconds": 10,
-              },
-              "resources": {
-                "limits": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-                "requests": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/chains/test-chain-1",
-                  "name": "chain-test-chain-1",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "chain-test-chain-1",
-              },
-              "name": "chain-test-chain-1",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "registry/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "special-testnet",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "targetPort": "8080",
-        },
-        {
-          "name": "grpc",
-          "port": 9090,
-          "targetPort": "9090",
-        },
-      ],
-      "selector": {
-        "app": "registry",
-      },
     },
   },
   "test-chain/genesis-patch-configmap.yaml": {
@@ -15664,12 +14151,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "special-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "test-chain",
         "app.kubernetes.io/part-of": "test-chain-1",
         "app.kubernetes.io/role": "genesis-patch",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "special-testnet",
       },
       "name": "patch-test-chain-1",
     },
@@ -15680,15 +14167,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "test-chain-1",
-        "app.kubernetes.io/instance": "special-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "test-chain-1-genesis",
-        "app.kubernetes.io/part-of": "test-chain-1",
         "app.kubernetes.io/role": "genesis",
         "app.kubernetes.io/type": "test-chain-1-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "test-chain-1",
         "starship.io/chain-name": "test-chain",
+        "starship.io/name": "special-testnet",
       },
       "name": "test-chain-1-genesis",
     },
@@ -15768,7 +14254,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "test-chain-1",
-        "app.kubernetes.io/instance": "special-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "test-chain-1-genesis",
         "app.kubernetes.io/part-of": "test-chain-1",
@@ -15776,6 +14261,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "test-chain-1-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "test-chain",
+        "starship.io/name": "special-testnet",
       },
       "name": "test-chain-1-genesis",
     },
@@ -15914,11 +14400,9 @@ exec undefined start --home undefined --log_level info",
                 },
                 {
                   "name": "NAMESPACE",
-                  "value": {
-                    "valueFrom": {
-                      "fieldRef": {
-                        "fieldPath": "metadata.namespace",
-                      },
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
                     },
                   },
                 },
@@ -16882,12 +15366,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "special-testnet",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "test-chain",
         "app.kubernetes.io/part-of": "test-chain-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "special-testnet",
       },
       "name": "setup-scripts-test-chain-1",
     },
@@ -16902,22 +15386,12 @@ exports[`BuilderManager Tests File Organization Edge Cases should validate file 
       "keys.yaml",
       "setup-scripts.yaml",
     ],
-    "explorer": [
-      "configmap.yaml",
-      "deployment.yaml",
-      "service.yaml",
-    ],
     "persistencecore": [
       "genesis-service.yaml",
       "genesis-statefulset.yaml",
       "setup-scripts-configmap.yaml",
       "validator-service.yaml",
       "validator-statefulset.yaml",
-    ],
-    "registry": [
-      "config-configmap.yaml",
-      "deployment.yaml",
-      "service.yaml",
     ],
   },
   "cometmock": {
@@ -16930,36 +15404,16 @@ exports[`BuilderManager Tests File Organization Edge Cases should validate file 
       "genesis-statefulset.yaml",
       "setup-scripts-configmap.yaml",
     ],
-    "explorer": [
-      "configmap.yaml",
-      "deployment.yaml",
-      "service.yaml",
-    ],
-    "registry": [
-      "config-configmap.yaml",
-      "deployment.yaml",
-      "service.yaml",
-    ],
   },
   "cosmjs": {
     "configmaps": [
       "keys.yaml",
       "setup-scripts.yaml",
     ],
-    "explorer": [
-      "configmap.yaml",
-      "deployment.yaml",
-      "service.yaml",
-    ],
     "osmosis": [
       "genesis-service.yaml",
       "genesis-statefulset.yaml",
       "setup-scripts-configmap.yaml",
-    ],
-    "registry": [
-      "config-configmap.yaml",
-      "deployment.yaml",
-      "service.yaml",
     ],
   },
   "multi": {
@@ -16974,11 +15428,6 @@ exports[`BuilderManager Tests File Organization Edge Cases should validate file 
       "validator-service.yaml",
       "validator-statefulset.yaml",
     ],
-    "explorer": [
-      "configmap.yaml",
-      "deployment.yaml",
-      "service.yaml",
-    ],
     "osmosis": [
       "genesis-service.yaml",
       "genesis-statefulset.yaml",
@@ -16986,32 +15435,17 @@ exports[`BuilderManager Tests File Organization Edge Cases should validate file 
       "validator-service.yaml",
       "validator-statefulset.yaml",
     ],
-    "registry": [
-      "config-configmap.yaml",
-      "deployment.yaml",
-      "service.yaml",
-    ],
   },
   "single": {
     "configmaps": [
       "keys.yaml",
       "setup-scripts.yaml",
     ],
-    "explorer": [
-      "configmap.yaml",
-      "deployment.yaml",
-      "service.yaml",
-    ],
     "osmosis": [
       "genesis-patch-configmap.yaml",
       "genesis-service.yaml",
       "genesis-statefulset.yaml",
       "setup-scripts-configmap.yaml",
-    ],
-    "registry": [
-      "config-configmap.yaml",
-      "deployment.yaml",
-      "service.yaml",
     ],
   },
 }
@@ -17040,9 +15474,7 @@ exports[`BuilderManager Tests Multi Chain Generation should generate complete mu
 [
   "configmaps",
   "cosmoshub",
-  "explorer",
   "osmosis",
-  "registry",
 ]
 `;
 
@@ -17151,10 +15583,10 @@ exports[`BuilderManager Tests Multi Chain Generation should generate complete mu
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "keys",
     },
@@ -17780,10 +16212,10 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts",
     },
@@ -17794,15 +16226,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "cosmoshub-4",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub-4-genesis",
-        "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "genesis",
         "app.kubernetes.io/type": "cosmoshub-4-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "cosmoshub-4",
         "starship.io/chain-name": "cosmoshub",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "cosmoshub-4-genesis",
     },
@@ -17876,7 +16307,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "cosmoshub-4",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub-4-genesis",
         "app.kubernetes.io/part-of": "cosmoshub-4",
@@ -17884,6 +16314,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "cosmoshub-4-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "cosmoshub",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "cosmoshub-4-genesis",
     },
@@ -18024,11 +16455,9 @@ exec gaiad start --home /root/.gaia --log_level info",
                 },
                 {
                   "name": "NAMESPACE",
-                  "value": {
-                    "valueFrom": {
-                      "fieldRef": {
-                        "fieldPath": "metadata.namespace",
-                      },
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
                     },
                   },
                 },
@@ -18895,12 +17324,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub",
         "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-cosmoshub-4",
     },
@@ -18911,15 +17340,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "cosmoshub-4",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "cosmoshub-4-genesis",
-        "app.kubernetes.io/part-of": "cosmoshub-4",
+        "app.kubernetes.io/name": "cosmoshub-4-validator",
         "app.kubernetes.io/role": "validator",
         "app.kubernetes.io/type": "cosmoshub-4-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "cosmoshub-4",
         "starship.io/chain-name": "cosmoshub",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "cosmoshub-4-validator",
     },
@@ -18993,7 +17421,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "cosmoshub-4",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "cosmoshub-4-genesis",
         "app.kubernetes.io/part-of": "cosmoshub-4",
@@ -19001,6 +17428,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "cosmoshub-4-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "cosmoshub",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "cosmoshub-4-validator",
     },
@@ -19313,154 +17741,20 @@ echo "Validator initialization completed"",
       },
     },
   },
-  "explorer/configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "cosmoshub-4.json": "{"chain_name":"cosmoshub-4","coingecko":"cosmoshub","api":"http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:1317","rpc":["http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"cosmos","logo":"","assets":[{"base":"uatom","symbol":"COSMOS","exponent":"6","coingecko_id":"cosmoshub-4","logo":""}]}",
-      "osmosis-1.json": "{"chain_name":"osmosis-1","coingecko":"osmosis","api":"http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1313","rpc":["http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26653"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"osmo","logo":"","assets":[{"base":"uosmo","symbol":"OSMO","exponent":"6","coingecko_id":"osmosis-1","logo":""}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-  },
-  "explorer/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "replicas": 1,
-      "revisionHistoryLimit": 3,
-      "selector": {
-        "matchLabels": {
-          "app.kubernetes.io/instance": "explorer",
-          "app.kubernetes.io/name": "explorer",
-        },
-      },
-      "template": {
-        "metadata": {
-          "annotations": {
-            "quality": "release",
-            "role": "api-gateway",
-            "sla": "high",
-            "tier": "gateway",
-          },
-          "labels": {
-            "app.kubernetes.io/instance": "explorer",
-            "app.kubernetes.io/name": "explorer",
-            "app.kubernetes.io/rawname": "explorer",
-            "app.kubernetes.io/type": "ping-pub",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "CHAINS_CONFIG_PATH",
-                  "value": "/explorer",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/ping-pub:latest",
-              "imagePullPolicy": "IfNotPresent",
-              "name": "explorer",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                  "protocol": "TCP",
-                },
-              ],
-              "resources": {
-                "limits": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-                "requests": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/explorer",
-                  "name": "explorer-config",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "explorer",
-              },
-              "name": "explorer-config",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "explorer/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "clusterIP": "None",
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "protocol": "TCP",
-          "targetPort": "8080",
-        },
-      ],
-      "selector": {
-        "app.kubernetes.io/name": "explorer",
-      },
-    },
-  },
   "osmosis/genesis-service.yaml": {
     "apiVersion": "v1",
     "kind": "Service",
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
-        "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "genesis",
         "app.kubernetes.io/type": "osmosis-1-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-genesis",
     },
@@ -19534,7 +17828,6 @@ echo "Validator initialization completed"",
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
         "app.kubernetes.io/part-of": "osmosis-1",
@@ -19542,6 +17835,7 @@ echo "Validator initialization completed"",
         "app.kubernetes.io/type": "osmosis-1-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-genesis",
     },
@@ -19682,11 +17976,9 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                 },
                 {
                   "name": "NAMESPACE",
-                  "value": {
-                    "valueFrom": {
-                      "fieldRef": {
-                        "fieldPath": "metadata.namespace",
-                      },
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
                     },
                   },
                 },
@@ -20647,12 +18939,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-osmosis-1",
     },
@@ -20663,15 +18955,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis-1-genesis",
-        "app.kubernetes.io/part-of": "osmosis-1",
+        "app.kubernetes.io/name": "osmosis-1-validator",
         "app.kubernetes.io/role": "validator",
         "app.kubernetes.io/type": "osmosis-1-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-validator",
     },
@@ -20745,7 +19036,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
         "app.kubernetes.io/part-of": "osmosis-1",
@@ -20753,6 +19043,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "osmosis-1-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-validator",
     },
@@ -21065,186 +19356,13 @@ echo "Validator initialization completed"",
       },
     },
   },
-  "registry/config-configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "cosmoshub-4.json": "{"chain_name":"cosmoshub","assets":[{"base":"uatom","description":"The native staking and governance token of the Cosmos Hub.","name":"Cosmos Hub Atom","display":"atom","symbol":"ATOM","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/cosmoshub/images/atom.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/cosmoshub/images/atom.svg"},"denom_units":[{"denom":"uatom","exponent":0},{"denom":"atom","exponent":6}],"coingecko_id":"atom"}]}",
-      "osmosis-1.json": "{"chain_name":"osmosis","assets":[{"base":"uosmo","description":"The native token of Osmosis","name":"Osmosis","display":"osmo","symbol":"OSMO","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.svg"},"denom_units":[{"denom":"uosmo","exponent":0},{"denom":"osmo","exponent":6}],"coingecko_id":"osmosis","keywords":["staking","dex"]},{"base":"uion","name":"Ion","display":"ion","symbol":"ION","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.svg"},"denom_units":[{"denom":"uion","exponent":0},{"denom":"ion","exponent":6}],"coingecko_id":"ion","keywords":["memecoin"]}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry-config",
-    },
-  },
-  "registry/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "registry",
-        },
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "registry",
-            "app.kubernetes.io/instance": "starship-generator-test",
-            "app.kubernetes.io/managed-by": "starship",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_RPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_GRPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:9091,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:9091",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RESTS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1317,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:1317",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_EXPOSERS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:8081,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:8081",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/registry:latest",
-              "livenessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 15,
-                "periodSeconds": 20,
-              },
-              "name": "registry",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                },
-                {
-                  "containerPort": 9090,
-                  "name": "grpc",
-                },
-              ],
-              "readinessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 5,
-                "periodSeconds": 10,
-              },
-              "resources": {
-                "limits": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-                "requests": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/chains/osmosis-1",
-                  "name": "chain-osmosis-1",
-                },
-                {
-                  "mountPath": "/chains/cosmoshub-4",
-                  "name": "chain-cosmoshub-4",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "chain-osmosis-1",
-              },
-              "name": "chain-osmosis-1",
-            },
-            {
-              "configMap": {
-                "name": "chain-cosmoshub-4",
-              },
-              "name": "chain-cosmoshub-4",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "registry/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "targetPort": "8080",
-        },
-        {
-          "name": "grpc",
-          "port": 9090,
-          "targetPort": "9090",
-        },
-      ],
-      "selector": {
-        "app": "registry",
-      },
-    },
-  },
 }
 `;
 
 exports[`BuilderManager Tests Single Chain Generation should generate complete single-chain setup with proper directory organization: single-chain-directory-structure 1`] = `
 [
   "configmaps",
-  "explorer",
   "osmosis",
-  "registry",
 ]
 `;
 
@@ -21353,10 +19471,10 @@ exports[`BuilderManager Tests Single Chain Generation should generate complete s
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "keys",
     },
@@ -21982,144 +20100,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "configmap",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts",
-    },
-  },
-  "explorer/configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "osmosis-1.json": "{"chain_name":"osmosis-1","coingecko":"osmosis","api":"http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1313","rpc":["http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26653"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"osmo","logo":"","assets":[{"base":"uosmo","symbol":"OSMO","exponent":"6","coingecko_id":"osmosis-1","logo":""}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-  },
-  "explorer/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "replicas": 1,
-      "revisionHistoryLimit": 3,
-      "selector": {
-        "matchLabels": {
-          "app.kubernetes.io/instance": "explorer",
-          "app.kubernetes.io/name": "explorer",
-        },
-      },
-      "template": {
-        "metadata": {
-          "annotations": {
-            "quality": "release",
-            "role": "api-gateway",
-            "sla": "high",
-            "tier": "gateway",
-          },
-          "labels": {
-            "app.kubernetes.io/instance": "explorer",
-            "app.kubernetes.io/name": "explorer",
-            "app.kubernetes.io/rawname": "explorer",
-            "app.kubernetes.io/type": "ping-pub",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "CHAINS_CONFIG_PATH",
-                  "value": "/explorer",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/ping-pub:latest",
-              "imagePullPolicy": "IfNotPresent",
-              "name": "explorer",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                  "protocol": "TCP",
-                },
-              ],
-              "resources": {
-                "limits": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-                "requests": {
-                  "cpu": "0.2",
-                  "memory": "200M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/explorer",
-                  "name": "explorer-config",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "explorer",
-              },
-              "name": "explorer-config",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "explorer/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "explorer",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "explorer",
-    },
-    "spec": {
-      "clusterIP": "None",
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "protocol": "TCP",
-          "targetPort": "8080",
-        },
-      ],
-      "selector": {
-        "app.kubernetes.io/name": "explorer",
-      },
     },
   },
   "osmosis/genesis-patch-configmap.yaml": {
@@ -22149,12 +20135,12 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "genesis-patch",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "patch-osmosis-1",
     },
@@ -22165,15 +20151,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
-        "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "genesis",
         "app.kubernetes.io/type": "osmosis-1-service",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-genesis",
     },
@@ -22253,7 +20238,6 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "osmosis-1",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis-1-genesis",
         "app.kubernetes.io/part-of": "osmosis-1",
@@ -22261,6 +20245,7 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/type": "osmosis-1-statefulset",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/chain-name": "osmosis",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "osmosis-1-genesis",
     },
@@ -22401,11 +20386,9 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                 },
                 {
                   "name": "NAMESPACE",
-                  "value": {
-                    "valueFrom": {
-                      "fieldRef": {
-                        "fieldPath": "metadata.namespace",
-                      },
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
                     },
                   },
                 },
@@ -23376,174 +21359,14 @@ $CHAIN_BIN tendermint show-node-id
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "chain",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "osmosis",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-osmosis-1",
-    },
-  },
-  "registry/config-configmap.yaml": {
-    "apiVersion": "v1",
-    "data": {
-      "osmosis-1.json": "{"chain_name":"osmosis","assets":[{"base":"uosmo","description":"The native token of Osmosis","name":"Osmosis","display":"osmo","symbol":"OSMO","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/osmo.svg"},"denom_units":[{"denom":"uosmo","exponent":0},{"denom":"osmo","exponent":6}],"coingecko_id":"osmosis","keywords":["staking","dex"]},{"base":"uion","name":"Ion","display":"ion","symbol":"ION","logo_URIs":{"png":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.png","svg":"https://raw.githubusercontent.com/cosmos/chain-registry/master/osmosis/images/ion.svg"},"denom_units":[{"denom":"uion","exponent":0},{"denom":"ion","exponent":6}],"coingecko_id":"ion","keywords":["memecoin"]}]}",
-    },
-    "kind": "ConfigMap",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry-config",
-    },
-  },
-  "registry/deployment.yaml": {
-    "apiVersion": "apps/v1",
-    "kind": "Deployment",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "replicas": 1,
-      "selector": {
-        "matchLabels": {
-          "app": "registry",
-        },
-      },
-      "template": {
-        "metadata": {
-          "labels": {
-            "app": "registry",
-            "app.kubernetes.io/instance": "starship-generator-test",
-            "app.kubernetes.io/managed-by": "starship",
-            "app.kubernetes.io/version": "4.0.0-alpha.0",
-          },
-        },
-        "spec": {
-          "containers": [
-            {
-              "env": [
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_RPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_GRPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:9091",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_API_RESTS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1317",
-                },
-                {
-                  "name": "REGISTRY_CHAIN_CLIENT_EXPOSERS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:8081",
-                },
-              ],
-              "image": "ghcr.io/cosmology-tech/starship/registry:latest",
-              "livenessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 15,
-                "periodSeconds": 20,
-              },
-              "name": "registry",
-              "ports": [
-                {
-                  "containerPort": 8080,
-                  "name": "http",
-                },
-                {
-                  "containerPort": 9090,
-                  "name": "grpc",
-                },
-              ],
-              "readinessProbe": {
-                "httpGet": {
-                  "path": "/health",
-                  "port": "8080",
-                },
-                "initialDelaySeconds": 5,
-                "periodSeconds": 10,
-              },
-              "resources": {
-                "limits": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-                "requests": {
-                  "cpu": "0.1",
-                  "memory": "128M",
-                },
-              },
-              "volumeMounts": [
-                {
-                  "mountPath": "/chains/osmosis-1",
-                  "name": "chain-osmosis-1",
-                },
-              ],
-            },
-          ],
-          "volumes": [
-            {
-              "configMap": {
-                "name": "chain-osmosis-1",
-              },
-              "name": "chain-osmosis-1",
-            },
-          ],
-        },
-      },
-    },
-  },
-  "registry/service.yaml": {
-    "apiVersion": "v1",
-    "kind": "Service",
-    "metadata": {
-      "labels": {
-        "app.kubernetes.io/component": "registry",
-        "app.kubernetes.io/instance": "starship-generator-test",
-        "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/part-of": "starship",
-        "app.kubernetes.io/version": "4.0.0-alpha.0",
-      },
-      "name": "registry",
-    },
-    "spec": {
-      "ports": [
-        {
-          "name": "http",
-          "port": 8080,
-          "targetPort": "8080",
-        },
-        {
-          "name": "grpc",
-          "port": 9090,
-          "targetPort": "9090",
-        },
-      ],
-      "selector": {
-        "app": "registry",
-      },
     },
   },
 }

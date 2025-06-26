@@ -26,7 +26,7 @@ describe('Cosmos Integration Tests', () => {
     it('should generate complete single-chain setup using CosmosBuilder', () => {
       const processedConfig = applyDefaults(singleChainConfig);
       const builder = new CosmosBuilder(processedConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests.length).toBeGreaterThan(0);
 
@@ -52,7 +52,7 @@ describe('Cosmos Integration Tests', () => {
     it('should handle different chain types in same deployment', () => {
       const processedConfig = applyDefaults(twoChainConfig);
       const builder = new CosmosBuilder(processedConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const osmosisManifests = manifests.filter((m: any) =>
         m.metadata?.name?.includes('osmosis')
@@ -76,7 +76,7 @@ describe('Cosmos Integration Tests', () => {
     it('should generate correct labels and annotations', () => {
       const processedConfig = applyDefaults(singleChainConfig);
       const builder = new CosmosBuilder(processedConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const services = manifests.filter(
         (m: any) => m.kind === 'Service'
@@ -100,7 +100,7 @@ describe('Cosmos Integration Tests', () => {
 
     it('should generate correct environment variables', () => {
       const builder = new CosmosBuilder(singleChainConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const statefulSets = manifests.filter(
         (m: any) => m.kind === 'StatefulSet'
@@ -154,7 +154,7 @@ describe('Cosmos Integration Tests', () => {
 
     it('should generate correct port mappings', () => {
       const builder = new CosmosBuilder(singleChainConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       const services = manifests.filter(
         (m: any) => m.kind === 'Service'
@@ -189,7 +189,7 @@ describe('Cosmos Integration Tests', () => {
 
       configs.forEach(({ name, config }) => {
         const builder = new CosmosBuilder(config);
-        const manifests = builder.buildManifests();
+        const manifests = builder.generate();
 
         const statefulSets = manifests.filter(
           (m: any) => m.kind === 'StatefulSet'
@@ -209,7 +209,7 @@ describe('Cosmos Integration Tests', () => {
   describe('Configuration Validation', () => {
     it('should skip non-cosmos chains', () => {
       const builder = new CosmosBuilder(ethereumConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       // Should not generate any manifests for ethereum
       expect(manifests.length).toBe(0);
@@ -235,7 +235,7 @@ describe('Cosmos Integration Tests', () => {
       // Should handle gracefully without throwing
       expect(() => {
         const builder = new CosmosBuilder(invalidConfig as any);
-        const manifests = builder.buildManifests();
+        const manifests = builder.generate();
         expect(manifests).toBeDefined();
       }).not.toThrow();
 
@@ -272,7 +272,7 @@ describe('Cosmos Integration Tests', () => {
 
         try {
           const builder = new CosmosBuilder(testConfig);
-          const manifests = builder.buildManifests();
+          const manifests = builder.generate();
           validationResults[name] = {
             success: true,
             manifestCount: manifests.length,
@@ -314,7 +314,7 @@ describe('Cosmos Integration Tests', () => {
       };
 
       const builder = new CosmosBuilder(complexConfig);
-      const manifests = builder.buildManifests();
+      const manifests = builder.generate();
 
       expect(manifests.length).toBeGreaterThan(0);
 

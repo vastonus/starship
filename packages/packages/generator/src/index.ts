@@ -3,7 +3,6 @@ export * from './types';
 
 // Core components
 export { DefaultsManager } from './defaults';
-export { TemplateHelpers } from './helpers';
 export { ScriptManager } from './scripts';
 
 // Builders

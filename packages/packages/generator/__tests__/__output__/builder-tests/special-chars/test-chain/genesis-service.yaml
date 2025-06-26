@@ -3,16 +3,15 @@ kind: Service
 metadata:
   name: test-chain-1-genesis
   labels:
-    app.kubernetes.io/instance: special-testnet
+    starship.io/name: special-testnet
     app.kubernetes.io/version: 4.0.0-alpha.0
     app.kubernetes.io/managed-by: starship
     app.kubernetes.io/component: chain
-    app.kubernetes.io/part-of: test-chain-1
-    app.kubernetes.io/id: test-chain-1
     app.kubernetes.io/name: test-chain-1-genesis
     app.kubernetes.io/type: test-chain-1-service
     app.kubernetes.io/role: genesis
     starship.io/chain-name: test-chain
+    starship.io/chain-id: test-chain-1
 spec:
   clusterIP: None
   ports:
