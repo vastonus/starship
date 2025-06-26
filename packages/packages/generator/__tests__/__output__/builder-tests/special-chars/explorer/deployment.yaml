@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: explorer
   labels:
-    app.kubernetes.io/instance: special-testnet
+    starship.io/name: special-testnet
     app.kubernetes.io/version: 4.0.0-alpha.0
     app.kubernetes.io/managed-by: starship
     app.kubernetes.io/component: explorer
@@ -46,10 +46,10 @@ spec:
           resources:
             limits:
               cpu: '0.2'
-              memory: 200M
+              memory: 512Mi
             requests:
               cpu: '0.2'
-              memory: 200M
+              memory: 512Mi
       volumes:
         - name: explorer-config
           configMap:

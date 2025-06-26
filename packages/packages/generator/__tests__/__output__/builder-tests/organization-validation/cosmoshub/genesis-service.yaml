@@ -3,16 +3,15 @@ kind: Service
 metadata:
   name: cosmoshub-4-genesis
   labels:
-    app.kubernetes.io/instance: starship-generator-test
+    starship.io/name: starship-generator-test
     app.kubernetes.io/version: 4.0.0-alpha.0
     app.kubernetes.io/managed-by: starship
     app.kubernetes.io/component: chain
-    app.kubernetes.io/part-of: cosmoshub-4
-    app.kubernetes.io/id: cosmoshub-4
     app.kubernetes.io/name: cosmoshub-4-genesis
     app.kubernetes.io/type: cosmoshub-4-service
     app.kubernetes.io/role: genesis
     starship.io/chain-name: cosmoshub
+    starship.io/chain-id: cosmoshub-4
 spec:
   clusterIP: None
   ports:

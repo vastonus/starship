@@ -143,10 +143,12 @@ export class FrontendBuilder implements IGenerator {
     this.config = config;
     this.generators = [];
 
-    config.frontends.forEach((frontend) => {
-      this.generators.push(new FrontendServiceGenerator(frontend, config));
-      this.generators.push(new FrontendDeploymentGenerator(frontend, config));
-    });
+    if (config.frontends && config.frontends.length > 0) {
+      config.frontends.forEach((frontend) => {
+        this.generators.push(new FrontendServiceGenerator(frontend, config));
+        this.generators.push(new FrontendDeploymentGenerator(frontend, config));
+      });
+    }
   }
 
   generate(): Array<Manifest> {

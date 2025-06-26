@@ -3,7 +3,7 @@ kind: Deployment
 metadata:
   name: registry
   labels:
-    app.kubernetes.io/instance: full-testnet
+    starship.io/name: full-testnet
     app.kubernetes.io/version: 4.0.0-alpha.0
     app.kubernetes.io/managed-by: starship
     app.kubernetes.io/component: registry
@@ -17,7 +17,7 @@ spec:
     metadata:
       labels:
         app: registry
-        app.kubernetes.io/instance: full-testnet
+        starship.io/name: full-testnet
         app.kubernetes.io/version: 4.0.0-alpha.0
         app.kubernetes.io/managed-by: starship
     spec:
@@ -43,13 +43,7 @@ spec:
           volumeMounts:
             - name: chain-osmosis-1
               mountPath: /chains/osmosis-1
-          resources:
-            limits:
-              cpu: '0.1'
-              memory: 128M
-            requests:
-              cpu: '0.1'
-              memory: 128M
+          resources: {}
           readinessProbe:
             httpGet:
               path: /health

@@ -9,6 +9,7 @@ import { ExplorerBuilder } from './explorer';
 import { FrontendBuilder } from './frontend';
 import { RegistryBuilder } from './registry';
 import { RelayerBuilder } from './relayers';
+import { Manifest } from '../types';
 
 export class BuilderManager {
   private config: StarshipConfig;
@@ -17,7 +18,7 @@ export class BuilderManager {
     this.config = applyDefaults(config);
   }
 
-  private getManifestOutputPath(manifest: any, baseDir: string): string {
+  private getManifestOutputPath(manifest: Manifest, baseDir: string): string {
     const labels = manifest.metadata?.labels || {};
     const component = labels['app.kubernetes.io/component'];
     const partOf = labels['app.kubernetes.io/part-of'];
@@ -31,7 +32,7 @@ export class BuilderManager {
       const chainName =
         labels['starship.io/chain-name'] || labels['app.kubernetes.io/name'];
       const roleType = role || 'default'; // genesis, validator, setup-scripts, genesis-patch, ics-proposal
-      return path.join(baseDir, chainName, `${roleType}-${kind}.yaml`);
+      return path.join(baseDir, chainName as string, `${roleType}-${kind}.yaml`);
     } else if (partOf === 'global') {
       // Global configmaps: outputs/configmaps/<clean-name>.yaml (remove redundant suffixes)
       const cleanName = name.replace(/-?configmap$/, ''); // Remove -configmap or configmap suffix
@@ -40,14 +41,14 @@ export class BuilderManager {
       // Component resources: outputs/<component>/<clean-kind>.yaml (remove redundant prefixes)
       const cleanName = name.replace(new RegExp(`^${component}-?`), ''); // Remove component prefix
       const fileName = cleanName ? `${cleanName}-${kind}.yaml` : `${kind}.yaml`;
-      return path.join(baseDir, component, fileName);
+      return path.join(baseDir, component as string, fileName);
     } else {
       // Fallback: outputs/<name>-<kind>.yaml
       return path.join(baseDir, `${name}-${kind}.yaml`);
     }
   }
 
-  private writeManifestToPath(manifest: any, filePath: string): void {
+  private writeManifestToPath(manifest: Manifest, filePath: string): void {
     // Ensure directory exists
     const dir = path.dirname(filePath);
     if (!fs.existsSync(dir)) {
@@ -58,7 +59,7 @@ export class BuilderManager {
     fs.writeFileSync(filePath, yaml.dump(manifest));
   }
 
-  private writeManifests(manifests: any[], outputDir: string): void {
+  private writeManifests(manifests: Manifest[], outputDir: string): void {
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
@@ -78,13 +79,10 @@ export class BuilderManager {
       new RelayerBuilder(this.config)
     ];
 
-    let allManifests: any[] = [];
+    let allManifests: Manifest[] = [];
 
     builders.forEach((builder) => {
-      if (builder.generate) {
-        const manifests = builder.generate();
-        allManifests = allManifests.concat(manifests);
-      }
+      allManifests = allManifests.concat(builder.generate());
     });
 
     this.writeManifests(allManifests, outputDir);

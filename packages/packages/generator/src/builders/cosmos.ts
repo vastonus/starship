@@ -1117,7 +1117,7 @@ class IcsConsumerProposalConfigMap implements IGenerator {
       !this.chain.ics.enabled ||
       !this.chain.ics.provider
     ) {
-      return null;
+      return [];
     }
 
     const providerChain = this.allChains.find(
@@ -1127,7 +1127,7 @@ class IcsConsumerProposalConfigMap implements IGenerator {
       console.warn(
         `Warning: ICS Provider chain '${this.chain.ics.provider}' not found. Skipping ICS proposal for '${this.chain.id}'.`
       );
-      return null;
+      return [];
     }
 
     const proposal = {
