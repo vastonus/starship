@@ -13,23 +13,9 @@ import {
   Monitoring,
   Ingress
 } from '@starship-ci/types';
+import { ConfigMap, Deployment, Service, StatefulSet } from 'kubernetesjs';
 
-export interface EnvVar {
-  name: string;
-  value: string | { valueFrom: any };
-}
-
-export interface KubernetesManifest {
-  apiVersion: string;
-  kind: string;
-  metadata: {
-    name: string;
-    labels?: Record<string, string>;
-    annotations?: Record<string, string>;
-  };
-  spec?: any;
-  data?: any;
-}
+export type Manifest = ConfigMap | Service | Deployment | StatefulSet;
 
 export interface GeneratorContext {
   config: StarshipConfig;
@@ -61,4 +47,8 @@ export interface DefaultsConfig {
   faucet?: FaucetConfig;
   monitoring?: Monitoring;
   ingress?: Ingress;
+}
+
+export interface IGenerator {
+  generate(): Array<Manifest>;
 }

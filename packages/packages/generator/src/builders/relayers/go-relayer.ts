@@ -1,31 +1,28 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
-import { ConfigMap, StatefulSet } from 'kubernetesjs';
+import { ConfigMap, Container, StatefulSet, Volume } from 'kubernetesjs';
 
-import { TemplateHelpers } from '../../helpers';
+import * as helpers from '../../helpers';
+import { IGenerator } from '../../types';
 import { getGeneratorVersion } from '../../version';
-import {
-  BaseRelayerBuilder,
-  IRelayerConfigMapGenerator,
-  IRelayerStatefulSetGenerator
-} from './base';
+import { BaseRelayerBuilder } from './base';
 
 /**
  * ConfigMap generator for Go Relayer
  */
-export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
+export class GoRelayerConfigMapGenerator implements IGenerator {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  configMap(): ConfigMap {
+  generate(): Array<ConfigMap> {
     const metadata = {
       name: `${this.relayer.type}-${this.relayer.name}`,
       labels: {
-        ...TemplateHelpers.commonLabels(this.config),
+        ...helpers.getCommonLabels(this.config),
         'app.kubernetes.io/component': 'relayer',
         'app.kubernetes.io/part-of': 'starship',
         'app.kubernetes.io/role': this.relayer.type,
@@ -46,12 +43,14 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
       data[`${chainId}.json`] = this.generateChainConfig(chainId, chain);
     });
 
-    return {
-      apiVersion: 'v1',
-      kind: 'ConfigMap',
-      metadata,
-      data
-    };
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata,
+        data
+      }
+    ];
   }
 
   private generatePathConfig(): string {
@@ -112,7 +111,7 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
   }
 
   private generateChainConfig(chainId: string, chain: any): string {
-    const chainName = TemplateHelpers.chainName(String(chain.id));
+    const chainName = helpers.getChainName(String(chain.id));
     const relayerConfig = this.relayer.config || {};
     const chainConfig =
       relayerConfig.chains?.find((c: any) => c.id === chainId) || {};
@@ -144,80 +143,80 @@ export class GoRelayerConfigMapGenerator implements IRelayerConfigMapGenerator {
 /**
  * StatefulSet generator for Go Relayer
  */
-export class GoRelayerStatefulSetGenerator
-  implements IRelayerStatefulSetGenerator
-{
+export class GoRelayerStatefulSetGenerator implements IGenerator {
   private config: StarshipConfig;
   private relayer: Relayer;
 
-  constructor(config: StarshipConfig, relayer: Relayer) {
+  constructor(relayer: Relayer, config: StarshipConfig) {
     this.config = config;
     this.relayer = relayer;
   }
 
-  statefulSet(): StatefulSet {
+  generate(): Array<StatefulSet> {
     const fullname = `${this.relayer.type}-${this.relayer.name}`;
 
-    return {
-      apiVersion: 'apps/v1',
-      kind: 'StatefulSet',
-      metadata: {
-        name: fullname,
-        labels: {
-          ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/component': 'relayer',
-          'app.kubernetes.io/part-of': 'starship',
-          'app.kubernetes.io/role': this.relayer.type,
-          'app.kubernetes.io/name': fullname
-        }
-      },
-      spec: {
-        serviceName: fullname,
-        replicas: this.relayer.replicas || 1,
-        podManagementPolicy: 'Parallel',
-        revisionHistoryLimit: 3,
-        selector: {
-          matchLabels: {
-            'app.kubernetes.io/instance': 'relayer',
-            'app.kubernetes.io/type': this.relayer.type,
+    return [
+      {
+        apiVersion: 'apps/v1',
+        kind: 'StatefulSet',
+        metadata: {
+          name: fullname,
+          labels: {
+            ...helpers.getCommonLabels(this.config),
+            'app.kubernetes.io/component': 'relayer',
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/role': this.relayer.type,
             'app.kubernetes.io/name': fullname
           }
         },
-        template: {
-          metadata: {
-            annotations: {
-              quality: 'release',
-              role: 'api-gateway',
-              sla: 'high',
-              tier: 'gateway'
-            },
-            labels: {
+        spec: {
+          serviceName: fullname,
+          replicas: this.relayer.replicas || 1,
+          podManagementPolicy: 'Parallel',
+          revisionHistoryLimit: 3,
+          selector: {
+            matchLabels: {
               'app.kubernetes.io/instance': 'relayer',
               'app.kubernetes.io/type': this.relayer.type,
-              'app.kubernetes.io/name': fullname,
-              'app.kubernetes.io/rawname': this.relayer.name,
-              'app.kubernetes.io/version': getGeneratorVersion()
+              'app.kubernetes.io/name': fullname
             }
           },
-          spec: {
-            initContainers: this.generateInitContainers(),
-            containers: this.generateContainers(),
-            volumes: this.generateVolumes()
+          template: {
+            metadata: {
+              annotations: {
+                quality: 'release',
+                role: 'api-gateway',
+                sla: 'high',
+                tier: 'gateway'
+              },
+              labels: {
+                'app.kubernetes.io/instance': 'relayer',
+                'app.kubernetes.io/type': this.relayer.type,
+                'app.kubernetes.io/name': fullname,
+                'app.kubernetes.io/rawname': this.relayer.name,
+                'app.kubernetes.io/version': getGeneratorVersion()
+              }
+            },
+            spec: {
+              initContainers: this.generateInitContainers(),
+              containers: this.generateContainers(),
+              volumes: this.generateVolumes()
+            }
           }
         }
       }
-    };
+    ];
   }
 
-  private generateInitContainers(): any[] {
-    const initContainers = [];
+  private generateInitContainers(): Container[] {
+    const initContainers: Container[] = [];
 
     // Add wait init containers for all chains
     this.relayer.chains.forEach((chainId) => {
       const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       initContainers.push({
         name: `init-${chainName}`,
         image: 'ghcr.io/cosmology-tech/starship/wait-for-service:v0.1.0',
@@ -241,7 +240,7 @@ export class GoRelayerStatefulSetGenerator
     return initContainers;
   }
 
-  private generateGoRelayerInitContainer(): any {
+  private generateGoRelayerInitContainer(): Container {
     const image =
       this.relayer.image || 'ghcr.io/cosmology-tech/starship/go-relayer:v2.4.1';
     const env = [
@@ -263,7 +262,7 @@ export class GoRelayerStatefulSetGenerator
       env,
       command: ['bash', '-c'],
       args: [command],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       volumeMounts: [
@@ -275,8 +274,8 @@ export class GoRelayerStatefulSetGenerator
     };
   }
 
-  private generateContainers(): any[] {
-    const containers = [];
+  private generateContainers(): Container[] {
+    const containers: Container[] = [];
 
     // Main go-relayer container
     containers.push({
@@ -290,7 +289,7 @@ export class GoRelayerStatefulSetGenerator
       args: [
         'RLY_INDEX=${HOSTNAME##*-}\necho "Relayer Index: $RLY_INDEX"\nrly start'
       ],
-      resources: TemplateHelpers.getResourceObject(
+      resources: helpers.getResourceObject(
         this.relayer.resources || { cpu: '0.2', memory: '200M' }
       ),
       securityContext: {
@@ -306,7 +305,7 @@ export class GoRelayerStatefulSetGenerator
     return containers;
   }
 
-  private generateVolumes(): any[] {
+  private generateVolumes(): Volume[] {
     return [
       { name: 'relayer', emptyDir: {} },
       {
@@ -336,7 +335,7 @@ MNEMONIC=$(jq -r ".relayers[$RLY_INDEX].mnemonic" $KEYS_CONFIG)
       const chain = this.config.chains.find((c) => String(c.id) === chainId);
       if (!chain) return;
 
-      const chainName = TemplateHelpers.chainName(String(chain.id));
+      const chainName = helpers.getChainName(String(chain.id));
       command += `
 echo "Setting up chain ${chainId}..."
 cp /configs/${chainId}.json $RELAYER_DIR/config/
@@ -389,22 +388,11 @@ rly tx channel ${pathName} --src-port ${channel['a-port']} --dst-port ${channel[
  * Main Go Relayer builder
  */
 export class GoRelayerBuilder extends BaseRelayerBuilder {
-  private configMapGenerator: GoRelayerConfigMapGenerator;
-  private statefulSetGenerator: GoRelayerStatefulSetGenerator;
-
-  constructor(config: StarshipConfig, relayer: Relayer) {
-    super(config, relayer);
-    this.configMapGenerator = new GoRelayerConfigMapGenerator(config, relayer);
-    this.statefulSetGenerator = new GoRelayerStatefulSetGenerator(
-      config,
-      relayer
-    );
-  }
-
-  buildManifests(): (ConfigMap | StatefulSet)[] {
-    return [
-      this.configMapGenerator.configMap(),
-      this.statefulSetGenerator.statefulSet()
+  constructor(relayer: Relayer, config: StarshipConfig) {
+    super(relayer, config);
+    this.generators = [
+      new GoRelayerConfigMapGenerator(relayer, config),
+      new GoRelayerStatefulSetGenerator(relayer, config)
     ];
   }
 }

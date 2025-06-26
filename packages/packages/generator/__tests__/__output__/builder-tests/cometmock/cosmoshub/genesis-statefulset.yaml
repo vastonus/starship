@@ -3,7 +3,7 @@ kind: StatefulSet
 metadata:
   name: cosmoshub-4-genesis
   labels:
-    app.kubernetes.io/instance: starship-generator-test
+    starship.io/name: starship-generator-test
     app.kubernetes.io/version: 4.0.0-alpha.0
     app.kubernetes.io/managed-by: starship
     app.kubernetes.io/component: chain
@@ -182,10 +182,9 @@ spec:
             - name: GENESIS_PORT
               value: '8081'
             - name: NAMESPACE
-              value:
-                valueFrom:
-                  fieldRef:
-                    fieldPath: metadata.namespace
+              valueFrom:
+                fieldRef:
+                  fieldPath: metadata.namespace
             - name: EXPOSER_HTTP_PORT
               value: '8081'
             - name: EXPOSER_GRPC_PORT

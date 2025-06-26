@@ -1,24 +1,26 @@
 import { StarshipConfig } from '@starship-ci/types';
+import { ConfigMap, Deployment, Service } from 'kubernetesjs';
 
-import { TemplateHelpers } from '../helpers';
+import * as helpers from '../helpers';
+import { IGenerator, Manifest } from '../types';
 import { getGeneratorVersion } from '../version';
 
 /**
  * ConfigMap generator for Explorer service
  * Handles chain configurations for the explorer
  */
-export class ExplorerConfigMapGenerator {
+export class ExplorerConfigMapGenerator implements IGenerator {
   private config: StarshipConfig;
 
   constructor(config: StarshipConfig) {
     this.config = config;
   }
 
-  configMap(): any {
+  generate(): Array<ConfigMap> {
     const chainConfigs: Record<string, string> = {};
 
     this.config.chains.forEach((chain) => {
-      const hostname = TemplateHelpers.chainName(String(chain.id));
+      const hostname = helpers.getChainName(String(chain.id));
       const host = this.config.explorer?.localhost
         ? 'localhost'
         : `${hostname}-genesis.$(NAMESPACE).svc.cluster.local`;
@@ -53,142 +55,150 @@ export class ExplorerConfigMapGenerator {
       });
     });
 
-    return {
-      apiVersion: 'v1',
-      kind: 'ConfigMap',
-      metadata: {
-        name: 'explorer',
-        labels: {
-          ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/component': 'explorer',
-          'app.kubernetes.io/part-of': 'starship'
-        }
-      },
-      data: chainConfigs
-    };
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata: {
+          name: 'explorer',
+          labels: {
+            ...helpers.getCommonLabels(this.config),
+            'app.kubernetes.io/component': 'explorer',
+            'app.kubernetes.io/part-of': 'starship'
+          }
+        },
+        data: chainConfigs
+      }
+    ];
   }
 }
 
 /**
  * Service generator for Explorer service
  */
-export class ExplorerServiceGenerator {
+export class ExplorerServiceGenerator implements IGenerator {
   private config: StarshipConfig;
 
   constructor(config: StarshipConfig) {
     this.config = config;
   }
 
-  service(): any {
-    return {
-      apiVersion: 'v1',
-      kind: 'Service',
-      metadata: {
-        name: 'explorer',
-        labels: {
-          ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/component': 'explorer',
-          'app.kubernetes.io/part-of': 'starship'
-        }
-      },
-      spec: {
-        clusterIP: 'None',
-        ports: [
-          {
-            name: 'http',
-            port: 8080,
-            protocol: 'TCP',
-            targetPort: '8080'
+  generate(): Array<Service> {
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'Service',
+        metadata: {
+          name: 'explorer',
+          labels: {
+            ...helpers.getCommonLabels(this.config),
+            'app.kubernetes.io/component': 'explorer',
+            'app.kubernetes.io/part-of': 'starship'
           }
-        ],
-        selector: {
-          'app.kubernetes.io/name': 'explorer'
+        },
+        spec: {
+          clusterIP: 'None',
+          ports: [
+            {
+              name: 'http',
+              port: 8080,
+              protocol: 'TCP',
+              targetPort: '8080'
+            }
+          ],
+          selector: {
+            'app.kubernetes.io/name': 'explorer'
+          }
         }
       }
-    };
+    ];
   }
 }
 
 /**
  * Deployment generator for Explorer service
  */
-export class ExplorerDeploymentGenerator {
+export class ExplorerDeploymentGenerator implements IGenerator {
   private config: StarshipConfig;
 
   constructor(config: StarshipConfig) {
     this.config = config;
   }
 
-  deployment(): any {
-    return {
-      apiVersion: 'apps/v1',
-      kind: 'Deployment',
-      metadata: {
-        name: 'explorer',
-        labels: {
-          ...TemplateHelpers.commonLabels(this.config),
-          'app.kubernetes.io/component': 'explorer',
-          'app.kubernetes.io/part-of': 'starship'
-        }
-      },
-      spec: {
-        replicas: 1,
-        revisionHistoryLimit: 3,
-        selector: {
-          matchLabels: {
-            'app.kubernetes.io/instance': 'explorer',
-            'app.kubernetes.io/name': 'explorer'
+  generate(): Array<Deployment> {
+    return [
+      {
+        apiVersion: 'apps/v1',
+        kind: 'Deployment',
+        metadata: {
+          name: 'explorer',
+          labels: {
+            ...helpers.getCommonLabels(this.config),
+            'app.kubernetes.io/component': 'explorer',
+            'app.kubernetes.io/part-of': 'starship'
           }
         },
-        template: {
-          metadata: {
-            annotations: {
-              quality: 'release',
-              role: 'api-gateway',
-              sla: 'high',
-              tier: 'gateway'
-            },
-            labels: {
+        spec: {
+          replicas: 1,
+          revisionHistoryLimit: 3,
+          selector: {
+            matchLabels: {
               'app.kubernetes.io/instance': 'explorer',
-              'app.kubernetes.io/type':
-                this.config.explorer?.type || 'ping-pub',
-              'app.kubernetes.io/name': 'explorer',
-              'app.kubernetes.io/rawname': 'explorer',
-              'app.kubernetes.io/version': getGeneratorVersion()
+              'app.kubernetes.io/name': 'explorer'
             }
           },
-          spec: {
-            containers: [
-              {
-                name: 'explorer',
-                image:
-                  this.config.explorer?.image ||
-                  'ghcr.io/cosmology-tech/starship/ping-pub:latest',
-                imagePullPolicy:
-                  this.config.images?.imagePullPolicy || 'IfNotPresent',
-                env: [{ name: 'CHAINS_CONFIG_PATH', value: '/explorer' }],
-                ports: [{ name: 'http', containerPort: 8080, protocol: 'TCP' }],
-                volumeMounts: [
-                  { name: 'explorer-config', mountPath: '/explorer' }
-                ],
-                resources: TemplateHelpers.getResourceObject(
-                  this.config.explorer?.resources || {
-                    cpu: '0.2',
-                    memory: '200M'
-                  }
-                )
+          template: {
+            metadata: {
+              annotations: {
+                quality: 'release',
+                role: 'api-gateway',
+                sla: 'high',
+                tier: 'gateway'
+              },
+              labels: {
+                'app.kubernetes.io/instance': 'explorer',
+                'app.kubernetes.io/type':
+                  this.config.explorer?.type || 'ping-pub',
+                'app.kubernetes.io/name': 'explorer',
+                'app.kubernetes.io/rawname': 'explorer',
+                'app.kubernetes.io/version': getGeneratorVersion()
               }
-            ],
-            volumes: [
-              {
-                name: 'explorer-config',
-                configMap: { name: 'explorer' }
-              }
-            ]
+            },
+            spec: {
+              containers: [
+                {
+                  name: 'explorer',
+                  image:
+                    this.config.explorer?.image ||
+                    'ghcr.io/cosmology-tech/starship/ping-pub:latest',
+                  imagePullPolicy:
+                    this.config.images?.imagePullPolicy || 'IfNotPresent',
+                  env: [{ name: 'CHAINS_CONFIG_PATH', value: '/explorer' }],
+                  ports: [
+                    { name: 'http', containerPort: 8080, protocol: 'TCP' }
+                  ],
+                  volumeMounts: [
+                    { name: 'explorer-config', mountPath: '/explorer' }
+                  ],
+                  resources: helpers.getResourceObject(
+                    this.config.explorer?.resources || {
+                      cpu: '0.2',
+                      memory: '512Mi'
+                    }
+                  )
+                }
+              ],
+              volumes: [
+                {
+                  name: 'explorer-config',
+                  configMap: { name: 'explorer' }
+                }
+              ]
+            }
           }
         }
       }
-    };
+    ];
   }
 }
 
@@ -196,27 +206,24 @@ export class ExplorerDeploymentGenerator {
  * Main Explorer builder
  * Orchestrates ConfigMap, Service, and Deployment generation and file output
  */
-export class ExplorerBuilder {
+export class ExplorerBuilder implements IGenerator {
   private config: StarshipConfig;
-  private configMapGenerator: ExplorerConfigMapGenerator;
-  private serviceGenerator: ExplorerServiceGenerator;
-  private deploymentGenerator: ExplorerDeploymentGenerator;
+  private generators: Array<IGenerator>;
 
   constructor(config: StarshipConfig) {
     this.config = config;
-    this.configMapGenerator = new ExplorerConfigMapGenerator(config);
-    this.serviceGenerator = new ExplorerServiceGenerator(config);
-    this.deploymentGenerator = new ExplorerDeploymentGenerator(config);
+    this.generators = [];
+
+    if (this.config.explorer?.enabled === true) {
+      this.generators = [
+        new ExplorerConfigMapGenerator(config),
+        new ExplorerServiceGenerator(config),
+        new ExplorerDeploymentGenerator(config)
+      ];
+    }
   }
 
-  /**
-   * Build all Kubernetes manifests for the Explorer service
-   */
-  buildManifests(): any[] {
-    return [
-      this.configMapGenerator.configMap(),
-      this.serviceGenerator.service(),
-      this.deploymentGenerator.deployment()
-    ];
+  generate(): Array<Manifest> {
+    return this.generators.flatMap((generator) => generator.generate());
   }
 }

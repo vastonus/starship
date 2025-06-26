@@ -172,12 +172,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-hermes-relay",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-hermes-relay",
     },
@@ -188,12 +188,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-hermes-relay",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-hermes-relay",
     },
@@ -224,12 +224,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-hermes-relay",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-hermes-relay",
     },
@@ -646,12 +646,12 @@ bash -e /scripts/transfer-tokens.sh \\
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "go-relayer-go-relay",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "go-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "go-relayer-go-relay",
     },
@@ -662,12 +662,12 @@ bash -e /scripts/transfer-tokens.sh \\
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "go-relayer-go-relay",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "go-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "go-relayer-go-relay",
     },
@@ -1082,12 +1082,12 @@ chains:
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "ts-relayer-ts-relay",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "ts-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "ts-relayer-ts-relay",
     },
@@ -1098,12 +1098,12 @@ chains:
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "ts-relayer-ts-relay",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "ts-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "ts-relayer-ts-relay",
     },
@@ -1400,12 +1400,12 @@ bash -e /scripts/transfer-tokens.sh \\
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "neutron-query-relayer-neutron-query-relay",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "neutron-query-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "neutron-query-relayer-neutron-query-relay",
     },
@@ -1416,12 +1416,12 @@ bash -e /scripts/transfer-tokens.sh \\
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "neutron-query-relayer-neutron-query-relay",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "neutron-query-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "neutron-query-relayer-neutron-query-relay",
     },
@@ -1446,12 +1446,12 @@ bash -e /scripts/transfer-tokens.sh \\
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "neutron-query-relayer-neutron-query-relay",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "neutron-query-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "neutron-query-relayer-neutron-query-relay",
     },
@@ -1911,12 +1911,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-osmos-cosmos",
     },
@@ -1927,12 +1927,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-osmos-cosmos",
     },
@@ -1963,12 +1963,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-osmos-cosmos",
     },
@@ -2385,12 +2385,12 @@ bash -e /scripts/transfer-tokens.sh \\
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "go-relayer-go-rly",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "go-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "go-relayer-go-rly",
     },
@@ -2401,12 +2401,12 @@ bash -e /scripts/transfer-tokens.sh \\
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "go-relayer-go-rly",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "go-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "go-relayer-go-rly",
     },
@@ -2842,12 +2842,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-custom-hermes",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-custom-hermes",
     },
@@ -2858,12 +2858,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-custom-hermes",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-custom-hermes",
     },
@@ -2894,12 +2894,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-custom-hermes",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-custom-hermes",
     },
@@ -3321,12 +3321,12 @@ exports[`RelayerBuilder Basic Relayer Generation should generate manifests for a
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "go-relayer-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "go-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "go-relayer-osmos-cosmos",
     },
@@ -3337,12 +3337,12 @@ exports[`RelayerBuilder Basic Relayer Generation should generate manifests for a
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "go-relayer-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "go-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "go-relayer-osmos-cosmos",
     },
@@ -3778,12 +3778,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-osmos-cosmos",
     },
@@ -3794,12 +3794,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-osmos-cosmos",
     },
@@ -3830,12 +3830,12 @@ gas_price = { price = 1.25, denom = "undefined" }
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "hermes-osmos-cosmos",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "hermes",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "hermes-osmos-cosmos",
     },
@@ -4232,12 +4232,12 @@ exports[`RelayerBuilder Basic Relayer Generation should generate manifests for a
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "neutron-query-relayer-neutron-query",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "neutron-query-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "neutron-query-relayer-neutron-query",
     },
@@ -4248,12 +4248,12 @@ exports[`RelayerBuilder Basic Relayer Generation should generate manifests for a
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "neutron-query-relayer-neutron-query",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "neutron-query-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "neutron-query-relayer-neutron-query",
     },
@@ -4278,12 +4278,12 @@ exports[`RelayerBuilder Basic Relayer Generation should generate manifests for a
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "neutron-query-relayer-neutron-query",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "neutron-query-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "neutron-query-relayer-neutron-query",
     },
@@ -4722,12 +4722,12 @@ chains:
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "ts-relayer-ts-rly",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "ts-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "ts-relayer-ts-rly",
     },
@@ -4738,12 +4738,12 @@ chains:
     "metadata": {
       "labels": {
         "app.kubernetes.io/component": "relayer",
-        "app.kubernetes.io/instance": "starship-generator-test",
         "app.kubernetes.io/managed-by": "starship",
         "app.kubernetes.io/name": "ts-relayer-ts-rly",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/role": "ts-relayer",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/name": "starship-generator-test",
       },
       "name": "ts-relayer-ts-rly",
     },
@@ -5130,30 +5130,30 @@ exports[`RelayerBuilder Resource Validation should generate correct labels and m
 {
   "configMapLabels": {
     "app.kubernetes.io/component": "relayer",
-    "app.kubernetes.io/instance": "starship-generator-test",
     "app.kubernetes.io/managed-by": "starship",
     "app.kubernetes.io/name": "hermes-osmos-cosmos",
     "app.kubernetes.io/part-of": "starship",
     "app.kubernetes.io/role": "hermes",
     "app.kubernetes.io/version": "4.0.0-alpha.0",
+    "starship.io/name": "starship-generator-test",
   },
   "serviceLabels": {
     "app.kubernetes.io/component": "relayer",
-    "app.kubernetes.io/instance": "starship-generator-test",
     "app.kubernetes.io/managed-by": "starship",
     "app.kubernetes.io/name": "hermes-osmos-cosmos",
     "app.kubernetes.io/part-of": "starship",
     "app.kubernetes.io/role": "hermes",
     "app.kubernetes.io/version": "4.0.0-alpha.0",
+    "starship.io/name": "starship-generator-test",
   },
   "statefulSetLabels": {
     "app.kubernetes.io/component": "relayer",
-    "app.kubernetes.io/instance": "starship-generator-test",
     "app.kubernetes.io/managed-by": "starship",
     "app.kubernetes.io/name": "hermes-osmos-cosmos",
     "app.kubernetes.io/part-of": "starship",
     "app.kubernetes.io/role": "hermes",
     "app.kubernetes.io/version": "4.0.0-alpha.0",
+    "starship.io/name": "starship-generator-test",
   },
   "statefulSetSelector": {
     "app.kubernetes.io/instance": "relayer",
