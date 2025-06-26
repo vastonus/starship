@@ -31,7 +31,8 @@ spec:
     spec:
       containers:
         - name: explorer
-          image: ghcr.io/cosmology-tech/starship/ping-pub:latest
+          image: >-
+            ghcr.io/cosmology-tech/starship/ping-pub:6b7b0d096946b6bcd75d15350c7345da0d4576db
           imagePullPolicy: IfNotPresent
           env:
             - name: CHAINS_CONFIG_PATH
@@ -45,11 +46,11 @@ spec:
               mountPath: /explorer
           resources:
             limits:
-              cpu: '0.2'
-              memory: 512Mi
+              cpu: '1'
+              memory: 2Gi
             requests:
-              cpu: '0.2'
-              memory: 512Mi
+              cpu: '1'
+              memory: 2Gi
       volumes:
         - name: explorer-config
           configMap:

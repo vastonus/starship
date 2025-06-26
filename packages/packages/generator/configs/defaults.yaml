@@ -1011,3 +1011,91 @@ defaultFaucet:
 
 defaultCometmock:
   image: ghcr.io/informalsystems/cometmock:v0.37.x
+
+images:
+  imagePullPolicy: IfNotPresent
+
+resources:
+  node:
+    # Default values for resources for chain and validator nodes
+    # Preference would be given to the resources directive in chain/relayer
+    cpu: "0.5"
+    memory: "500M"
+  wait:
+    cpu: "0.1"
+    memory: "100M"
+
+exposer:
+  image: ghcr.io/hyperweb-io/starship/exposer:20250205-544757d
+  ports:
+    rest: 8081
+  resources:
+    cpu: "0.2"
+    memory: "200M"
+
+# Chain timeouts
+timeouts:
+  time_iota_ms: 10
+  timeout_propose: 400ms
+  timeout_propose_delta: 400ms
+  timeout_prevote: 400ms
+  timeout_prevote_delta: 400ms
+  timeout_precommit: 400ms
+  timeout_precommit_delta: 400ms
+  timeout_commit: 800ms
+
+
+explorer:
+  # Flag to enable explorer for cluster
+  enabled: false
+  type: ping-pub
+  image: ghcr.io/cosmology-tech/starship/ping-pub:6b7b0d096946b6bcd75d15350c7345da0d4576db
+  localhost: true
+  ports:
+    rest: 8080
+  # Currently the ping-pub explorer is using alot of memory dues to building the site
+  # at runtime (with custom configs). Anything bellow 2Gi will crash the pods on startup
+  # todo: make this more efficient with faster startuptime
+  resources:
+    cpu: "1"
+    memory: "2Gi"
+
+registry:
+  enabled: false
+  image: ghcr.io/hyperweb-io/starship/registry:20250205-544757d
+  localhost: true
+  ports:
+    rest: 6060
+    grpc: 7070
+  resources:
+    cpu: "0.2"
+    memory: "200M"
+
+faucet:
+  enabled: true
+  type: starship
+  ports:
+    rest: 8000
+  resources:
+    cpu: "0.2"
+    memory: "200M"
+
+# monitoring directive is used to setup prometheus and grafana dashboard,
+# connected to all chains, relayers and k8s apis itself
+monitoring:
+  enabled: false
+  ports:
+    prometheus: 8011
+    grafana: 9011
+  resources:
+    cpu: "0.2"
+    memory: "400M"
+
+ingress:
+  enabled: false
+  type: nginx
+  # host must be a wildcard entry, so that we can use the wildcard to create
+  # service specific ingress rules
+  host: "*.thestarship.io"
+  certManager:
+    issuer: "cert-issuer"

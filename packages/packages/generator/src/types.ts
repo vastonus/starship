@@ -1,9 +1,17 @@
 import {
   Chain,
+  Explorer,
+  Exposer,
   FaucetConfig,
+  Images,
+  Ingress,
+  Monitoring,
+  Registry,
   Relayer,
+  Resources,
   Script,
-  StarshipConfig
+  StarshipConfig,
+  TimeoutConfig
 } from '@starship-ci/types';
 import { ConfigMap, Deployment, Service, StatefulSet } from 'kubernetesjs';
 
@@ -27,6 +35,18 @@ export interface DefaultsConfig {
   defaultRelayers: Record<string, Relayer>;
   defaultScripts: Record<string, Script>;
   defaultCometmock: CometmockDefault;
+  images?: Images;
+  resources?: {
+    node: Resources;
+    wait: Resources;
+  };
+  exposer?: Exposer;
+  timeouts?: TimeoutConfig;
+  explorer?: Explorer;
+  registry?: Registry;
+  faucet?: FaucetConfig;
+  monitoring?: Monitoring;
+  ingress?: Ingress;
 }
 
 export interface IGenerator {

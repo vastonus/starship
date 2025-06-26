@@ -1,5 +1,6 @@
 import {
   Chain,
+  Exposer,
   FaucetConfig,
   Relayer,
   Script,
@@ -125,6 +126,96 @@ export class DefaultsManager {
   }
 
   /**
+   * Process explorer configuration by merging with defaults
+   */
+  processExplorer(explorerConfig?: any): any {
+    if (!explorerConfig) return undefined;
+
+    const defaultExplorer = this.defaultsData.explorer || {};
+    return deepMerge(defaultExplorer, explorerConfig);
+  }
+
+  /**
+   * Process registry configuration by merging with defaults
+   */
+  processRegistry(registryConfig?: any): any {
+    if (!registryConfig) return undefined;
+
+    const defaultRegistry = this.defaultsData.registry || {};
+    return deepMerge(defaultRegistry, registryConfig);
+  }
+
+  /**
+   * Process faucet configuration by merging with defaults
+   */
+  processFaucet(faucetConfig?: any): any {
+    if (!faucetConfig) return undefined;
+
+    const defaultFaucet = this.defaultsData.faucet || {};
+    return deepMerge(defaultFaucet, faucetConfig);
+  }
+
+  /**
+   * Process monitoring configuration by merging with defaults
+   */
+  processMonitoring(monitoringConfig?: any): any {
+    if (!monitoringConfig) return undefined;
+
+    const defaultMonitoring = this.defaultsData.monitoring || {};
+    return deepMerge(defaultMonitoring, monitoringConfig);
+  }
+
+  /**
+   * Process ingress configuration by merging with defaults
+   */
+  processIngress(ingressConfig?: any): any {
+    if (!ingressConfig) return undefined;
+
+    const defaultIngress = this.defaultsData.ingress || {};
+    return deepMerge(defaultIngress, ingressConfig);
+  }
+
+  /**
+   * Process exposer configuration by merging with defaults
+   */
+  processExposer(exposerConfig?: Exposer): Exposer {
+    if (!exposerConfig) return undefined;
+
+    const defaultExposer = this.defaultsData.exposer || {};
+    return deepMerge(defaultExposer, exposerConfig);
+  }
+
+  /**
+   * Process images configuration by merging with defaults
+   */
+  processImages(imagesConfig?: any): any {
+    if (!imagesConfig) return undefined;
+
+    const defaultImages = this.defaultsData.images || {};
+    return deepMerge(defaultImages, imagesConfig);
+  }
+
+  /**
+   * Process resources configuration by merging with defaults
+   */
+  processResources(resourcesConfig?: any): any {
+    if (!resourcesConfig) return undefined;
+
+    const defaultResources = this.defaultsData.resources || {};
+    return deepMerge(defaultResources, resourcesConfig);
+  }
+
+  /**
+   * Process timeouts configuration by merging with defaults
+   */
+  processTimeouts(timeoutsConfig?: any): any {
+    if (!timeoutsConfig) return undefined;
+
+    const defaultTimeouts = this.defaultsData.timeouts || {};
+    return deepMerge(defaultTimeouts, timeoutsConfig);
+  }
+
+  /**
    * Process a relayer configuration by merging with defaults
    * This handles partial overrides properly using deep merge
    */
@@ -222,25 +313,57 @@ export class DefaultsManager {
 
 /**
  * Apply defaults to a StarshipConfig
- * This is a standalone function that processes all chains and returns a fully configured StarshipConfig
+ * This is a standalone function that processes all chains, relayers, and global configs
  */
 export function applyDefaults(config: StarshipConfig): StarshipConfig {
   const defaultsManager = new DefaultsManager();
-  const processedChains = config.chains?.map((chain: Chain) =>
+
+  // Process chains with defaults
+  const processedChains: Chain[] = config.chains?.map((chain: Chain) =>
     defaultsManager.processChain(chain)
   );
 
-  const processedConfig: StarshipConfig = {
-    ...config,
-    chains: processedChains
-  };
-
+  // Process relayers with defaults
+  let processedRelayers: Relayer[] | undefined;
   if (config.relayers && config.relayers?.length > 0) {
-    const processedRelayers = config.relayers.map((relayer: Relayer) =>
+    processedRelayers = config.relayers.map((relayer: Relayer) =>
       defaultsManager.processRelayer(relayer)
     );
-    processedConfig.relayers = processedRelayers;
   }
+
+  // Process global configurations individually to maintain type safety
+  const processedConfig = {
+    ...config,
+    chains: processedChains,
+    relayers: processedRelayers,
+    ...(config.explorer && {
+      explorer: defaultsManager.processExplorer(config.explorer)
+    }),
+    ...(config.registry && {
+      registry: defaultsManager.processRegistry(config.registry)
+    }),
+    ...(config.faucet && {
+      faucet: defaultsManager.processFaucet(config.faucet)
+    }),
+    ...(config.monitoring && {
+      monitoring: defaultsManager.processMonitoring(config.monitoring)
+    }),
+    ...(config.ingress && {
+      ingress: defaultsManager.processIngress(config.ingress)
+    }),
+    ...(config.exposer && {
+      exposer: defaultsManager.processExposer(config.exposer)
+    }),
+    ...(config.images && {
+      images: defaultsManager.processImages(config.images)
+    }),
+    ...(config.resources && {
+      resources: defaultsManager.processResources(config.resources)
+    }),
+    ...(config.timeouts && {
+      timeouts: defaultsManager.processTimeouts(config.timeouts)
+    })
+  };
 
   return processedConfig;
 }
