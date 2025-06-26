@@ -242,18 +242,18 @@ export class RegistryBuilder implements IGenerator {
 
   constructor(config: StarshipConfig) {
     this.config = config;
-    this.generators = [
-      new RegistryConfigMapGenerator(config),
-      new RegistryServiceGenerator(config),
-      new RegistryDeploymentGenerator(config)
-    ];
+    this.generators = [];
+
+    if (this.config.registry?.enabled === true) {
+      this.generators = [
+        new RegistryConfigMapGenerator(config),
+        new RegistryServiceGenerator(config),
+        new RegistryDeploymentGenerator(config)
+      ];
+    }
   }
 
   generate(): Array<Manifest> {
-    if (!this.config.registry || this.config.registry?.enabled === false) {
-      return [];
-    }
-
     return this.generators.flatMap((generator) => generator.generate());
   }
 }

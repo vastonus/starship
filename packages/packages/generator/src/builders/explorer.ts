@@ -212,11 +212,15 @@ export class ExplorerBuilder implements IGenerator {
 
   constructor(config: StarshipConfig) {
     this.config = config;
-    this.generators = [
-      new ExplorerConfigMapGenerator(config),
-      new ExplorerServiceGenerator(config),
-      new ExplorerDeploymentGenerator(config)
-    ];
+    this.generators = [];
+
+    if (this.config.explorer?.enabled === true) {
+      this.generators = [
+        new ExplorerConfigMapGenerator(config),
+        new ExplorerServiceGenerator(config),
+        new ExplorerDeploymentGenerator(config)
+      ];
+    }
   }
 
   generate(): Array<Manifest> {
