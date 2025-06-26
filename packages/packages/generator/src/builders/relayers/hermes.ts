@@ -140,8 +140,8 @@ clock_drift = "${chainConfig.clock_drift || '5s'}"
 max_block_time = "${chainConfig.max_block_time || '30s'}"
 trusting_period = "${chainConfig.trusting_period || '75s'}"
 trust_threshold = { numerator = "${
-  (chainConfig.trust_threshold || {}).numerator || '2'
-}", denominator = "${(chainConfig.trust_threshold || {}).denominator || '3'}" }
+        (chainConfig.trust_threshold || {}).numerator || '2'
+      }", denominator = "${(chainConfig.trust_threshold || {}).denominator || '3'}" }
 ${addressType}
 ${gasPrice}
 `;
@@ -478,7 +478,9 @@ hermes create channel \\
   ${channel['new-connection'] ? '--new-client-connection --yes \\' : ''}
   ${channel['b-chain'] ? `--b-chain ${channel['b-chain']} \\` : ''}
   ${
-    channel['a-connection'] ? `--a-connection ${channel['a-connection']} \\` : ''
+    channel['a-connection']
+      ? `--a-connection ${channel['a-connection']} \\`
+      : ''
   }
   ${
     channel['channel-version']

@@ -23,7 +23,9 @@ export function getReleaseName(config: StarshipConfig): string {
 /**
  * Common labels for all resources
  */
-export function getCommonLabels(config: StarshipConfig): Record<string, string> {
+export function getCommonLabels(
+  config: StarshipConfig
+): Record<string, string> {
   return {
     ...getSelectorLabels(config),
     'app.kubernetes.io/version': getGeneratorVersion(),
@@ -34,7 +36,9 @@ export function getCommonLabels(config: StarshipConfig): Record<string, string> 
 /**
  * Selector labels for resources
  */
-export function getSelectorLabels(config: StarshipConfig): Record<string, string> {
+export function getSelectorLabels(
+  config: StarshipConfig
+): Record<string, string> {
   return {
     'starship.io/name': config.name
   };
@@ -191,7 +195,10 @@ export function getChainInternalRpcAddrs(chains: Chain[]): string {
 /**
  * Returns comma-separated list of RPC addresses
  */
-export function getChainRpcAddrs(chains: Chain[], config: StarshipConfig): string {
+export function getChainRpcAddrs(
+  chains: Chain[],
+  config: StarshipConfig
+): string {
   const localhost = config.registry?.localhost;
   const ingress = config.ingress;
 
@@ -212,7 +219,10 @@ export function getChainRpcAddrs(chains: Chain[], config: StarshipConfig): strin
 /**
  * Returns comma-separated list of GRPC addresses
  */
-export function getChainGrpcAddrs(chains: Chain[], config: StarshipConfig): string {
+export function getChainGrpcAddrs(
+  chains: Chain[],
+  config: StarshipConfig
+): string {
   const localhost = config.registry?.localhost;
   const ingress = config.ingress;
 
@@ -233,7 +243,10 @@ export function getChainGrpcAddrs(chains: Chain[], config: StarshipConfig): stri
 /**
  * Returns comma-separated list of REST addresses
  */
-export function getChainRestAddrs(chains: Chain[], config: StarshipConfig): string {
+export function getChainRestAddrs(
+  chains: Chain[],
+  config: StarshipConfig
+): string {
   const localhost = config.registry?.localhost;
   const ingress = config.ingress;
 
@@ -254,7 +267,10 @@ export function getChainRestAddrs(chains: Chain[], config: StarshipConfig): stri
 /**
  * Returns comma-separated list of exposer addresses
  */
-export function getChainExposerAddrs(chains: Chain[], port: number = 8081): string {
+export function getChainExposerAddrs(
+  chains: Chain[],
+  port: number = 8081
+): string {
   return chains
     .map(
       (chain) =>
@@ -297,11 +313,7 @@ export function generateWaitInitContainer(
         }
       }
     ],
-    command: [
-      '/bin/sh',
-      '-c',
-      `${waitScript}\necho "Ready to start"\nexit 0`
-    ],
+    command: ['/bin/sh', '-c', `${waitScript}\necho "Ready to start"\nexit 0`],
     resources: getResourceObject({ cpu: '0.1', memory: '128M' })
   };
 }

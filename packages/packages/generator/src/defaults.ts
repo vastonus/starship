@@ -9,7 +9,6 @@ import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
 
-import * as helpers from './helpers';
 import { DefaultsConfig } from './types';
 
 /**

@@ -4,7 +4,6 @@ import { ConfigMap, Deployment, Service } from 'kubernetesjs';
 import * as helpers from '../helpers';
 import { IGenerator, Manifest } from '../types';
 import { getGeneratorVersion } from '../version';
-import { DefaultsManager, deepMerge } from '../defaults';
 
 /**
  * ConfigMap generator for Explorer service

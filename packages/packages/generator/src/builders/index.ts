@@ -4,12 +4,12 @@ import * as yaml from 'js-yaml';
 import * as path from 'path';
 
 import { applyDefaults } from '../defaults';
+import { Manifest } from '../types';
 import { CosmosBuilder } from './cosmos';
 import { ExplorerBuilder } from './explorer';
 import { FrontendBuilder } from './frontend';
 import { RegistryBuilder } from './registry';
 import { RelayerBuilder } from './relayers';
-import { Manifest } from '../types';
 
 export class BuilderManager {
   private config: StarshipConfig;
@@ -32,7 +32,11 @@ export class BuilderManager {
       const chainName =
         labels['starship.io/chain-name'] || labels['app.kubernetes.io/name'];
       const roleType = role || 'default'; // genesis, validator, setup-scripts, genesis-patch, ics-proposal
-      return path.join(baseDir, chainName as string, `${roleType}-${kind}.yaml`);
+      return path.join(
+        baseDir,
+        chainName as string,
+        `${roleType}-${kind}.yaml`
+      );
     } else if (partOf === 'global') {
       // Global configmaps: outputs/configmaps/<clean-name>.yaml (remove redundant suffixes)
       const cleanName = name.replace(/-?configmap$/, ''); // Remove -configmap or configmap suffix

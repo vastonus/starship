@@ -198,9 +198,7 @@ export class RegistryDeploymentGenerator implements IGenerator {
                     },
                     {
                       name: 'REGISTRY_CHAIN_CLIENT_EXPOSERS',
-                      value: helpers.getChainExposerAddrs(
-                        this.config.chains
-                      )
+                      value: helpers.getChainExposerAddrs(this.config.chains)
                     }
                   ],
                   volumeMounts,

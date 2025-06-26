@@ -221,9 +221,7 @@ export class CosmosStatefulSetGenerator implements IGenerator {
           },
           spec: {
             ...(this.chain.imagePullSecrets
-              ? helpers.generateImagePullSecrets(
-                  this.chain.imagePullSecrets
-                )
+              ? helpers.generateImagePullSecrets(this.chain.imagePullSecrets)
               : {}),
             initContainers: this.genesisInitContainers(),
             containers: this.genesisContainers(),
@@ -278,9 +276,7 @@ export class CosmosStatefulSetGenerator implements IGenerator {
           },
           spec: {
             ...(this.chain.imagePullSecrets
-              ? helpers.generateImagePullSecrets(
-                  this.chain.imagePullSecrets
-                )
+              ? helpers.generateImagePullSecrets(this.chain.imagePullSecrets)
               : {}),
             initContainers: this.validatorInitContainers(),
             containers: this.validatorContainers(),
@@ -1004,19 +1000,21 @@ class GlobalScriptsConfigMap implements IGenerator {
       return [];
     }
 
-    return [{
-      apiVersion: 'v1',
-      kind: 'ConfigMap',
-      metadata: {
-        name: 'setup-scripts',
-        labels: {
-          ...helpers.getCommonLabels(this.config),
-          'app.kubernetes.io/component': 'configmap',
-          'app.kubernetes.io/part-of': 'global'
-        }
-      },
-      data
-    }];
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata: {
+          name: 'setup-scripts',
+          labels: {
+            ...helpers.getCommonLabels(this.config),
+            'app.kubernetes.io/component': 'configmap',
+            'app.kubernetes.io/part-of': 'global'
+          }
+        },
+        data
+      }
+    ];
   }
 }
 
@@ -1058,21 +1056,23 @@ class SetupScriptsConfigMap implements IGenerator {
       return [];
     }
 
-    return [{
-      apiVersion: 'v1',
-      kind: 'ConfigMap',
-      metadata: {
-        name: `setup-scripts-${helpers.getChainName(String(this.chain.id))}`,
-        labels: {
-          ...helpers.getCommonLabels(this.config),
-          'app.kubernetes.io/component': 'chain',
-          'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
-          'app.kubernetes.io/part-of': String(this.chain.id),
-          'app.kubernetes.io/role': 'setup-scripts'
-        }
-      },
-      data
-    }];
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata: {
+          name: `setup-scripts-${helpers.getChainName(String(this.chain.id))}`,
+          labels: {
+            ...helpers.getCommonLabels(this.config),
+            'app.kubernetes.io/component': 'chain',
+            'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
+            'app.kubernetes.io/part-of': String(this.chain.id),
+            'app.kubernetes.io/role': 'setup-scripts'
+          }
+        },
+        data
+      }
+    ];
   }
 }
 
@@ -1084,23 +1084,25 @@ class GenesisPatchConfigMap implements IGenerator {
 
   generate(): Manifest[] {
     // ConfigMap definition here...
-    return [{
-      apiVersion: 'v1',
-      kind: 'ConfigMap',
-      metadata: {
-        name: `patch-${helpers.getChainName(String(this.chain.id))}`,
-        labels: {
-          ...helpers.getCommonLabels(this.config),
-          'app.kubernetes.io/component': 'chain',
-          'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
-          'app.kubernetes.io/part-of': String(this.chain.id),
-          'app.kubernetes.io/role': 'genesis-patch'
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata: {
+          name: `patch-${helpers.getChainName(String(this.chain.id))}`,
+          labels: {
+            ...helpers.getCommonLabels(this.config),
+            'app.kubernetes.io/component': 'chain',
+            'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
+            'app.kubernetes.io/part-of': String(this.chain.id),
+            'app.kubernetes.io/role': 'genesis-patch'
+          }
+        },
+        data: {
+          'patch.json': JSON.stringify(this.chain.genesis, null, 2)
         }
-      },
-      data: {
-        'patch.json': JSON.stringify(this.chain.genesis, null, 2)
       }
-    }];
+    ];
   }
 }
 
@@ -1158,22 +1160,24 @@ class IcsConsumerProposalConfigMap implements IGenerator {
       deposit: `10000${providerChain.denom}`
     };
 
-    return [{
-      apiVersion: 'v1',
-      kind: 'ConfigMap',
-      metadata: {
-        name: `consumer-proposal-${helpers.getChainName(String(this.chain.id))}`,
-        labels: {
-          ...helpers.getCommonLabels(this.config),
-          'app.kubernetes.io/component': 'chain',
-          'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
-          'app.kubernetes.io/part-of': String(this.chain.id),
-          'app.kubernetes.io/role': 'ics-proposal'
+    return [
+      {
+        apiVersion: 'v1',
+        kind: 'ConfigMap',
+        metadata: {
+          name: `consumer-proposal-${helpers.getChainName(String(this.chain.id))}`,
+          labels: {
+            ...helpers.getCommonLabels(this.config),
+            'app.kubernetes.io/component': 'chain',
+            'app.kubernetes.io/name': this.chain.name, // Add the missing chain name label
+            'app.kubernetes.io/part-of': String(this.chain.id),
+            'app.kubernetes.io/role': 'ics-proposal'
+          }
+        },
+        data: {
+          'proposal.json': JSON.stringify(proposal, null, 2)
         }
-      },
-      data: {
-        'proposal.json': JSON.stringify(proposal, null, 2)
       }
-    }];
+    ];
   }
 }
