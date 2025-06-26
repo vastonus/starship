@@ -880,10 +880,7 @@ export class CosmosBuilder implements IGenerator {
 
     // Global Scripts ConfigMap
     const globalScripts = new GlobalScriptsConfigMap(this.config);
-    const globalScriptsCm = globalScripts.configMap();
-    if (globalScriptsCm) {
-      manifests.push(globalScriptsCm);
-    }
+    manifests.push(...globalScripts.generate());
 
     cosmosChains.forEach((chain) => {
       // Use sophisticated service generator
@@ -909,15 +906,12 @@ export class CosmosBuilder implements IGenerator {
 
       // Setup Scripts ConfigMap
       const setupScripts = new SetupScriptsConfigMap(this.config, chain);
-      const setupScriptsCm = setupScripts.configMap();
-      if (setupScriptsCm) {
-        manifests.push(setupScriptsCm);
-      }
+      manifests.push(...setupScripts.generate());
 
       // Genesis Patch ConfigMap (if needed)
       if (chain.genesis) {
         const patch = new GenesisPatchConfigMap(this.config, chain);
-        manifests.push(patch.configMap());
+        manifests.push(...patch.generate());
       }
 
       // ICS Consumer Proposal ConfigMap
@@ -926,10 +920,7 @@ export class CosmosBuilder implements IGenerator {
         chain,
         cosmosChains
       );
-      const icsCm = icsProposal.configMap();
-      if (icsCm) {
-        manifests.push(icsCm);
-      }
+      manifests.push(...icsProposal.generate());
     });
 
     return manifests;
@@ -980,13 +971,13 @@ class KeysConfigMap implements IGenerator {
   }
 }
 
-class GlobalScriptsConfigMap {
+class GlobalScriptsConfigMap implements IGenerator {
   constructor(
     private config: StarshipConfig,
     private projectRoot: string = process.cwd()
   ) {}
 
-  configMap(): ConfigMap | null {
+  generate(): Manifest[] {
     const scriptsDir = path.join(this.projectRoot, 'scripts', 'default');
     if (!fs.existsSync(scriptsDir)) {
       return null; // No global scripts directory found
@@ -1010,10 +1001,10 @@ class GlobalScriptsConfigMap {
       console.warn(
         `Warning: Could not read global scripts directory. Error: ${(error as Error).message}. Skipping.`
       );
-      return null;
+      return [];
     }
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
@@ -1025,21 +1016,21 @@ class GlobalScriptsConfigMap {
         }
       },
       data
-    };
+    }];
   }
 }
 
-class SetupScriptsConfigMap {
+class SetupScriptsConfigMap implements IGenerator {
   constructor(
     private config: StarshipConfig,
     private chain: Chain
   ) {}
 
-  configMap(): ConfigMap | null {
+  generate(): Manifest[] {
     const scripts = this.chain.scripts;
 
     if (!scripts || Object.keys(scripts).length === 0) {
-      return null;
+      return [];
     }
 
     const data: { [key: string]: string } = {};
@@ -1064,10 +1055,10 @@ class SetupScriptsConfigMap {
     });
 
     if (Object.keys(data).length === 0) {
-      return null;
+      return [];
     }
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
@@ -1081,19 +1072,19 @@ class SetupScriptsConfigMap {
         }
       },
       data
-    };
+    }];
   }
 }
 
-class GenesisPatchConfigMap {
+class GenesisPatchConfigMap implements IGenerator {
   constructor(
     private config: StarshipConfig,
     private chain: Chain
   ) {}
 
-  configMap(): ConfigMap {
+  generate(): Manifest[] {
     // ConfigMap definition here...
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
@@ -1109,18 +1100,18 @@ class GenesisPatchConfigMap {
       data: {
         'patch.json': JSON.stringify(this.chain.genesis, null, 2)
       }
-    };
+    }];
   }
 }
 
-class IcsConsumerProposalConfigMap {
+class IcsConsumerProposalConfigMap implements IGenerator {
   constructor(
     private config: StarshipConfig,
     private chain: Chain,
     private allChains: Chain[]
   ) {}
 
-  configMap(): ConfigMap | null {
+  generate(): Manifest[] {
     if (
       !this.chain.ics ||
       !this.chain.ics.enabled ||
@@ -1167,7 +1158,7 @@ class IcsConsumerProposalConfigMap {
       deposit: `10000${providerChain.denom}`
     };
 
-    return {
+    return [{
       apiVersion: 'v1',
       kind: 'ConfigMap',
       metadata: {
@@ -1183,6 +1174,6 @@ class IcsConsumerProposalConfigMap {
       data: {
         'proposal.json': JSON.stringify(proposal, null, 2)
       }
-    };
+    }];
   }
 }
