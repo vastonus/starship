@@ -1,10 +1,10 @@
 import {
   Chain,
+  Exposer,
   FaucetConfig,
   Relayer,
   Script,
-  StarshipConfig,
-  Exposer
+  StarshipConfig
 } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
@@ -130,7 +130,7 @@ export class DefaultsManager {
    */
   processExplorer(explorerConfig?: any): any {
     if (!explorerConfig) return undefined;
-    
+
     const defaultExplorer = this.defaultsData.explorer || {};
     return deepMerge(defaultExplorer, explorerConfig);
   }
@@ -140,7 +140,7 @@ export class DefaultsManager {
    */
   processRegistry(registryConfig?: any): any {
     if (!registryConfig) return undefined;
-    
+
     const defaultRegistry = this.defaultsData.registry || {};
     return deepMerge(defaultRegistry, registryConfig);
   }
@@ -150,7 +150,7 @@ export class DefaultsManager {
    */
   processFaucet(faucetConfig?: any): any {
     if (!faucetConfig) return undefined;
-    
+
     const defaultFaucet = this.defaultsData.faucet || {};
     return deepMerge(defaultFaucet, faucetConfig);
   }
@@ -160,7 +160,7 @@ export class DefaultsManager {
    */
   processMonitoring(monitoringConfig?: any): any {
     if (!monitoringConfig) return undefined;
-    
+
     const defaultMonitoring = this.defaultsData.monitoring || {};
     return deepMerge(defaultMonitoring, monitoringConfig);
   }
@@ -170,7 +170,7 @@ export class DefaultsManager {
    */
   processIngress(ingressConfig?: any): any {
     if (!ingressConfig) return undefined;
-    
+
     const defaultIngress = this.defaultsData.ingress || {};
     return deepMerge(defaultIngress, ingressConfig);
   }
@@ -180,7 +180,7 @@ export class DefaultsManager {
    */
   processExposer(exposerConfig?: Exposer): Exposer {
     if (!exposerConfig) return undefined;
-    
+
     const defaultExposer = this.defaultsData.exposer || {};
     return deepMerge(defaultExposer, exposerConfig);
   }
@@ -190,7 +190,7 @@ export class DefaultsManager {
    */
   processImages(imagesConfig?: any): any {
     if (!imagesConfig) return undefined;
-    
+
     const defaultImages = this.defaultsData.images || {};
     return deepMerge(defaultImages, imagesConfig);
   }
@@ -200,7 +200,7 @@ export class DefaultsManager {
    */
   processResources(resourcesConfig?: any): any {
     if (!resourcesConfig) return undefined;
-    
+
     const defaultResources = this.defaultsData.resources || {};
     return deepMerge(defaultResources, resourcesConfig);
   }
@@ -210,7 +210,7 @@ export class DefaultsManager {
    */
   processTimeouts(timeoutsConfig?: any): any {
     if (!timeoutsConfig) return undefined;
-    
+
     const defaultTimeouts = this.defaultsData.timeouts || {};
     return deepMerge(defaultTimeouts, timeoutsConfig);
   }
@@ -317,7 +317,7 @@ export class DefaultsManager {
  */
 export function applyDefaults(config: StarshipConfig): StarshipConfig {
   const defaultsManager = new DefaultsManager();
-  
+
   // Process chains with defaults
   const processedChains: Chain[] = config.chains?.map((chain: Chain) =>
     defaultsManager.processChain(chain)
@@ -336,15 +336,33 @@ export function applyDefaults(config: StarshipConfig): StarshipConfig {
     ...config,
     chains: processedChains,
     relayers: processedRelayers,
-    ...(config.explorer && { explorer: defaultsManager.processExplorer(config.explorer) }),
-    ...(config.registry && { registry: defaultsManager.processRegistry(config.registry) }),
-    ...(config.faucet && { faucet: defaultsManager.processFaucet(config.faucet) }),
-    ...(config.monitoring && { monitoring: defaultsManager.processMonitoring(config.monitoring) }),
-    ...(config.ingress && { ingress: defaultsManager.processIngress(config.ingress) }),
-    ...(config.exposer && { exposer: defaultsManager.processExposer(config.exposer) }),
-    ...(config.images && { images: defaultsManager.processImages(config.images) }),
-    ...(config.resources && { resources: defaultsManager.processResources(config.resources) }),
-    ...(config.timeouts && { timeouts: defaultsManager.processTimeouts(config.timeouts) })
+    ...(config.explorer && {
+      explorer: defaultsManager.processExplorer(config.explorer)
+    }),
+    ...(config.registry && {
+      registry: defaultsManager.processRegistry(config.registry)
+    }),
+    ...(config.faucet && {
+      faucet: defaultsManager.processFaucet(config.faucet)
+    }),
+    ...(config.monitoring && {
+      monitoring: defaultsManager.processMonitoring(config.monitoring)
+    }),
+    ...(config.ingress && {
+      ingress: defaultsManager.processIngress(config.ingress)
+    }),
+    ...(config.exposer && {
+      exposer: defaultsManager.processExposer(config.exposer)
+    }),
+    ...(config.images && {
+      images: defaultsManager.processImages(config.images)
+    }),
+    ...(config.resources && {
+      resources: defaultsManager.processResources(config.resources)
+    }),
+    ...(config.timeouts && {
+      timeouts: defaultsManager.processTimeouts(config.timeouts)
+    })
   };
 
   return processedConfig;

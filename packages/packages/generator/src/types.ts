@@ -1,17 +1,17 @@
 import {
   Chain,
+  Explorer,
+  Exposer,
   FaucetConfig,
+  Images,
+  Ingress,
+  Monitoring,
+  Registry,
   Relayer,
+  Resources,
   Script,
   StarshipConfig,
-  Images,
-  Resources,
-  Exposer,
-  TimeoutConfig,
-  Explorer,
-  Registry,
-  Monitoring,
-  Ingress
+  TimeoutConfig
 } from '@starship-ci/types';
 import { ConfigMap, Deployment, Service, StatefulSet } from 'kubernetesjs';
 
