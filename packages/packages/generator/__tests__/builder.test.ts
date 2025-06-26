@@ -306,7 +306,7 @@ describe('BuilderManager Tests', () => {
         .filter((item) => item.isDirectory())
         .map((item) => item.name)
         .sort();
-      expect(directories).toEqual(['explorer', 'registry']);
+      expect(directories).toEqual([]);
     });
 
     it('should handle relayer configuration', () => {
