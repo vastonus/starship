@@ -8574,8 +8574,8 @@ echo "Validator initialization completed"",
   "explorer/configmap.yaml": {
     "apiVersion": "v1",
     "data": {
-      "cosmoshub-4.json": "{"chain_name":"cosmoshub-4","coingecko":"cosmoshub","api":"http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:1317","rpc":["http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"cosmos","logo":"","assets":[{"base":"uatom","symbol":"COSMOS","exponent":"6","coingecko_id":"cosmoshub-4","logo":""}]}",
-      "osmosis-1.json": "{"chain_name":"osmosis-1","coingecko":"osmosis","api":"http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1313","rpc":["http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26653"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"osmo","logo":"","assets":[{"base":"uosmo","symbol":"OSMO","exponent":"6","coingecko_id":"osmosis-1","logo":""}]}",
+      "cosmoshub-4.json": "{"chain_name":"cosmoshub-4","coingecko":"cosmoshub","api":"http://localhost:1317","rpc":["http://localhost:26657"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"cosmos","logo":"","assets":[{"base":"uatom","symbol":"COSMOS","exponent":"6","coingecko_id":"cosmoshub-4","logo":""}]}",
+      "osmosis-1.json": "{"chain_name":"osmosis-1","coingecko":"osmosis","api":"http://localhost:1313","rpc":["http://localhost:26653"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"osmo","logo":"","assets":[{"base":"uosmo","symbol":"OSMO","exponent":"6","coingecko_id":"osmosis-1","logo":""}]}",
     },
     "kind": "ConfigMap",
     "metadata": {
@@ -8636,7 +8636,7 @@ echo "Validator initialization completed"",
                   "value": "/explorer",
                 },
               ],
-              "image": "ghcr.io/cosmology-tech/starship/ping-pub:latest",
+              "image": "ghcr.io/cosmology-tech/starship/ping-pub:6b7b0d096946b6bcd75d15350c7345da0d4576db",
               "imagePullPolicy": "IfNotPresent",
               "name": "explorer",
               "ports": [
@@ -8648,12 +8648,12 @@ echo "Validator initialization completed"",
               ],
               "resources": {
                 "limits": {
-                  "cpu": "0.2",
-                  "memory": "512Mi",
+                  "cpu": "1",
+                  "memory": "2Gi",
                 },
                 "requests": {
-                  "cpu": "0.2",
-                  "memory": "512Mi",
+                  "cpu": "1",
+                  "memory": "2Gi",
                 },
               },
               "volumeMounts": [
@@ -10372,11 +10372,11 @@ echo "Validator initialization completed"",
               "env": [
                 {
                   "name": "REGISTRY_CHAIN_CLIENT_RPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657",
+                  "value": "http://localhost:26653,http://localhost:26657",
                 },
                 {
                   "name": "REGISTRY_CHAIN_API_RPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657",
+                  "value": "http://localhost:26653,http://localhost:26657",
                 },
                 {
                   "name": "REGISTRY_CHAIN_API_GRPCS",
@@ -10384,7 +10384,7 @@ echo "Validator initialization completed"",
                 },
                 {
                   "name": "REGISTRY_CHAIN_API_RESTS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1317,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:1317",
+                  "value": "http://localhost:1313,http://localhost:1317",
                 },
                 {
                   "name": "REGISTRY_CHAIN_CLIENT_EXPOSERS",
@@ -10419,7 +10419,16 @@ echo "Validator initialization completed"",
                 "initialDelaySeconds": 5,
                 "periodSeconds": 10,
               },
-              "resources": {},
+              "resources": {
+                "limits": {
+                  "cpu": "0.2",
+                  "memory": "200M",
+                },
+                "requests": {
+                  "cpu": "0.2",
+                  "memory": "200M",
+                },
+              },
               "volumeMounts": [
                 {
                   "mountPath": "/chains/osmosis-1",
@@ -11807,7 +11816,7 @@ $CHAIN_BIN tendermint show-node-id
   "explorer/configmap.yaml": {
     "apiVersion": "v1",
     "data": {
-      "osmosis-1.json": "{"chain_name":"osmosis-1","coingecko":"osmosis","api":"http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1313","rpc":["http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26653"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"osmo","logo":"","assets":[{"base":"uosmo","symbol":"OSMO","exponent":"6","coingecko_id":"osmosis-1","logo":""}]}",
+      "osmosis-1.json": "{"chain_name":"osmosis-1","coingecko":"osmosis","api":"http://localhost:1313","rpc":["http://localhost:26653"],"snapshot_provider":"","sdk_version":"0.45.6","coin_type":118,"min_tx_fee":"3000","addr_prefix":"osmo","logo":"","assets":[{"base":"uosmo","symbol":"OSMO","exponent":"6","coingecko_id":"osmosis-1","logo":""}]}",
     },
     "kind": "ConfigMap",
     "metadata": {
@@ -11880,12 +11889,12 @@ $CHAIN_BIN tendermint show-node-id
               ],
               "resources": {
                 "limits": {
-                  "cpu": "0.2",
-                  "memory": "512Mi",
+                  "cpu": "1",
+                  "memory": "2Gi",
                 },
                 "requests": {
-                  "cpu": "0.2",
-                  "memory": "512Mi",
+                  "cpu": "1",
+                  "memory": "2Gi",
                 },
               },
               "volumeMounts": [
@@ -13249,11 +13258,11 @@ $CHAIN_BIN tendermint show-node-id
               "env": [
                 {
                   "name": "REGISTRY_CHAIN_CLIENT_RPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
+                  "value": "http://localhost:26653",
                 },
                 {
                   "name": "REGISTRY_CHAIN_API_RPCS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657",
+                  "value": "http://localhost:26653",
                 },
                 {
                   "name": "REGISTRY_CHAIN_API_GRPCS",
@@ -13261,7 +13270,7 @@ $CHAIN_BIN tendermint show-node-id
                 },
                 {
                   "name": "REGISTRY_CHAIN_API_RESTS",
-                  "value": "http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1317",
+                  "value": "http://localhost:1313",
                 },
                 {
                   "name": "REGISTRY_CHAIN_CLIENT_EXPOSERS",
@@ -13296,7 +13305,16 @@ $CHAIN_BIN tendermint show-node-id
                 "initialDelaySeconds": 5,
                 "periodSeconds": 10,
               },
-              "resources": {},
+              "resources": {
+                "limits": {
+                  "cpu": "0.2",
+                  "memory": "200M",
+                },
+                "requests": {
+                  "cpu": "0.2",
+                  "memory": "200M",
+                },
+              },
               "volumeMounts": [
                 {
                   "mountPath": "/chains/osmosis-1",

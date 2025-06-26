@@ -45,11 +45,11 @@ spec:
               mountPath: /explorer
           resources:
             limits:
-              cpu: '0.2'
-              memory: 512Mi
+              cpu: '1'
+              memory: 2Gi
             requests:
-              cpu: '0.2'
-              memory: 512Mi
+              cpu: '1'
+              memory: 2Gi
       volumes:
         - name: explorer-config
           configMap:

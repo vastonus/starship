@@ -31,17 +31,14 @@ spec:
               containerPort: 9090
           env:
             - name: REGISTRY_CHAIN_CLIENT_RPCS
-              value: >-
-                http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657
+              value: http://localhost:26653,http://localhost:26657
             - name: REGISTRY_CHAIN_API_RPCS
-              value: >-
-                http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:26657,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:26657
+              value: http://localhost:26653,http://localhost:26657
             - name: REGISTRY_CHAIN_API_GRPCS
               value: >-
                 http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:9091,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:9091
             - name: REGISTRY_CHAIN_API_RESTS
-              value: >-
-                http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:1317,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:1317
+              value: http://localhost:1313,http://localhost:1317
             - name: REGISTRY_CHAIN_CLIENT_EXPOSERS
               value: >-
                 http://osmosis-1-genesis.$(NAMESPACE).svc.cluster.local:8081,http://cosmoshub-4-genesis.$(NAMESPACE).svc.cluster.local:8081
@@ -50,7 +47,13 @@ spec:
               mountPath: /chains/osmosis-1
             - name: chain-cosmoshub-4
               mountPath: /chains/cosmoshub-4
-          resources: {}
+          resources:
+            limits:
+              cpu: '0.2'
+              memory: 200M
+            requests:
+              cpu: '0.2'
+              memory: 200M
           readinessProbe:
             httpGet:
               path: /health
