@@ -1,5 +1,5 @@
-import { Chain, StarshipConfig } from '@starship-ci/types';
-import { EnvVar } from 'kubernetesjs';
+import { Chain, StarshipConfig, Resources } from '@starship-ci/types';
+import { EnvVar, Container, ResourceRequirements, Volume } from 'kubernetesjs';
 
 import { getGeneratorVersion } from './version';
 
@@ -107,7 +107,7 @@ export function getGenesisEnvVars(chain: Chain, port: number): EnvVar[] {
  * Get resource object based on input
  * Handles both simple cpu/memory format and full k8s resource format
  */
-export function getResourceObject(resources: any): any {
+export function getResourceObject(resources: Resources): ResourceRequirements {
   if (!resources) {
     return {};
   }
@@ -133,7 +133,7 @@ export function getResourceObject(resources: any): any {
 /**
  * Get node resources with chain-specific overrides
  */
-export function getNodeResources(chain: Chain, context: StarshipConfig): any {
+export function getNodeResources(chain: Chain, context: StarshipConfig): ResourceRequirements {
   if (chain.resources) {
     return getResourceObject(chain.resources);
   }
@@ -283,16 +283,16 @@ export function getChainExposerAddrs(
  * Generate init container for waiting on chains to be ready
  */
 export function generateWaitInitContainer(
-  chains: Chain[],
+  chainIDs: string[],
   port: number,
-  imagePullPolicy: string = 'IfNotPresent'
-): any {
-  const waitScript = chains
+  config?: StarshipConfig
+): Container {
+  const waitScript = chainIDs
     .map(
-      (chain) => `
-      while [ $(curl -sw '%{http_code}' http://${getChainName(String(chain.id))}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id -o /dev/null) -ne 200 ]; do
-        echo "Genesis validator does not seem to be ready for: ${chain.id}. Waiting for it to start..."
-        echo "Checking: http://${getChainName(String(chain.id))}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id"
+      (chainID) => `
+      while [ $(curl -sw '%{http_code}' http://${getChainName(String(chainID))}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id -o /dev/null) -ne 200 ]; do
+        echo "Genesis validator does not seem to be ready for: ${chainID}. Waiting for it to start..."
+        echo "Checking: http://${getChainName(String(chainID))}-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id"
         sleep 10;
       done`
     )
@@ -300,8 +300,8 @@ export function generateWaitInitContainer(
 
   return {
     name: 'wait-for-chains',
-    image: 'curlimages/curl',
-    imagePullPolicy,
+    image: 'curlimages/curl:latest',
+    imagePullPolicy: config?.images?.imagePullPolicy || 'IfNotPresent',
     env: [
       { name: 'GENESIS_PORT', value: String(port) },
       {
@@ -314,7 +314,7 @@ export function generateWaitInitContainer(
       }
     ],
     command: ['/bin/sh', '-c', `${waitScript}\necho "Ready to start"\nexit 0`],
-    resources: getResourceObject({ cpu: '0.1', memory: '128M' })
+    resources: getResourceObject(config?.resources?.wait || { cpu: '0.1', memory: '128M' })
   };
 }
 
@@ -366,7 +366,7 @@ export function generateChainVolumeMounts(chain: Chain): any[] {
 /**
  * Generate standard volumes for chain pods
  */
-export function generateChainVolumes(chain: Chain): any[] {
+export function generateChainVolumes(chain: Chain): Volume[] {
   const volumes = [
     {
       name: 'node',

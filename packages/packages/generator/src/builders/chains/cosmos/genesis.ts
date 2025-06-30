@@ -109,7 +109,7 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
     if (chain.ics?.enabled) {
       // Add wait container for provider chain
       const providerChainId = chain.ics.provider || 'cosmoshub';
-      initContainers.push(this.createIcsWaitInitContainer([{ id: providerChainId } as Chain], exposerPort));
+      initContainers.push(this.createIcsWaitInitContainer([providerChainId], exposerPort));
       initContainers.push(this.createIcsInitContainer(chain, exposerPort));
     }
 
@@ -284,12 +284,12 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
     };
   }
 
-  private createIcsWaitInitContainer(chains: Chain[], port: number): Container {
+  private createIcsWaitInitContainer(chainIDs: string[], port: number): Container {
     return helpers.generateWaitInitContainer(
-      chains,
+      chainIDs,
       port,
-      this.config.images?.imagePullPolicy || 'IfNotPresent'
-    ) as Container;
+      this.config
+    );
   }
 
   private createValidatorContainer(chain: Chain): Container {
