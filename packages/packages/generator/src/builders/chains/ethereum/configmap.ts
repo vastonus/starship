@@ -1,8 +1,8 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
 
-import { DefaultsManager } from '../../../defaults';
 import * as helpers from '../../../helpers';
-import { IGenerator, Manifest } from '../../../types';
+import { IGenerator } from '../../../types';
+import { ConfigMap } from 'kubernetesjs';
 
 /**
  * Generates the ConfigMap for Ethereum chain configuration
@@ -11,17 +11,14 @@ import { IGenerator, Manifest } from '../../../types';
 export class EthereumConfigMapGenerator implements IGenerator {
   private config: StarshipConfig;
   private chain: Chain;
-  private defaultsManager: DefaultsManager;
 
   constructor(chain: Chain, config: StarshipConfig) {
     this.config = config;
     this.chain = chain;
-    this.defaultsManager = new DefaultsManager();
   }
 
-  generate(): Manifest[] {
-    const processedChain = this.defaultsManager.processChain(this.chain);
-    const name = `${processedChain.name}-${processedChain.id}`;
+  generate(): ConfigMap[] {
+    const name = `${this.chain.name}-${this.chain.id}`;
 
     return [
       {
@@ -33,14 +30,14 @@ export class EthereumConfigMapGenerator implements IGenerator {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'chain',
             'app.kubernetes.io/name': name,
-            'app.kubernetes.io/part-of': helpers.getChainId(processedChain),
+            'app.kubernetes.io/part-of': helpers.getChainId(this.chain),
             'app.kubernetes.io/role': 'config',
-            'starship.io/chain-name': processedChain.name,
-            'starship.io/chain-id': helpers.getChainId(processedChain)
+            'starship.io/chain-name': this.chain.name,
+            'starship.io/chain-id': helpers.getChainId(this.chain)
           }
         },
         data: {
-          'genesis.json': this.generateGenesisJson(processedChain),
+          'genesis.json': this.generateGenesisJson(this.chain),
           'jwt.hex': this.generateJwtHex(),
           'config.yaml': this.generateConfigYaml()
         }
