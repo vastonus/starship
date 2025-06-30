@@ -17,7 +17,7 @@ export class EthereumServiceGenerator implements IGenerator {
     this.chain = chain;
   }
 
-  generate(): Service[] {
+  generate(): Array<Service> {
     const name = `${this.chain.name}-${this.chain.id}`;
 
     // Port mappings from Helm template
