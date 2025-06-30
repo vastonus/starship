@@ -23,7 +23,7 @@ export class CosmosBuilder implements IGenerator {
     this.scriptManager = new ScriptManager();
     this.generators = [];
 
-    // Filter cosmos chains
+    // Filter cosmos chains (exclude ethereum chains)
     const cosmosChains =
       this.config.chains?.filter(
         (chain) => chain.name !== 'ethereum' && typeof chain.id === 'string'
