@@ -71,7 +71,8 @@ export class IngressResourceGenerator implements IGenerator {
       return [];
     }
 
-    const host = this.config.ingress.host?.replace('*.', '') || 'thestarship.io';
+    const host =
+      this.config.ingress.host?.replace('*.', '') || 'thestarship.io';
     const ingressType = this.config.ingress.type;
     const issuer = this.config.ingress.certManager?.issuer || 'cert-issuer';
 
@@ -101,7 +102,10 @@ export class IngressResourceGenerator implements IGenerator {
     ];
   }
 
-  private generateTlsConfig(host: string, ingressType: string): Array<IngressTLS> {
+  private generateTlsConfig(
+    host: string,
+    ingressType: string
+  ): Array<IngressTLS> {
     const tls: Array<IngressTLS> = [];
 
     // Explorer TLS
@@ -348,4 +352,4 @@ export class IngressBuilder implements IGenerator {
   generate(): Array<Manifest> {
     return this.generators.flatMap((generator) => generator.generate());
   }
-} 
+}

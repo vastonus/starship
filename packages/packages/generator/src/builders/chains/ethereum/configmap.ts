@@ -95,7 +95,7 @@ export class EthereumConfigMapGenerator implements IGenerator {
 
   private generateBalances(chain: Chain): Record<string, { balance: string }> {
     const balances: Record<string, { balance: string }> = {};
-    
+
     // Add balances from chain configuration if available
     if (chain.balances) {
       chain.balances.forEach((balance) => {

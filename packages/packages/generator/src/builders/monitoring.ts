@@ -188,7 +188,7 @@ scrape_configs:
     this.config.chains?.forEach((chain) => {
       if (chain.metrics) {
         const chainName = helpers.getChainName(String(chain.id));
-        
+
         // Genesis job
         config += `  - job_name: '${chain.name}-genesis'
     static_configs:
@@ -246,7 +246,13 @@ export class PrometheusRbacGenerator implements IGenerator {
         rules: [
           {
             apiGroups: [''],
-            resources: ['nodes', 'nodes/proxy', 'services', 'endpoints', 'pods'],
+            resources: [
+              'nodes',
+              'nodes/proxy',
+              'services',
+              'endpoints',
+              'pods'
+            ],
             verbs: ['get', 'list', 'watch']
           },
           {
@@ -395,7 +401,10 @@ export class PrometheusDeploymentGenerator implements IGenerator {
                     }
                   ],
                   resources: helpers.getResourceObject(
-                    this.config.monitoring.resources || { cpu: '0.2', memory: '400M' }
+                    this.config.monitoring.resources || {
+                      cpu: '0.2',
+                      memory: '400M'
+                    }
                   ),
                   volumeMounts: [
                     {
@@ -460,20 +469,24 @@ export class GrafanaConfigMapGenerator implements IGenerator {
           }
         },
         data: {
-          'prometheus.yaml': JSON.stringify({
-            apiVersion: 1,
-            datasources: [
-              {
-                access: 'proxy',
-                editable: true,
-                name: 'prometheus',
-                orgId: 1,
-                type: 'prometheus',
-                url: 'http://prometheus.aws-starship.svc:9090',
-                version: 1
-              }
-            ]
-          }, null, 2)
+          'prometheus.yaml': JSON.stringify(
+            {
+              apiVersion: 1,
+              datasources: [
+                {
+                  access: 'proxy',
+                  editable: true,
+                  name: 'prometheus',
+                  orgId: 1,
+                  type: 'prometheus',
+                  url: 'http://prometheus.aws-starship.svc:9090',
+                  version: 1
+                }
+              ]
+            },
+            null,
+            2
+          )
         }
       },
       {
@@ -488,20 +501,24 @@ export class GrafanaConfigMapGenerator implements IGenerator {
           }
         },
         data: {
-          'default.yaml': JSON.stringify({
-            apiVersion: 1,
-            providers: [
-              {
-                name: 'chain-dashboard',
-                orgId: 1,
-                type: 'file',
-                allowUiUpdates: true,
-                options: {
-                  path: '/var/lib/grafana/dashboards'
+          'default.yaml': JSON.stringify(
+            {
+              apiVersion: 1,
+              providers: [
+                {
+                  name: 'chain-dashboard',
+                  orgId: 1,
+                  type: 'file',
+                  allowUiUpdates: true,
+                  options: {
+                    path: '/var/lib/grafana/dashboards'
+                  }
                 }
-              }
-            ]
-          }, null, 2)
+              ]
+            },
+            null,
+            2
+          )
         }
       },
       {
@@ -518,12 +535,16 @@ export class GrafanaConfigMapGenerator implements IGenerator {
         data: {
           // Note: In Helm template, this would load dashboard files from configs/grafana-dashboards/*.json
           // For now, we'll include a basic placeholder
-          'basic-dashboard.json': JSON.stringify({
-            dashboard: {
-              title: 'Starship Basic Dashboard',
-              panels: []
-            }
-          }, null, 2)
+          'basic-dashboard.json': JSON.stringify(
+            {
+              dashboard: {
+                title: 'Starship Basic Dashboard',
+                panels: []
+              }
+            },
+            null,
+            2
+          )
         }
       }
     ];
@@ -635,7 +656,10 @@ export class GrafanaDeploymentGenerator implements IGenerator {
                     }
                   ],
                   resources: helpers.getResourceObject(
-                    this.config.monitoring.resources || { cpu: '0.2', memory: '400M' }
+                    this.config.monitoring.resources || {
+                      cpu: '0.2',
+                      memory: '400M'
+                    }
                   ),
                   volumeMounts: [
                     {
@@ -713,7 +737,7 @@ export class MonitoringBuilder implements IGenerator {
         new PrometheusConfigMapGenerator(config),
         new PrometheusServiceGenerator(config),
         new PrometheusDeploymentGenerator(config),
-        
+
         // Grafana
         new GrafanaConfigMapGenerator(config),
         new GrafanaServiceGenerator(config),
@@ -725,4 +749,4 @@ export class MonitoringBuilder implements IGenerator {
   generate(): Array<Manifest> {
     return this.generators.flatMap((generator) => generator.generate());
   }
-} 
+}
