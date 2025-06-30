@@ -396,6 +396,24 @@ export function generateChainVolumes(chain: Chain): any[] {
     });
   }
 
+  // Add faucet volume if starship faucet is enabled
+  if (chain.faucet?.enabled && chain.faucet.type === 'starship') {
+    volumes.push({
+      name: 'faucet',
+      emptyDir: {}
+    });
+  }
+
+  // Add proposal volume if ICS is enabled
+  if (chain.ics?.enabled) {
+    volumes.push({
+      name: 'proposal',
+      configMap: {
+        name: `consumer-proposal-${getChainName(String(chain.id))}`
+      }
+    });
+  }
+
   return volumes;
 }
 
