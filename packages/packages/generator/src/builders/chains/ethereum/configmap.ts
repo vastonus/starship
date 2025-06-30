@@ -1,8 +1,8 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
+import { ConfigMap } from 'kubernetesjs';
 
 import * as helpers from '../../../helpers';
 import { IGenerator } from '../../../types';
-import { ConfigMap } from 'kubernetesjs';
 
 /**
  * Generates the ConfigMap for Ethereum chain configuration
@@ -64,10 +64,12 @@ export class EthereumConfigMapGenerator implements IGenerator {
       },
       nonce: '0x0',
       timestamp: '0x677d172f',
-      extraData: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      extraData:
+        '0x0000000000000000000000000000000000000000000000000000000000000000',
       gasLimit: '0x47b760',
       difficulty: '0x1',
-      mixHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      mixHash:
+        '0x0000000000000000000000000000000000000000000000000000000000000000',
       coinbase: '0x0000000000000000000000000000000000000000',
       alloc: {
         '0x0000000000000000000000000000000000000001': {
@@ -81,7 +83,8 @@ export class EthereumConfigMapGenerator implements IGenerator {
       },
       number: '0x0',
       gasUsed: '0x0',
-      parentHash: '0x0000000000000000000000000000000000000000000000000000000000000000',
+      parentHash:
+        '0x0000000000000000000000000000000000000000000000000000000000000000',
       baseFeePerGas: '0x7',
       excessBlobGas: null as any,
       blobGasUsed: null as any
@@ -92,7 +95,7 @@ export class EthereumConfigMapGenerator implements IGenerator {
 
   private generateBalances(chain: Chain): Record<string, { balance: string }> {
     const balances: Record<string, { balance: string }> = {};
-    
+
     // Add balances from chain configuration if available
     if (chain.balances) {
       chain.balances.forEach((balance) => {
@@ -143,4 +146,4 @@ SLOTS_PER_EPOCH: 6
 # Deposit contract
 DEPOSIT_CONTRACT_ADDRESS: 0x4242424242424242424242424242424242424242`;
   }
-} 
+}

@@ -8,10 +8,10 @@ const chainBuilderRegistry: Record<
   string,
   new (config: StarshipConfig) => IGenerator
 > = {
-  ethereum: EthereumBuilder,
+  ethereum: EthereumBuilder
 };
 
-function createBuilder(chainName: string, config: StarshipConfig): IGenerator {  
+function createBuilder(chainName: string, config: StarshipConfig): IGenerator {
   const builder = chainBuilderRegistry[chainName] || CosmosBuilder;
   return new builder(config);
 }

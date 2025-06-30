@@ -20,7 +20,8 @@ export class EthereumBuilder implements IGenerator {
     // Filter ethereum chains
     const ethereumChains =
       this.config.chains?.filter(
-        (chain) => chain.name === 'ethereum' || chain.name.startsWith('ethereum-')
+        (chain) =>
+          chain.name === 'ethereum' || chain.name.startsWith('ethereum-')
       ) || [];
 
     if (ethereumChains.length === 0) {
@@ -36,11 +37,13 @@ export class EthereumBuilder implements IGenerator {
       this.generators.push(new EthereumServiceGenerator(chain, this.config));
 
       // StatefulSets
-      this.generators.push(new EthereumStatefulSetGenerator(chain, this.config));
+      this.generators.push(
+        new EthereumStatefulSetGenerator(chain, this.config)
+      );
     });
   }
 
   generate(): Manifest[] {
     return this.generators.flatMap((generator) => generator.generate());
   }
-} 
+}

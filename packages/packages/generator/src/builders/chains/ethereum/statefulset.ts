@@ -1,8 +1,13 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
+import {
+  Container,
+  ResourceRequirements,
+  StatefulSet,
+  Volume
+} from 'kubernetesjs';
 
 import * as helpers from '../../../helpers';
 import { IGenerator } from '../../../types';
-import { Container, ResourceRequirements, StatefulSet, Volume } from 'kubernetesjs';
 
 /**
  * Generates the StatefulSet for Ethereum chain
@@ -85,7 +90,8 @@ export class EthereumStatefulSetGenerator implements IGenerator {
   }
 
   private createInitGenesisBeaconContainer(chain: Chain): Container {
-    const prysmctlImage = chain.config?.prysmctl?.image || 
+    const prysmctlImage =
+      chain.config?.prysmctl?.image ||
       'ghcr.io/hyperweb-io/starship/prysm/cmd/prysmctl:v5.2.0';
     const numValidators = chain.config?.validator?.numValidator || 1;
 
@@ -94,7 +100,8 @@ export class EthereumStatefulSetGenerator implements IGenerator {
       image: prysmctlImage,
       imagePullPolicy: 'IfNotPresent',
       command: ['bash', '-c'],
-      args: [`
+      args: [
+        `
 mkdir -p /ethereum/consensus /ethereum/execution
 cp /config/genesis.json /ethereum/execution/genesis.json
 cp /config/config.yaml /ethereum/consensus/config.yaml
@@ -111,7 +118,8 @@ prysmctl testnet generate-genesis \\
 
 echo "Copy secrets over"
 cp /config/jwt.hex /etc/secrets/jwt.hex
-      `.trim()],
+      `.trim()
+      ],
       resources: this.getNodeResources(chain),
       volumeMounts: [
         { name: 'secrets', mountPath: '/etc/secrets' },
@@ -127,10 +135,12 @@ cp /config/jwt.hex /etc/secrets/jwt.hex
       image: chain.image,
       imagePullPolicy: 'IfNotPresent',
       command: ['bash', '-c'],
-      args: [`
+      args: [
+        `
 echo "Initializing genesis geth"
 geth --datadir /ethereum/execution init /ethereum/execution/genesis.json
-      `.trim()],
+      `.trim()
+      ],
       resources: this.getNodeResources(chain),
       volumeMounts: [
         { name: 'secrets', mountPath: '/etc/secrets' },
@@ -166,7 +176,8 @@ geth --datadir /ethereum/execution init /ethereum/execution/genesis.json
         { name: 'RPC_PORT', value: '8551' }
       ],
       command: ['bash', '-c'],
-      args: [`
+      args: [
+        `
 echo "Setting UDP buffer size"
 sysctl -w net.core.rmem_max=16777216
 sysctl -w net.core.wmem_max=16777216
@@ -196,7 +207,8 @@ geth --datadir /ethereum/execution --http \\
   --maxpeers=50 \\
   --nat=none \\
   --log.vmodule=engine=6
-      `.trim()],
+      `.trim()
+      ],
       resources: this.getNodeResources(chain),
       volumeMounts: [
         { name: 'ethereum', mountPath: '/ethereum' },
@@ -217,7 +229,8 @@ geth --datadir /ethereum/execution --http \\
   }
 
   private createBeaconChainContainer(chain: Chain): Container {
-    const beaconImage = chain.config?.beacon?.image || 
+    const beaconImage =
+      chain.config?.beacon?.image ||
       'ghcr.io/hyperweb-io/starship/prysm/beacon-chain:v5.2.0';
 
     return {
@@ -235,7 +248,8 @@ geth --datadir /ethereum/execution --http \\
         }
       ],
       command: ['bash', '-c'],
-      args: [`
+      args: [
+        `
 echo "Waiting 30 seconds for execution client to be ready..."
 sleep 30
 
@@ -256,7 +270,8 @@ beacon-chain \\
   --suggested-fee-recipient=0x123463a4B065722E99115D6c222f267d9cABb524 \\
   --minimum-peers-per-subnet=0 \\
   --force-clear-db
-      `.trim()],
+      `.trim()
+      ],
       resources: this.getNodeResources(chain),
       volumeMounts: [
         { name: 'ethereum', mountPath: '/ethereum' },
@@ -274,7 +289,8 @@ beacon-chain \\
   }
 
   private createValidatorContainer(chain: Chain): Container {
-    const validatorImage = chain.config?.validator?.image || 
+    const validatorImage =
+      chain.config?.validator?.image ||
       'ghcr.io/hyperweb-io/starship/prysm/validator:v5.2.0';
     const numValidators = chain.config?.validator?.numValidator || 1;
 
@@ -293,7 +309,8 @@ beacon-chain \\
         }
       ],
       command: ['bash', '-c'],
-      args: [`
+      args: [
+        `
 echo "Waiting 15 seconds for execution client to be ready..."
 sleep 20
 mkdir -p /ethereum/consensus/validator
@@ -310,7 +327,8 @@ validator \\
   --monitoring-host=0.0.0.0 \\
   --monitoring-port=8081 \\
   --suggested-fee-recipient=0x0C46c2cAFE097b4f7e1BB868B89e5697eE65f934
-      `.trim()],
+      `.trim()
+      ],
       resources: this.getNodeResources(chain),
       volumeMounts: [
         { name: 'ethereum', mountPath: '/ethereum' },
@@ -348,7 +366,7 @@ validator \\
 
   private getNodeResources(chain: Chain): ResourceRequirements {
     // Use default resources or chain-specific resources
-    const defaultResources = this.config.resources?.node
+    const defaultResources = this.config.resources?.node;
 
     return {
       requests: {
@@ -361,4 +379,4 @@ validator \\
       }
     };
   }
-} 
+}

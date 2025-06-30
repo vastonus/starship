@@ -1,8 +1,8 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
+import { Service } from 'kubernetesjs';
 
 import * as helpers from '../../../helpers';
 import { IGenerator } from '../../../types';
-import { Service } from 'kubernetesjs';
 
 /**
  * Generates the Service for Ethereum chain
@@ -58,4 +58,4 @@ export class EthereumServiceGenerator implements IGenerator {
       }
     ];
   }
-} 
+}
