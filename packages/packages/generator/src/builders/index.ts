@@ -5,7 +5,7 @@ import * as path from 'path';
 
 import { applyDefaults } from '../defaults';
 import { Manifest } from '../types';
-import { CosmosBuilder } from './cosmos';
+import { ChainBuilder } from './chains';
 import { ExplorerBuilder } from './explorer';
 import { FrontendBuilder } from './frontend';
 import { RegistryBuilder } from './registry';
@@ -76,7 +76,7 @@ export class BuilderManager {
 
   build(outputDir: string): void {
     const builders = [
-      new CosmosBuilder(this.config),
+      new ChainBuilder(this.config),
       new RegistryBuilder(this.config),
       new ExplorerBuilder(this.config),
       new FrontendBuilder(this.config),

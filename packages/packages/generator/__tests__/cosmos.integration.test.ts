@@ -1,7 +1,7 @@
 import { existsSync, mkdirSync } from 'fs';
 import { join } from 'path';
 
-import { CosmosBuilder } from '../src/builders/cosmos';
+import { CosmosBuilder } from '../src/builders/chains/cosmos';
 import { applyDefaults } from '../src/defaults';
 import {
   buildChainConfig,

@@ -55,6 +55,8 @@ exports[`Cosmos Generator Tests Manifest Generation should generate ICS consumer
       "app.kubernetes.io/part-of": "osmosis-1",
       "app.kubernetes.io/role": "ics-proposal",
       "app.kubernetes.io/version": "4.0.0-alpha.0",
+      "starship.io/chain-id": "osmosis-1",
+      "starship.io/chain-name": "osmosis",
       "starship.io/name": "starship-generator-test",
     },
     "name": "consumer-proposal-osmosis-1",
@@ -1018,8 +1020,10 @@ $CHAIN_BIN tendermint show-node-id
                 "#!/bin/bash
 set -euo pipefail
 
-echo "Starting osmosisd validator..."
-exec osmosisd start --home /root/.osmosisd --log_level info",
+START_ARGS=""
+
+
+$CHAIN_BIN start $START_ARGS",
               ],
               "env": [
                 {
@@ -1184,9 +1188,42 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
             },
             {
               "command": [
-                "sh",
+                "bash",
                 "-c",
-                "/faucet/faucet",
+                "CREDIT_COINS=""
+FEES=""
+for coin in \${COINS//,/ }
+do
+    amt="\${coin//[!0-9]/}"
+    denom="\${coin//[0-9]/}"
+
+    # Calculate the order of magnitude
+    if [ \${#amt} -gt 18 ]; then
+      creditAmt=$(echo $amt | sed -e "s/000000$//")
+      feesAmt=$(echo $amt | sed -e "s/0000000000000$//")
+    else
+      creditAmt=$(echo $amt | sed -e "s/0000$//")
+      feesAmt=$(echo $amt | sed -e "s/00000000$//")
+    fi
+
+    if [[ $CREDIT_COINS == "" ]]
+    then
+      CREDIT_COINS="$creditAmt$denom"
+      FEES="$feesAmt$denom"
+    else
+      CREDIT_COINS="\${CREDIT_COINS},$creditAmt$denom"
+    fi
+done
+
+export FAUCET_MNEMONIC=$(jq -r ".faucet[0].mnemonic" /configs/keys.json)
+
+export | grep "FAUCET"
+
+until bash -e /scripts/chain-rpc-ready.sh http://localhost:26657; do
+  sleep 10
+done
+
+/faucet/faucet --credit-coins="$CREDIT_COINS" --chain-fees="$FEES"",
               ],
               "env": [
                 {
@@ -1194,41 +1231,33 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                   "value": "2",
                 },
                 {
-                  "name": "FAUCET_PORT",
+                  "name": "FAUCET_HTTP_PORT",
                   "value": "8000",
+                },
+                {
+                  "name": "FAUCET_CHAIN_BINARY",
+                  "value": "osmosisd",
                 },
                 {
                   "name": "FAUCET_CHAIN_ID",
                   "value": "osmosis-1",
                 },
                 {
-                  "name": "FAUCET_CHAIN_DENOM",
-                  "value": "uosmo",
-                },
-                {
-                  "name": "FAUCET_CHAIN_PREFIX",
-                  "value": "osmo",
-                },
-                {
-                  "name": "FAUCET_AMOUNT_SEND",
-                  "value": "10000000",
-                },
-                {
-                  "name": "FAUCET_AMOUNT_STAKE",
-                  "value": "10000000",
-                },
-                {
-                  "name": "FAUCET_RPC_ENDPOINT",
-                  "value": "http://localhost:26657",
-                },
-                {
-                  "name": "FAUCET_REST_ENDPOINT",
-                  "value": "http://localhost:1317",
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
                 },
               ],
-              "image": "busybox:1.34.1",
+              "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
               "imagePullPolicy": "IfNotPresent",
               "name": "faucet",
+              "readinessProbe": {
+                "httpGet": {
+                  "path": "/status",
+                  "port": "8000",
+                },
+                "initialDelaySeconds": 30,
+                "periodSeconds": 10,
+              },
               "resources": {
                 "limits": {
                   "cpu": "0.1",
@@ -1248,6 +1277,10 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                   "mountPath": "/faucet",
                   "name": "faucet",
                 },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
               ],
             },
           ],
@@ -1256,7 +1289,28 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/create-genesis.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+if [ -f $CHAIN_DIR/config/genesis.json ]; then
+  echo "Genesis file exists, exiting init container"
+  exit 0
+fi
+
+echo "Running setup genesis script..."
+bash -e /scripts/create-genesis.sh
+bash -e /scripts/update-genesis.sh
+
+echo "Create node id json file"
+NODE_ID=$($CHAIN_BIN tendermint show-node-id)
+echo '{"node_id":"'$NODE_ID'"}' > $CHAIN_DIR/config/node_id.json
+
+echo "Create consensus key json file"
+$CHAIN_BIN tendermint show-validator > $CHAIN_DIR/config/consensus_key.json
+cat $CHAIN_DIR/config/consensus_key.json
+
+echo "Add custom accounts and balances"
+CHAIN_GENESIS_CMD=$($CHAIN_BIN 2>&1 | grep -q "genesis-related subcommands" && echo "genesis" || echo "")",
               ],
               "env": [
                 {
@@ -1340,7 +1394,12 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/update-config.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+echo "Running setup config script..."
+
+bash -e /scripts/update-config.sh",
               ],
               "env": [
                 {
@@ -1456,6 +1515,10 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
               },
               "name": "scripts",
             },
+            {
+              "emptyDir": {},
+              "name": "faucet",
+            },
           ],
         },
       },
@@ -1469,7 +1532,7 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/id": "osmosis-1",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis-1-genesis",
+        "app.kubernetes.io/name": "osmosis-1-validator",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "validator",
         "app.kubernetes.io/type": "osmosis-1-statefulset",
@@ -1512,11 +1575,13 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "#!/bin/bash
-set -euo pipefail
+                "set -eux
+START_ARGS=""
 
-echo "Starting osmosisd validator..."
-exec osmosisd start --home /root/.osmosisd --log_level info",
+
+# Starting the chain
+
+$CHAIN_BIN start $START_ARGS",
               ],
               "env": [
                 {
@@ -1552,6 +1617,26 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                   "value": "osmosis-1",
                 },
                 {
+                  "name": "GENESIS_HOST",
+                  "value": "osmosis-1-genesis",
+                },
+                {
+                  "name": "GENESIS_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "NAMESPACE",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
+                    },
+                  },
+                },
+                {
+                  "name": "KEYS_CONFIG",
+                  "value": "/configs/keys.json",
+                },
+                {
                   "name": "SLOGFILE",
                   "value": "slog.slog",
                 },
@@ -1564,9 +1649,27 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                     "command": [
                       "bash",
                       "-c",
-                      "#!/bin/bash
-echo "Validator post-start hook for osmosis-1"
-# Add any post-start logic here",
+                      "-e",
+                      "until bash -e /scripts/chain-rpc-ready.sh http://localhost:26657; do
+  sleep 10
+done
+
+set -eux
+export
+VAL_INDEX=\${HOSTNAME##*-}
+VAL_NAME="$(jq -r ".validators[0].name" $KEYS_CONFIG)-$VAL_INDEX"
+echo "Validator Index: $VAL_INDEX, Key name: $VAL_NAME. Chain bin $CHAIN_BIN"
+
+VAL_ADDR=$($CHAIN_BIN keys show $VAL_NAME -a --keyring-backend="test")
+echo "Transfer tokens to address $VAL_ADDR before trying to create validator. Best effort"
+bash -e /scripts/transfer-tokens.sh \\
+  $VAL_ADDR \\
+  $DENOM \\
+  http://$GENESIS_HOST.$NAMESPACE.svc.cluster.local:8000/credit \\
+  "true" || true
+
+$CHAIN_BIN keys list --keyring-backend test | jq
+VAL_NAME=$VAL_NAME bash -e /scripts/create-validator.sh",
                     ],
                   },
                 },
@@ -1610,18 +1713,9 @@ echo "Validator post-start hook for osmosis-1"
                 },
               ],
             },
-          ],
-          "initContainers": [
             {
               "command": [
-                "bash",
-                "-c",
-                "#!/bin/bash
-set -euo pipefail
-
-echo "Initializing validator node for osmosis-1..."
-osmosisd init validator-\${HOSTNAME##*-} --chain-id osmosis-1 --home /root/.osmosisd
-echo "Validator initialization completed"",
+                "exposer",
               ],
               "env": [
                 {
@@ -1657,8 +1751,205 @@ echo "Validator initialization completed"",
                   "value": "osmosis-1",
                 },
                 {
+                  "name": "GENESIS_HOST",
+                  "value": "osmosis-1-genesis",
+                },
+                {
+                  "name": "GENESIS_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "NAMESPACE",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
+                    },
+                  },
+                },
+                {
+                  "name": "EXPOSER_HTTP_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "EXPOSER_GRPC_PORT",
+                  "value": "9099",
+                },
+                {
+                  "name": "EXPOSER_GENESIS_FILE",
+                  "value": "/root/.osmosisd/config/genesis.json",
+                },
+                {
+                  "name": "EXPOSER_MNEMONIC_FILE",
+                  "value": "/configs/keys.json",
+                },
+                {
+                  "name": "EXPOSER_PRIV_VAL_FILE",
+                  "value": "/root/.osmosisd/config/priv_validator_key.json",
+                },
+                {
+                  "name": "EXPOSER_NODE_KEY_FILE",
+                  "value": "/root/.osmosisd/config/node_key.json",
+                },
+                {
+                  "name": "EXPOSER_PRIV_VAL_STATE_FILE",
+                  "value": "/root/.osmosisd/data/priv_validator_state.json",
+                },
+              ],
+              "image": "ghcr.io/cosmology-tech/starship/exposer:latest",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "exposer",
+              "resources": {
+                "limits": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+                "requests": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+              },
+              "volumeMounts": [
+                {
+                  "mountPath": "/root/.osmosisd",
+                  "name": "node",
+                },
+                {
+                  "mountPath": "/configs",
+                  "name": "addresses",
+                },
+              ],
+            },
+          ],
+          "initContainers": [
+            {
+              "command": [
+                "/bin/sh",
+                "-c",
+                "
+      while [ $(curl -sw '%{http_code}' http://osmosis-1-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id -o /dev/null) -ne 200 ]; do
+        echo "Genesis validator does not seem to be ready for: osmosis-1. Waiting for it to start..."
+        echo "Checking: http://osmosis-1-genesis.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id"
+        sleep 10;
+      done
+echo "Ready to start"
+exit 0",
+              ],
+              "env": [
+                {
+                  "name": "GENESIS_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "NAMESPACE",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
+                    },
+                  },
+                },
+              ],
+              "image": "curlimages/curl:latest",
+              "imagePullPolicy": "IfNotPresent",
+              "name": "wait-for-chains",
+              "resources": {
+                "limits": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+                "requests": {
+                  "cpu": "0.1",
+                  "memory": "128M",
+                },
+              },
+            },
+            {
+              "command": [
+                "bash",
+                "-c",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+
+if [ -f $CHAIN_DIR/config/genesis.json ]; then
+  echo "Genesis file exists, exiting early"
+  exit 0
+fi
+
+VAL_NAME=$(jq -r ".validators[0].name" $KEYS_CONFIG)-$VAL_INDEX
+echo "Validator Index: $VAL_INDEX, Key name: $VAL_NAME"
+
+echo "Recover validator $VAL_NAME"
+$CHAIN_BIN init $VAL_NAME --chain-id $CHAIN_ID
+jq -r ".validators[0].mnemonic" $KEYS_CONFIG | $CHAIN_BIN keys add $VAL_NAME --index $VAL_INDEX --recover --keyring-backend="test"
+
+curl http://$GENESIS_HOST.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/genesis -o $CHAIN_DIR/config/genesis.json
+echo "Genesis file that we got....."
+cat $CHAIN_DIR/config/genesis.json
+
+echo "Create node id json file"
+NODE_ID=$($CHAIN_BIN tendermint show-node-id)
+echo '{"node_id":"'$NODE_ID'"}' > $CHAIN_DIR/config/node_id.json",
+              ],
+              "env": [
+                {
+                  "name": "DENOM",
+                  "value": "uosmo",
+                },
+                {
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
+                },
+                {
+                  "name": "CHAIN_BIN",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_DIR",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "CODE_REPO",
+                  "value": "https://github.com/osmosis-labs/osmosis",
+                },
+                {
+                  "name": "DAEMON_HOME",
+                  "value": "/root/.osmosisd",
+                },
+                {
+                  "name": "DAEMON_NAME",
+                  "value": "osmosisd",
+                },
+                {
+                  "name": "CHAIN_ID",
+                  "value": "osmosis-1",
+                },
+                {
+                  "name": "GENESIS_HOST",
+                  "value": "osmosis-1-genesis",
+                },
+                {
+                  "name": "GENESIS_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "NAMESPACE",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
+                    },
+                  },
+                },
+                {
                   "name": "KEYS_CONFIG",
                   "value": "/configs/keys.json",
+                },
+                {
+                  "name": "FAUCET_ENABLED",
+                  "value": "true",
+                },
+                {
+                  "name": "METRICS",
+                  "value": "false",
                 },
               ],
               "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
@@ -1693,7 +1984,26 @@ echo "Validator initialization completed"",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/update-config.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+
+echo "Running setup config script..."
+bash -e /scripts/update-config.sh
+
+curl -s http://$GENESIS_HOST.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id
+NODE_ID=$(curl -s http://$GENESIS_HOST.$NAMESPACE.svc.cluster.local:$GENESIS_PORT/node_id | jq -r ".node_id")
+if [[ $NODE_ID == "" ]]; then
+  echo "Node ID is null, exiting early"
+  exit 1
+fi
+
+GENESIS_NODE_P2P=$NODE_ID@$GENESIS_HOST.$NAMESPACE.svc.cluster.local:26656
+echo "Node P2P: $GENESIS_NODE_P2P"
+sed -i "s/persistent_peers = \\"\\"/persistent_peers = \\"$GENESIS_NODE_P2P\\"/g" $CHAIN_DIR/config/config.toml
+
+echo "Printing the whole config.toml file"
+cat $CHAIN_DIR/config/config.toml",
               ],
               "env": [
                 {
@@ -1729,6 +2039,22 @@ echo "Validator initialization completed"",
                   "value": "osmosis-1",
                 },
                 {
+                  "name": "GENESIS_HOST",
+                  "value": "osmosis-1-genesis",
+                },
+                {
+                  "name": "GENESIS_PORT",
+                  "value": "8081",
+                },
+                {
+                  "name": "NAMESPACE",
+                  "valueFrom": {
+                    "fieldRef": {
+                      "fieldPath": "metadata.namespace",
+                    },
+                  },
+                },
+                {
                   "name": "KEYS_CONFIG",
                   "value": "/configs/keys.json",
                 },
@@ -1739,7 +2065,7 @@ echo "Validator initialization completed"",
               ],
               "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
               "imagePullPolicy": "IfNotPresent",
-              "name": "init-validator-config",
+              "name": "init-config",
               "resources": {
                 "limits": {
                   "cpu": "0.3",
@@ -1782,6 +2108,10 @@ echo "Validator initialization completed"",
                 "name": "setup-scripts-osmosis-1",
               },
               "name": "scripts",
+            },
+            {
+              "emptyDir": {},
+              "name": "faucet",
             },
           ],
         },
@@ -2414,6 +2744,8 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
+        "starship.io/chain-name": "osmosis",
         "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-osmosis-1",
@@ -3304,8 +3636,10 @@ $CHAIN_BIN tendermint show-node-id
                 "#!/bin/bash
 set -euo pipefail
 
-echo "Starting osmosisd validator..."
-exec osmosisd start --home /root/.osmosisd --log_level info",
+START_ARGS=""
+
+
+$CHAIN_BIN start $START_ARGS",
               ],
               "env": [
                 {
@@ -3470,9 +3804,42 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
             },
             {
               "command": [
-                "sh",
+                "bash",
                 "-c",
-                "/faucet/faucet",
+                "CREDIT_COINS=""
+FEES=""
+for coin in \${COINS//,/ }
+do
+    amt="\${coin//[!0-9]/}"
+    denom="\${coin//[0-9]/}"
+
+    # Calculate the order of magnitude
+    if [ \${#amt} -gt 18 ]; then
+      creditAmt=$(echo $amt | sed -e "s/000000$//")
+      feesAmt=$(echo $amt | sed -e "s/0000000000000$//")
+    else
+      creditAmt=$(echo $amt | sed -e "s/0000$//")
+      feesAmt=$(echo $amt | sed -e "s/00000000$//")
+    fi
+
+    if [[ $CREDIT_COINS == "" ]]
+    then
+      CREDIT_COINS="$creditAmt$denom"
+      FEES="$feesAmt$denom"
+    else
+      CREDIT_COINS="\${CREDIT_COINS},$creditAmt$denom"
+    fi
+done
+
+export FAUCET_MNEMONIC=$(jq -r ".faucet[0].mnemonic" /configs/keys.json)
+
+export | grep "FAUCET"
+
+until bash -e /scripts/chain-rpc-ready.sh http://localhost:26657; do
+  sleep 10
+done
+
+/faucet/faucet --credit-coins="$CREDIT_COINS" --chain-fees="$FEES"",
               ],
               "env": [
                 {
@@ -3480,41 +3847,33 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                   "value": "2",
                 },
                 {
-                  "name": "FAUCET_PORT",
+                  "name": "FAUCET_HTTP_PORT",
                   "value": "8000",
+                },
+                {
+                  "name": "FAUCET_CHAIN_BINARY",
+                  "value": "osmosisd",
                 },
                 {
                   "name": "FAUCET_CHAIN_ID",
                   "value": "osmosis-1",
                 },
                 {
-                  "name": "FAUCET_CHAIN_DENOM",
-                  "value": "uosmo",
-                },
-                {
-                  "name": "FAUCET_CHAIN_PREFIX",
-                  "value": "osmo",
-                },
-                {
-                  "name": "FAUCET_AMOUNT_SEND",
-                  "value": "10000000",
-                },
-                {
-                  "name": "FAUCET_AMOUNT_STAKE",
-                  "value": "10000000",
-                },
-                {
-                  "name": "FAUCET_RPC_ENDPOINT",
-                  "value": "http://localhost:26657",
-                },
-                {
-                  "name": "FAUCET_REST_ENDPOINT",
-                  "value": "http://localhost:1317",
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
                 },
               ],
-              "image": "busybox:1.34.1",
+              "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
               "imagePullPolicy": "IfNotPresent",
               "name": "faucet",
+              "readinessProbe": {
+                "httpGet": {
+                  "path": "/status",
+                  "port": "8000",
+                },
+                "initialDelaySeconds": 30,
+                "periodSeconds": 10,
+              },
               "resources": {
                 "limits": {
                   "cpu": "0.1",
@@ -3534,6 +3893,10 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                   "mountPath": "/faucet",
                   "name": "faucet",
                 },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
               ],
             },
           ],
@@ -3542,7 +3905,31 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/create-genesis.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+if [ -f $CHAIN_DIR/config/genesis.json ]; then
+  echo "Genesis file exists, exiting init container"
+  exit 0
+fi
+
+echo "Running setup genesis script..."
+bash -e /scripts/create-genesis.sh
+bash -e /scripts/update-genesis.sh
+
+echo "Create node id json file"
+NODE_ID=$($CHAIN_BIN tendermint show-node-id)
+echo '{"node_id":"'$NODE_ID'"}' > $CHAIN_DIR/config/node_id.json
+
+echo "Create consensus key json file"
+$CHAIN_BIN tendermint show-validator > $CHAIN_DIR/config/consensus_key.json
+cat $CHAIN_DIR/config/consensus_key.json
+
+echo "Add custom accounts and balances"
+CHAIN_GENESIS_CMD=$($CHAIN_BIN 2>&1 | grep -q "genesis-related subcommands" && echo "genesis" || echo "")
+
+echo "Adding balance to osmo1e9ucjn5fjmetky5wezzcsccp7hqcwzrrhthpf5"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account osmo1e9ucjn5fjmetky5wezzcsccp7hqcwzrrhthpf5 2000000000000uosmo --keyring-backend="test"",
               ],
               "env": [
                 {
@@ -3626,7 +4013,14 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/update-config.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+echo "Running setup config script..."
+
+jq -s '.[0] * .[1]' $CHAIN_DIR/config/genesis.json /patch/genesis.json > $CHAIN_DIR/config/genesis.json.tmp && mv $CHAIN_DIR/config/genesis.json.tmp $CHAIN_DIR/config/genesis.json
+
+bash -e /scripts/update-config.sh",
               ],
               "env": [
                 {
@@ -3751,6 +4145,10 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                 "name": "patch-osmosis-1",
               },
               "name": "patch",
+            },
+            {
+              "emptyDir": {},
+              "name": "faucet",
             },
           ],
         },
@@ -4383,6 +4781,8 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
+        "starship.io/chain-name": "osmosis",
         "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-osmosis-1",
@@ -4391,7 +4791,7 @@ $CHAIN_BIN tendermint show-node-id
   {
     "apiVersion": "v1",
     "data": {
-      "patch.json": "{
+      "genesis.json": "{
   "app_state": {
     "staking": {
       "params": {
@@ -4420,6 +4820,8 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "genesis-patch",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
+        "starship.io/chain-name": "osmosis",
         "starship.io/name": "starship-generator-test",
       },
       "name": "patch-osmosis-1",
@@ -4432,7 +4834,7 @@ exports[`Cosmos Generator Tests Manifest Generation should generate genesis patc
 {
   "apiVersion": "v1",
   "data": {
-    "patch.json": "{
+    "genesis.json": "{
   "app_state": {
     "staking": {
       "params": {
@@ -4461,6 +4863,8 @@ exports[`Cosmos Generator Tests Manifest Generation should generate genesis patc
       "app.kubernetes.io/part-of": "osmosis-1",
       "app.kubernetes.io/role": "genesis-patch",
       "app.kubernetes.io/version": "4.0.0-alpha.0",
+      "starship.io/chain-id": "osmosis-1",
+      "starship.io/chain-name": "osmosis",
       "starship.io/name": "starship-generator-test",
     },
     "name": "patch-osmosis-1",
@@ -5344,8 +5748,10 @@ $CHAIN_BIN tendermint show-node-id
                 "#!/bin/bash
 set -euo pipefail
 
-echo "Starting gaiad validator..."
-exec gaiad start --home /root/.gaia --log_level info",
+START_ARGS=""
+START_ARGS="--grpc-web.enable=false --transport=grpc --with-tendermint=false --address tcp://0.0.0.0:26658"
+
+$CHAIN_BIN start $START_ARGS",
               ],
               "env": [
                 {
@@ -5501,7 +5907,28 @@ exec gaiad start --home /root/.gaia --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/create-genesis.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+if [ -f $CHAIN_DIR/config/genesis.json ]; then
+  echo "Genesis file exists, exiting init container"
+  exit 0
+fi
+
+echo "Running setup genesis script..."
+bash -e /scripts/create-genesis.sh
+bash -e /scripts/update-genesis.sh
+
+echo "Create node id json file"
+NODE_ID=$($CHAIN_BIN tendermint show-node-id)
+echo '{"node_id":"'$NODE_ID'"}' > $CHAIN_DIR/config/node_id.json
+
+echo "Create consensus key json file"
+$CHAIN_BIN tendermint show-validator > $CHAIN_DIR/config/consensus_key.json
+cat $CHAIN_DIR/config/consensus_key.json
+
+echo "Add custom accounts and balances"
+CHAIN_GENESIS_CMD=$($CHAIN_BIN 2>&1 | grep -q "genesis-related subcommands" && echo "genesis" || echo "")",
               ],
               "env": [
                 {
@@ -5585,7 +6012,12 @@ exec gaiad start --home /root/.gaia --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/update-config.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+echo "Running setup config script..."
+
+bash -e /scripts/update-config.sh",
               ],
               "env": [
                 {
@@ -6306,6 +6738,8 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "cosmoshub-4",
+        "starship.io/chain-name": "cosmoshub",
         "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-cosmoshub-4",
@@ -7199,8 +7633,10 @@ $CHAIN_BIN tendermint show-node-id
                 "#!/bin/bash
 set -euo pipefail
 
-echo "Starting osmosisd validator..."
-exec osmosisd start --home /root/.osmosisd --log_level info",
+START_ARGS=""
+
+
+$CHAIN_BIN start $START_ARGS",
               ],
               "env": [
                 {
@@ -7365,8 +7801,38 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
             },
             {
               "command": [
-                "yarn",
-                "start",
+                "bash",
+                "-c",
+                "export FAUCET_TOKENS=$(printf '%s\\n' \${COINS//[[:digit:]]/})
+for coin in \${COINS//,/ }
+do
+    var="FAUCET_CREDIT_AMOUNT_$(printf '%s\\n' \${coin//[[:digit:]]/} | tr '[:lower:]' '[:upper:]')"
+    amt="\${coin//[!0-9]/}"
+
+    if [ \${#amt} -gt 18 ]; then
+      creditAmt=$(echo $amt | sed -e "s/000000$//")
+      feesAmt=$(echo $amt | sed -e "s/0000000000000$//")
+    else
+      creditAmt=$(echo $amt | sed -e "s/0000$//")
+      feesAmt=$(echo $amt | sed -e "s/00000000$//")
+    fi
+
+    export $var="$creditAmt"
+done
+
+export FAUCET_PATH_PATTERN="\${HD_PATH:0:$((\${#HD_PATH}-1))}a"
+export FAUCET_MNEMONIC=$(jq -r ".faucet[0].mnemonic" /configs/keys.json)
+
+echo "FAUCET_MNEMONIC: $FAUCET_MNEMONIC"
+echo "FAUCET_PATH_PATTERN: $FAUCET_PATH_PATTERN"
+
+export | grep "FAUCET"
+
+until bash -e /scripts/chain-rpc-ready.sh http://localhost:26657; do
+  sleep 10;
+done
+
+/app/packages/faucet/bin/cosmos-faucet-dist start "http://localhost:26657"",
               ],
               "env": [
                 {
@@ -7378,49 +7844,53 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                   "value": "8000",
                 },
                 {
-                  "name": "FAUCET_GAS_PRICE",
-                  "value": "0.025",
+                  "name": "FAUCET_MEMO",
+                  "value": "faucet txn",
                 },
                 {
-                  "name": "FAUCET_PATH_PATTERN",
-                  "value": "",
+                  "name": "FAUCET_GAS_PRICE",
+                  "value": "1.25uosmo",
+                },
+                {
+                  "name": "FAUCET_GAS_LIMIT",
+                  "value": "2000000",
                 },
                 {
                   "name": "FAUCET_ADDRESS_PREFIX",
                   "value": "osmo",
                 },
                 {
-                  "name": "FAUCET_TOKENS",
-                  "value": "uosmo",
+                  "name": "FAUCET_REFILL_FACTOR",
+                  "value": "8",
                 },
                 {
-                  "name": "FAUCET_CREDIT_AMOUNT_SEND",
-                  "value": "10000000",
+                  "name": "FAUCET_REFILL_THRESHOLD",
+                  "value": "20",
                 },
                 {
-                  "name": "FAUCET_CREDIT_AMOUNT_STAKE",
-                  "value": "10000000",
+                  "name": "FAUCET_COOLDOWN_TIME",
+                  "value": "0",
                 },
                 {
-                  "name": "FAUCET_MAX_CREDIT",
-                  "value": "99999999",
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
                 },
                 {
-                  "name": "FAUCET_MNEMONIC",
-                  "value": "",
-                },
-                {
-                  "name": "FAUCET_CHAIN_ID",
-                  "value": "osmosis-1",
-                },
-                {
-                  "name": "FAUCET_RPC_ENDPOINT",
-                  "value": "http://localhost:26657",
+                  "name": "HD_PATH",
+                  "value": "m/44'/118'/0'/0/0",
                 },
               ],
               "image": "ghcr.io/hyperweb-io/starship/faucet:20250325-2207109",
               "imagePullPolicy": "IfNotPresent",
               "name": "faucet",
+              "readinessProbe": {
+                "httpGet": {
+                  "path": "/status",
+                  "port": "8000",
+                },
+                "initialDelaySeconds": 30,
+                "periodSeconds": 10,
+              },
               "resources": {
                 "limits": {
                   "cpu": "0.2",
@@ -7436,6 +7906,10 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                   "mountPath": "/configs",
                   "name": "addresses",
                 },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
               ],
             },
           ],
@@ -7444,7 +7918,28 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/create-genesis.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+if [ -f $CHAIN_DIR/config/genesis.json ]; then
+  echo "Genesis file exists, exiting init container"
+  exit 0
+fi
+
+echo "Running setup genesis script..."
+bash -e /scripts/create-genesis.sh
+bash -e /scripts/update-genesis.sh
+
+echo "Create node id json file"
+NODE_ID=$($CHAIN_BIN tendermint show-node-id)
+echo '{"node_id":"'$NODE_ID'"}' > $CHAIN_DIR/config/node_id.json
+
+echo "Create consensus key json file"
+$CHAIN_BIN tendermint show-validator > $CHAIN_DIR/config/consensus_key.json
+cat $CHAIN_DIR/config/consensus_key.json
+
+echo "Add custom accounts and balances"
+CHAIN_GENESIS_CMD=$($CHAIN_BIN 2>&1 | grep -q "genesis-related subcommands" && echo "genesis" || echo "")",
               ],
               "env": [
                 {
@@ -7528,7 +8023,12 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/update-config.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+echo "Running setup config script..."
+
+bash -e /scripts/update-config.sh",
               ],
               "env": [
                 {
@@ -8249,6 +8749,8 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
+        "starship.io/chain-name": "osmosis",
         "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-osmosis-1",
@@ -9139,8 +9641,10 @@ $CHAIN_BIN tendermint show-node-id
                 "#!/bin/bash
 set -euo pipefail
 
-echo "Starting osmosisd validator..."
-exec osmosisd start --home /root/.osmosisd --log_level info",
+START_ARGS=""
+
+
+$CHAIN_BIN start $START_ARGS",
               ],
               "env": [
                 {
@@ -9305,9 +9809,42 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
             },
             {
               "command": [
-                "sh",
+                "bash",
                 "-c",
-                "/faucet/faucet",
+                "CREDIT_COINS=""
+FEES=""
+for coin in \${COINS//,/ }
+do
+    amt="\${coin//[!0-9]/}"
+    denom="\${coin//[0-9]/}"
+
+    # Calculate the order of magnitude
+    if [ \${#amt} -gt 18 ]; then
+      creditAmt=$(echo $amt | sed -e "s/000000$//")
+      feesAmt=$(echo $amt | sed -e "s/0000000000000$//")
+    else
+      creditAmt=$(echo $amt | sed -e "s/0000$//")
+      feesAmt=$(echo $amt | sed -e "s/00000000$//")
+    fi
+
+    if [[ $CREDIT_COINS == "" ]]
+    then
+      CREDIT_COINS="$creditAmt$denom"
+      FEES="$feesAmt$denom"
+    else
+      CREDIT_COINS="\${CREDIT_COINS},$creditAmt$denom"
+    fi
+done
+
+export FAUCET_MNEMONIC=$(jq -r ".faucet[0].mnemonic" /configs/keys.json)
+
+export | grep "FAUCET"
+
+until bash -e /scripts/chain-rpc-ready.sh http://localhost:26657; do
+  sleep 10
+done
+
+/faucet/faucet --credit-coins="$CREDIT_COINS" --chain-fees="$FEES"",
               ],
               "env": [
                 {
@@ -9315,41 +9852,33 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                   "value": "2",
                 },
                 {
-                  "name": "FAUCET_PORT",
+                  "name": "FAUCET_HTTP_PORT",
                   "value": "8000",
+                },
+                {
+                  "name": "FAUCET_CHAIN_BINARY",
+                  "value": "osmosisd",
                 },
                 {
                   "name": "FAUCET_CHAIN_ID",
                   "value": "osmosis-1",
                 },
                 {
-                  "name": "FAUCET_CHAIN_DENOM",
-                  "value": "uosmo",
-                },
-                {
-                  "name": "FAUCET_CHAIN_PREFIX",
-                  "value": "osmo",
-                },
-                {
-                  "name": "FAUCET_AMOUNT_SEND",
-                  "value": "10000000",
-                },
-                {
-                  "name": "FAUCET_AMOUNT_STAKE",
-                  "value": "10000000",
-                },
-                {
-                  "name": "FAUCET_RPC_ENDPOINT",
-                  "value": "http://localhost:26657",
-                },
-                {
-                  "name": "FAUCET_REST_ENDPOINT",
-                  "value": "http://localhost:1317",
+                  "name": "COINS",
+                  "value": "100000000000000uosmo,100000000000000uion",
                 },
               ],
-              "image": "busybox:1.34.1",
+              "image": "ghcr.io/cosmology-tech/starship/osmosis:v25.0.0",
               "imagePullPolicy": "IfNotPresent",
               "name": "faucet",
+              "readinessProbe": {
+                "httpGet": {
+                  "path": "/status",
+                  "port": "8000",
+                },
+                "initialDelaySeconds": 30,
+                "periodSeconds": 10,
+              },
               "resources": {
                 "limits": {
                   "cpu": "0.1",
@@ -9369,6 +9898,10 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                   "mountPath": "/faucet",
                   "name": "faucet",
                 },
+                {
+                  "mountPath": "/scripts",
+                  "name": "scripts",
+                },
               ],
             },
           ],
@@ -9377,7 +9910,31 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/create-genesis.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+if [ -f $CHAIN_DIR/config/genesis.json ]; then
+  echo "Genesis file exists, exiting init container"
+  exit 0
+fi
+
+echo "Running setup genesis script..."
+bash -e /scripts/create-genesis.sh
+bash -e /scripts/update-genesis.sh
+
+echo "Create node id json file"
+NODE_ID=$($CHAIN_BIN tendermint show-node-id)
+echo '{"node_id":"'$NODE_ID'"}' > $CHAIN_DIR/config/node_id.json
+
+echo "Create consensus key json file"
+$CHAIN_BIN tendermint show-validator > $CHAIN_DIR/config/consensus_key.json
+cat $CHAIN_DIR/config/consensus_key.json
+
+echo "Add custom accounts and balances"
+CHAIN_GENESIS_CMD=$($CHAIN_BIN 2>&1 | grep -q "genesis-related subcommands" && echo "genesis" || echo "")
+
+echo "Adding balance to osmo1e9ucjn5fjmetky5wezzcsccp7hqcwzrrhthpf5"
+$CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account osmo1e9ucjn5fjmetky5wezzcsccp7hqcwzrrhthpf5 2000000000000uosmo --keyring-backend="test"",
               ],
               "env": [
                 {
@@ -9461,7 +10018,14 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
               "command": [
                 "bash",
                 "-c",
-                "/scripts/update-config.sh",
+                "VAL_INDEX=\${HOSTNAME##*-}
+echo "Validator Index: $VAL_INDEX"
+
+echo "Running setup config script..."
+
+jq -s '.[0] * .[1]' $CHAIN_DIR/config/genesis.json /patch/genesis.json > $CHAIN_DIR/config/genesis.json.tmp && mv $CHAIN_DIR/config/genesis.json.tmp $CHAIN_DIR/config/genesis.json
+
+bash -e /scripts/update-config.sh",
               ],
               "env": [
                 {
@@ -9586,6 +10150,10 @@ exec osmosisd start --home /root/.osmosisd --log_level info",
                 "name": "patch-osmosis-1",
               },
               "name": "patch",
+            },
+            {
+              "emptyDir": {},
+              "name": "faucet",
             },
           ],
         },
@@ -10218,6 +10786,8 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
+        "starship.io/chain-name": "osmosis",
         "starship.io/name": "starship-generator-test",
       },
       "name": "setup-scripts-osmosis-1",
@@ -10226,7 +10796,7 @@ $CHAIN_BIN tendermint show-node-id
   {
     "apiVersion": "v1",
     "data": {
-      "patch.json": "{
+      "genesis.json": "{
   "app_state": {
     "staking": {
       "params": {
@@ -10255,6 +10825,8 @@ $CHAIN_BIN tendermint show-node-id
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "genesis-patch",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
+        "starship.io/chain-id": "osmosis-1",
+        "starship.io/chain-name": "osmosis",
         "starship.io/name": "starship-generator-test",
       },
       "name": "patch-osmosis-1",

@@ -10,8 +10,10 @@ metadata:
     app.kubernetes.io/name: osmosis
     app.kubernetes.io/part-of: osmosis-1
     app.kubernetes.io/role: genesis-patch
+    starship.io/chain-name: osmosis
+    starship.io/chain-id: osmosis-1
 data:
-  patch.json: |-
+  genesis.json: |-
     {
       "app_state": {
         "staking": {

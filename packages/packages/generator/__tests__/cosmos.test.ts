@@ -1,7 +1,7 @@
 import { mkdirSync } from 'fs';
 import { join } from 'path';
 
-import { CosmosBuilder } from '../src/builders/cosmos';
+import { CosmosBuilder } from '../src/builders/chains/cosmos';
 import { applyDefaults } from '../src/defaults';
 import {
   buildChainConfig,
@@ -118,7 +118,9 @@ describe('Cosmos Generator Tests', () => {
       expect(patchConfigMap).toBeDefined();
       expect(patchConfigMap?.kind).toBe('ConfigMap');
 
-      const genesisJsonString = patchConfigMap?.data?.['patch.json'] as string;
+      const genesisJsonString = patchConfigMap?.data?.[
+        'genesis.json'
+      ] as string;
       const genesisData = JSON.parse(genesisJsonString || '{}');
       expect(genesisData.app_state.staking.params.unbonding_time).toBe('5s');
 

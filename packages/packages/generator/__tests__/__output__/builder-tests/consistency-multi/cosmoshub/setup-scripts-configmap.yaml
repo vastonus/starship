@@ -10,6 +10,8 @@ metadata:
     app.kubernetes.io/name: cosmoshub
     app.kubernetes.io/part-of: cosmoshub-4
     app.kubernetes.io/role: setup-scripts
+    starship.io/chain-name: cosmoshub
+    starship.io/chain-id: cosmoshub-4
 data:
   create-genesis.sh: >
     #!/bin/bash
