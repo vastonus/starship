@@ -292,21 +292,21 @@ describe('BuilderManager Tests', () => {
       expect(hasCosmoshubResources).toBe(true);
     });
 
-    it('should skip Ethereum chains appropriately', () => {
+    it('should create Ethereum chains appropriately', () => {
       const manager = new BuilderManager(ethereumConfig);
 
-      const testSubDir = join(testOutputDir, 'ethereum-skip');
+      const testSubDir = join(testOutputDir, 'ethereum');
       manager.build(testSubDir);
 
       const yamlFiles = loadYamlFiles(testSubDir);
-      expect(yamlFiles).toMatchSnapshot('ethereum-skip-yaml-files');
+      expect(yamlFiles).toMatchSnapshot('ethereum-yaml-files');
 
       // only explorer and registry dir should exist
       const directories = readdirSync(testSubDir, { withFileTypes: true })
         .filter((item) => item.isDirectory())
         .map((item) => item.name)
         .sort();
-      expect(directories).toEqual([]);
+      expect(directories).toEqual(['ethereum']);
     });
 
     it('should handle relayer configuration', () => {

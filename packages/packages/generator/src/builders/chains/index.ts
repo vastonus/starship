@@ -2,19 +2,17 @@ import { StarshipConfig } from '@starship-ci/types';
 
 import { IGenerator, Manifest } from '../../types';
 import { CosmosBuilder } from './cosmos';
-
-// Export all individual builders and components
-export * from './cosmos';
+import { EthereumBuilder } from './ethereum';
 
 const chainBuilderRegistry: Record<
   string,
   new (config: StarshipConfig) => IGenerator
 > = {
-  // ethereum: EthereumBuilder, // Future: when ethereum builder is implemented
+  ethereum: EthereumBuilder
 };
 
 function createBuilder(chainName: string, config: StarshipConfig): IGenerator {
-  const builder = chainBuilderRegistry[chainName] || CosmosBuilder; // default to cosmos builder if no builder is found
+  const builder = chainBuilderRegistry[chainName] || CosmosBuilder;
   return new builder(config);
 }
 

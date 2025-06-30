@@ -15,7 +15,13 @@ import {
 } from '@starship-ci/types';
 import { ConfigMap, Deployment, Service, StatefulSet } from 'kubernetesjs';
 
-export type Manifest = ConfigMap | Service | Deployment | StatefulSet;
+export type Manifest =
+  | ConfigMap
+  | Service
+  | Deployment
+  | StatefulSet
+  | Ingress
+  | any;
 
 export interface GeneratorContext {
   config: StarshipConfig;

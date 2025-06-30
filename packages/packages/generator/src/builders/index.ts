@@ -8,6 +8,8 @@ import { Manifest } from '../types';
 import { ChainBuilder } from './chains';
 import { ExplorerBuilder } from './explorer';
 import { FrontendBuilder } from './frontend';
+import { IngressBuilder } from './ingress';
+import { MonitoringBuilder } from './monitoring';
 import { RegistryBuilder } from './registry';
 import { RelayerBuilder } from './relayers';
 
@@ -80,7 +82,9 @@ export class BuilderManager {
       new RegistryBuilder(this.config),
       new ExplorerBuilder(this.config),
       new FrontendBuilder(this.config),
-      new RelayerBuilder(this.config)
+      new RelayerBuilder(this.config),
+      new IngressBuilder(this.config),
+      new MonitoringBuilder(this.config)
     ];
 
     let allManifests: Manifest[] = [];
