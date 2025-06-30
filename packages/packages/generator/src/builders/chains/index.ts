@@ -1,4 +1,4 @@
-import { Chain, StarshipConfig } from '@starship-ci/types';
+import { StarshipConfig } from '@starship-ci/types';
 
 import { IGenerator, Manifest } from '../../types';
 import { CosmosBuilder } from './cosmos';
@@ -14,7 +14,7 @@ const chainBuilderRegistry: Record<
 };
 
 function createBuilder(chainName: string, config: StarshipConfig): IGenerator {
-  const builder = chainBuilderRegistry[chainName] || CosmosBuilder;  // default to cosmos builder if no builder is found
+  const builder = chainBuilderRegistry[chainName] || CosmosBuilder; // default to cosmos builder if no builder is found
   return new builder(config);
 }
 
@@ -27,7 +27,7 @@ export class ChainBuilder implements IGenerator {
 
   constructor(config: StarshipConfig) {
     this.config = config;
-    
+
     // Create builders for each chain
     this.config.chains?.forEach((chain) => {
       this.generators.push(createBuilder(chain.name, this.config));

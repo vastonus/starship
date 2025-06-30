@@ -1,5 +1,5 @@
-import { Chain, StarshipConfig, Resources } from '@starship-ci/types';
-import { EnvVar, Container, ResourceRequirements, Volume } from 'kubernetesjs';
+import { Chain, Resources, StarshipConfig } from '@starship-ci/types';
+import { Container, EnvVar, ResourceRequirements, Volume } from 'kubernetesjs';
 
 import { getGeneratorVersion } from './version';
 
@@ -7,8 +7,8 @@ import { getGeneratorVersion } from './version';
  * Convert chain.id to name usable by templates
  * Replaces underscores with hyphens and truncates to 63 chars
  */
-export function getChainName(chainId: string): string {
-  return chainId.replace(/_/g, '-').substring(0, 63);
+export function getChainName(chainId: string | number): string {
+  return String(chainId).replace(/_/g, '-').substring(0, 63);
 }
 
 /**
@@ -133,7 +133,10 @@ export function getResourceObject(resources: Resources): ResourceRequirements {
 /**
  * Get node resources with chain-specific overrides
  */
-export function getNodeResources(chain: Chain, context: StarshipConfig): ResourceRequirements {
+export function getNodeResources(
+  chain: Chain,
+  context: StarshipConfig
+): ResourceRequirements {
   if (chain.resources) {
     return getResourceObject(chain.resources);
   }
@@ -314,7 +317,9 @@ export function generateWaitInitContainer(
       }
     ],
     command: ['/bin/sh', '-c', `${waitScript}\necho "Ready to start"\nexit 0`],
-    resources: getResourceObject(config?.resources?.wait || { cpu: '0.1', memory: '128M' })
+    resources: getResourceObject(
+      config?.resources?.wait || { cpu: '0.1', memory: '128M' }
+    )
   };
 }
 

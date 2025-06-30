@@ -4,7 +4,7 @@ import { Container, StatefulSet } from 'kubernetesjs';
 import { DefaultsManager } from '../../../defaults';
 import * as helpers from '../../../helpers';
 import { ScriptManager } from '../../../scripts';
-import { IGenerator, Manifest } from '../../../types';
+import { IGenerator } from '../../../types';
 import { getGeneratorVersion } from '../../../version';
 
 export class CosmosGenesisStatefulSetGenerator implements IGenerator {
@@ -13,7 +13,11 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
   private scriptManager: ScriptManager;
   private defaultsManager: DefaultsManager;
 
-  constructor(chain: Chain, config: StarshipConfig, scriptManager: ScriptManager) {
+  constructor(
+    chain: Chain,
+    config: StarshipConfig,
+    scriptManager: ScriptManager
+  ) {
     this.config = config;
     this.chain = chain;
     this.scriptManager = scriptManager;
@@ -36,7 +40,7 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
 
   generate(): Array<StatefulSet> {
     const processedChain = this.defaultsManager.processChain(this.chain);
-    
+
     return [
       {
         apiVersion: 'apps/v1',
@@ -74,7 +78,9 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
             },
             spec: {
               ...((processedChain as any).imagePullSecrets
-                ? helpers.generateImagePullSecrets((processedChain as any).imagePullSecrets)
+                ? helpers.generateImagePullSecrets(
+                    (processedChain as any).imagePullSecrets
+                  )
                 : {}),
               initContainers: this.createInitContainers(processedChain),
               containers: this.createMainContainers(processedChain),
@@ -109,7 +115,9 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
     if (chain.ics?.enabled) {
       // Add wait container for provider chain
       const providerChainId = chain.ics.provider || 'cosmoshub';
-      initContainers.push(this.createIcsWaitInitContainer([providerChainId], exposerPort));
+      initContainers.push(
+        this.createIcsWaitInitContainer([providerChainId], exposerPort)
+      );
       initContainers.push(this.createIcsInitContainer(chain, exposerPort));
     }
 
@@ -254,11 +262,13 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
     // Need to get provider chain info - for now using a placeholder
     // In real implementation, this would need access to provider chain config
     const providerChainId = chain.ics?.provider || 'cosmoshub';
-    const providerHostname = helpers.getChainName(providerChainId);
-    
+    const providerChain = this.config.chains.find(
+      (c) => c.id === providerChainId
+    );
+
     return {
       name: 'init-ics',
-      image: chain.image, // Should use provider chain image in real implementation
+      image: providerChain?.image,
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
         ...helpers.getDefaultEnvVars(chain),
@@ -273,7 +283,11 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
         },
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' }
       ],
-      command: ['bash', '-c', this.getIcsInitScript(chain, providerHostname)],
+      command: [
+        'bash',
+        '-c',
+        this.getIcsInitScript(chain, providerChain, exposerPort)
+      ],
       resources: helpers.getNodeResources(chain, this.config),
       volumeMounts: [
         { mountPath: '/proposal', name: 'proposal' },
@@ -284,17 +298,16 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
     };
   }
 
-  private createIcsWaitInitContainer(chainIDs: string[], port: number): Container {
-    return helpers.generateWaitInitContainer(
-      chainIDs,
-      port,
-      this.config
-    );
+  private createIcsWaitInitContainer(
+    chainIDs: string[],
+    port: number
+  ): Container {
+    return helpers.generateWaitInitContainer(chainIDs, port, this.config);
   }
 
   private createValidatorContainer(chain: Chain): Container {
     const toBuild = chain.build?.enabled || chain.upgrade?.enabled;
-    
+
     return {
       name: 'validator',
       image: chain.image,
@@ -307,10 +320,19 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
           value: String(chain.faucet?.enabled || false)
         },
         { name: 'SLOGFILE', value: 'slog.slog' },
-        ...(toBuild ? [
-          { name: 'DAEMON_NAME', value: chain.binary || helpers.getChainId(chain) },
-          { name: 'DAEMON_HOME', value: chain.home || `/home/validator/.${helpers.getChainId(chain)}` }
-        ] : []),
+        ...(toBuild
+          ? [
+              {
+                name: 'DAEMON_NAME',
+                value: chain.binary || helpers.getChainId(chain)
+              },
+              {
+                name: 'DAEMON_HOME',
+                value:
+                  chain.home || `/home/validator/.${helpers.getChainId(chain)}`
+              }
+            ]
+          : []),
         ...(chain.env || []).map((env: any) => ({
           name: env.name,
           value: String(env.value)
@@ -397,7 +419,10 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
     const faucet = chain.faucet as FaucetConfig;
     return {
       name: 'faucet',
-      image: faucet.image || this.config.faucet?.image || 'ghcr.io/cosmology-tech/starship/faucet:latest',
+      image:
+        faucet.image ||
+        this.config.faucet?.image ||
+        'ghcr.io/cosmology-tech/starship/faucet:latest',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
         {
@@ -415,7 +440,10 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
         { name: 'FAUCET_REFILL_FACTOR', value: '8' },
         { name: 'FAUCET_REFILL_THRESHOLD', value: '20' },
         { name: 'FAUCET_COOLDOWN_TIME', value: '0' },
-        { name: 'COINS', value: chain.coins || `1000000000000000000${chain.denom}` },
+        {
+          name: 'COINS',
+          value: chain.coins || `1000000000000000000${chain.denom}`
+        },
         { name: 'HD_PATH', value: chain.hdPath || "m/44'/118'/0'/0/0" }
       ],
       command: ['bash', '-c', this.getCosmjsFaucetScript()],
@@ -452,9 +480,15 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
           name: 'FAUCET_HTTP_PORT',
           value: String(faucet.ports?.rest || 8000)
         },
-        { name: 'FAUCET_CHAIN_BINARY', value: chain.binary || helpers.getChainId(chain) },
+        {
+          name: 'FAUCET_CHAIN_BINARY',
+          value: chain.binary || helpers.getChainId(chain)
+        },
         { name: 'FAUCET_CHAIN_ID', value: helpers.getChainId(chain) },
-        { name: 'COINS', value: chain.coins || `1000000000000000000${chain.denom}` }
+        {
+          name: 'COINS',
+          value: chain.coins || `1000000000000000000${chain.denom}`
+        }
       ],
       command: ['bash', '-c', this.getStarshipFaucetScript()],
       resources: helpers.getResourceObject(
@@ -478,7 +512,7 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
 
   private getGenesisInitScript(chain: Chain): string {
     const toBuild = chain.build?.enabled || chain.upgrade?.enabled;
-    
+
     let script = `
 VAL_INDEX=\${HOSTNAME##*-}
 echo "Validator Index: $VAL_INDEX"
@@ -528,7 +562,7 @@ $CHAIN_BIN $CHAIN_GENESIS_CMD add-genesis-account ${balance.address} ${balance.a
 
   private getConfigInitScript(chain: Chain): string {
     const toBuild = chain.build?.enabled || chain.upgrade?.enabled;
-    
+
     let script = `
 VAL_INDEX=\${HOSTNAME##*-}
 echo "Validator Index: $VAL_INDEX"
@@ -570,9 +604,7 @@ bash -e /scripts/update-config.sh
 
   private getValidatorStartScript(chain: Chain): string {
     const toBuild = chain.build?.enabled || chain.upgrade?.enabled;
-    const chainBin = chain.binary || helpers.getChainId(chain);
-    const chainHome = chain.home || `/home/validator/.${helpers.getChainId(chain)}`;
-    
+
     return `#!/bin/bash
 set -euo pipefail
 
@@ -656,12 +688,17 @@ done
 `.trim();
   }
 
-  private getIcsInitScript(chain: Chain, providerHostname: string): string {
+  private getIcsInitScript(
+    chain: Chain,
+    providerChain: Chain,
+    exposerPort: number
+  ): string {
+    const providerHostname = helpers.getChainName(providerChain.id);
     return `
 export
 
 echo "Fetching priv keys from provider exposer"
-curl -s http://${providerHostname}-genesis.$NAMESPACE.svc.cluster.local:8081/priv_keys | jq > $CHAIN_DIR/config/provider_priv_validator_key.json
+curl -s http://${providerHostname}-genesis.$NAMESPACE.svc.cluster.local:${exposerPort}/priv_keys | jq > $CHAIN_DIR/config/provider_priv_validator_key.json
 cat $CHAIN_DIR/config/provider_priv_validator_key.json
 
 echo "Replace provider priv validator key with provider keys"
@@ -669,15 +706,15 @@ mv $CHAIN_DIR/config/priv_validator_key.json $CHAIN_DIR/config/previous_priv_val
 mv $CHAIN_DIR/config/provider_priv_validator_key.json $CHAIN_DIR/config/priv_validator_key.json
 
 echo "Create consumer addition proposal"
-DENOM=${chain.ics?.provider ? '$DENOM' : 'uatom'} \\
-  CHAIN_ID=${chain.ics?.provider || 'cosmoshub'} \\
-  CHAIN_BIN=${chain.binary || '$CHAIN_BIN'} \\
+DENOM=${providerChain?.denom} \\
+  CHAIN_ID=${providerChain?.id} \\
+  CHAIN_BIN=${providerChain?.binary || '$CHAIN_BIN'} \\
   NODE_URL=http://${providerHostname}-genesis.$NAMESPACE.svc.cluster.local:26657 \\
   PROPOSAL_FILE=/proposal/proposal.json \\
   bash -e /scripts/create-ics.sh
 
 echo "create ccv state file"
-${chain.binary || '$CHAIN_BIN'} query provider consumer-genesis ${helpers.getChainId(chain)} \\
+${providerChain?.binary || '$CHAIN_BIN'} query provider consumer-genesis ${chain.id} \\
   --node http://${providerHostname}-genesis.$NAMESPACE.svc.cluster.local:26657 \\
   -o json > $CHAIN_DIR/config/ccv-state.json
 cat $CHAIN_DIR/config/ccv-state.json | jq

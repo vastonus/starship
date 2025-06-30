@@ -4,7 +4,7 @@ import { Container, StatefulSet } from 'kubernetesjs';
 import { DefaultsManager } from '../../../defaults';
 import * as helpers from '../../../helpers';
 import { ScriptManager } from '../../../scripts';
-import { IGenerator, Manifest } from '../../../types';
+import { IGenerator } from '../../../types';
 import { getGeneratorVersion } from '../../../version';
 
 export class CosmosValidatorStatefulSetGenerator implements IGenerator {
@@ -13,7 +13,11 @@ export class CosmosValidatorStatefulSetGenerator implements IGenerator {
   private scriptManager: ScriptManager;
   private defaultsManager: DefaultsManager;
 
-  constructor(chain: Chain, config: StarshipConfig, scriptManager: ScriptManager) {
+  constructor(
+    chain: Chain,
+    config: StarshipConfig,
+    scriptManager: ScriptManager
+  ) {
     this.config = config;
     this.chain = chain;
     this.scriptManager = scriptManager;
@@ -36,7 +40,7 @@ export class CosmosValidatorStatefulSetGenerator implements IGenerator {
 
   generate(): Array<StatefulSet> {
     const processedChain = this.defaultsManager.processChain(this.chain);
-    
+
     return [
       {
         apiVersion: 'apps/v1',
@@ -74,7 +78,9 @@ export class CosmosValidatorStatefulSetGenerator implements IGenerator {
             },
             spec: {
               ...((processedChain as any).imagePullSecrets
-                ? helpers.generateImagePullSecrets((processedChain as any).imagePullSecrets)
+                ? helpers.generateImagePullSecrets(
+                    (processedChain as any).imagePullSecrets
+                  )
                 : {}),
               initContainers: this.createInitContainers(processedChain),
               containers: this.createMainContainers(processedChain),
@@ -100,7 +106,7 @@ export class CosmosValidatorStatefulSetGenerator implements IGenerator {
     // Validator init container
     initContainers.push(this.createValidatorInitContainer(chain));
 
-    // Validator config init container  
+    // Validator config init container
     initContainers.push(this.createValidatorConfigContainer(chain));
 
     // ICS init container if enabled
@@ -135,11 +141,13 @@ export class CosmosValidatorStatefulSetGenerator implements IGenerator {
   private createIcsInitContainer(chain: Chain): Container {
     const providerChainId = chain.ics?.provider;
     const providerHostname = helpers.getChainName(providerChainId);
-    const providerChain = this.config.chains.find((c) => c.id === providerChainId);
-    
+    const providerChain = this.config.chains.find(
+      (c) => c.id === providerChainId
+    );
+
     return {
       name: 'init-ics',
-      image: chain.image, // Should use provider chain image in real implementation
+      image: providerChain?.image, // Should use provider chain image in real implementation
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
         ...helpers.getDefaultEnvVars(chain),
@@ -214,9 +222,15 @@ export class CosmosValidatorStatefulSetGenerator implements IGenerator {
         ...helpers.getDefaultEnvVars(chain),
         ...helpers.getChainEnvVars(chain),
         ...helpers.getTimeoutEnvVars(this.config.timeouts || {}),
-        ...helpers.getGenesisEnvVars(chain, this.config.exposer?.ports?.rest || 8081),
+        ...helpers.getGenesisEnvVars(
+          chain,
+          this.config.exposer?.ports?.rest || 8081
+        ),
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' },
-        { name: 'FAUCET_ENABLED', value: String(chain.faucet?.enabled || false) },
+        {
+          name: 'FAUCET_ENABLED',
+          value: String(chain.faucet?.enabled || false)
+        },
         { name: 'METRICS', value: String(chain.metrics || false) }
       ],
       command: ['bash', '-c', this.getValidatorInitScript(chain)],
@@ -234,7 +248,10 @@ export class CosmosValidatorStatefulSetGenerator implements IGenerator {
         ...helpers.getDefaultEnvVars(chain),
         ...helpers.getChainEnvVars(chain),
         ...helpers.getTimeoutEnvVars(this.config.timeouts || {}),
-        ...helpers.getGenesisEnvVars(chain, this.config.exposer?.ports?.rest || 8081),
+        ...helpers.getGenesisEnvVars(
+          chain,
+          this.config.exposer?.ports?.rest || 8081
+        ),
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' },
         { name: 'METRICS', value: String(chain.metrics || false) }
       ],
@@ -252,7 +269,10 @@ export class CosmosValidatorStatefulSetGenerator implements IGenerator {
       env: [
         ...helpers.getDefaultEnvVars(chain),
         ...helpers.getChainEnvVars(chain),
-        ...helpers.getGenesisEnvVars(chain, this.config.exposer?.ports?.rest || 8081),
+        ...helpers.getGenesisEnvVars(
+          chain,
+          this.config.exposer?.ports?.rest || 8081
+        ),
         { name: 'KEYS_CONFIG', value: '/configs/keys.json' },
         { name: 'SLOGFILE', value: 'slog.slog' },
         ...(chain.env || []).map((env: any) => ({
@@ -269,7 +289,12 @@ export class CosmosValidatorStatefulSetGenerator implements IGenerator {
             lifecycle: {
               postStart: {
                 exec: {
-                  command: ['bash', '-c', '-e', this.getValidatorPostStartScript(chain)]
+                  command: [
+                    'bash',
+                    '-c',
+                    '-e',
+                    this.getValidatorPostStartScript(chain)
+                  ]
                 }
               }
             }
@@ -297,22 +322,41 @@ export class CosmosValidatorStatefulSetGenerator implements IGenerator {
   private createExposerContainer(chain: Chain): Container {
     return {
       name: 'exposer',
-      image: this.config.exposer?.image || 'ghcr.io/cosmology-tech/starship/exposer:latest',
+      image:
+        this.config.exposer?.image ||
+        'ghcr.io/cosmology-tech/starship/exposer:latest',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
         ...helpers.getDefaultEnvVars(chain),
         ...helpers.getChainEnvVars(chain),
-        ...helpers.getGenesisEnvVars(chain, this.config.exposer?.ports?.rest || 8081),
+        ...helpers.getGenesisEnvVars(
+          chain,
+          this.config.exposer?.ports?.rest || 8081
+        ),
         { name: 'EXPOSER_HTTP_PORT', value: '8081' },
         { name: 'EXPOSER_GRPC_PORT', value: '9099' },
-        { name: 'EXPOSER_GENESIS_FILE', value: `${chain.home}/config/genesis.json` },
+        {
+          name: 'EXPOSER_GENESIS_FILE',
+          value: `${chain.home}/config/genesis.json`
+        },
         { name: 'EXPOSER_MNEMONIC_FILE', value: '/configs/keys.json' },
-        { name: 'EXPOSER_PRIV_VAL_FILE', value: `${chain.home}/config/priv_validator_key.json` },
-        { name: 'EXPOSER_NODE_KEY_FILE', value: `${chain.home}/config/node_key.json` },
-        { name: 'EXPOSER_PRIV_VAL_STATE_FILE', value: `${chain.home}/data/priv_validator_state.json` }
+        {
+          name: 'EXPOSER_PRIV_VAL_FILE',
+          value: `${chain.home}/config/priv_validator_key.json`
+        },
+        {
+          name: 'EXPOSER_NODE_KEY_FILE',
+          value: `${chain.home}/config/node_key.json`
+        },
+        {
+          name: 'EXPOSER_PRIV_VAL_STATE_FILE',
+          value: `${chain.home}/data/priv_validator_state.json`
+        }
       ],
       command: ['exposer'],
-      resources: helpers.getResourceObject(this.config.exposer?.resources || { cpu: '0.1', memory: '128M' }),
+      resources: helpers.getResourceObject(
+        this.config.exposer?.resources || { cpu: '0.1', memory: '128M' }
+      ),
       volumeMounts: [
         { mountPath: chain.home, name: 'node' },
         { mountPath: '/configs', name: 'addresses' }
@@ -337,7 +381,7 @@ mv $CHAIN_DIR/config/provider_priv_validator_key.json $CHAIN_DIR/config/priv_val
 
   private getValidatorInitScript(chain: Chain): string {
     const toBuild = chain.build?.enabled || chain.upgrade?.enabled;
-    
+
     return `
 VAL_INDEX=\${HOSTNAME##*-}
 echo "Validator Index: $VAL_INDEX"
@@ -367,7 +411,7 @@ echo '{"node_id":"'$NODE_ID'"}' > $CHAIN_DIR/config/node_id.json
 
   private getValidatorConfigScript(chain: Chain): string {
     const toBuild = chain.build?.enabled || chain.upgrade?.enabled;
-    
+
     return `
 VAL_INDEX=\${HOSTNAME##*-}
 echo "Validator Index: $VAL_INDEX"
@@ -394,17 +438,21 @@ cat $CHAIN_DIR/config/config.toml
 
   private getValidatorStartScript(chain: Chain): string {
     const toBuild = chain.build?.enabled || chain.upgrade?.enabled;
-    
+
     return `
 set -eux
 START_ARGS=""
 ${chain.cometmock?.enabled ? 'START_ARGS="--grpc-web.enable=false --transport=grpc --with-tendermint=false --address tcp://0.0.0.0:26658"' : ''}
 
 # Starting the chain
-${toBuild ? `
+${
+  toBuild
+    ? `
 cp $CHAIN_DIR/cosmovisor/genesis/bin/$CHAIN_BIN /usr/bin
-/usr/bin/cosmovisor start $START_ARGS` : `
-$CHAIN_BIN start $START_ARGS`}
+/usr/bin/cosmovisor start $START_ARGS`
+    : `
+$CHAIN_BIN start $START_ARGS`
+}
 `.trim();
   }
 

@@ -1,6 +1,5 @@
 import { Chain, StarshipConfig } from '@starship-ci/types';
 import * as fs from 'fs';
-import { ConfigMap } from 'kubernetesjs';
 import * as path from 'path';
 
 import { DefaultsManager } from '../../../defaults';
@@ -125,7 +124,11 @@ export class SetupScriptsConfigMapGenerator implements IGenerator {
   private chain: Chain;
   private scriptManager: ScriptManager;
 
-  constructor(chain: Chain, config: StarshipConfig, scriptManager: ScriptManager) {
+  constructor(
+    chain: Chain,
+    config: StarshipConfig,
+    scriptManager: ScriptManager
+  ) {
     this.config = config;
     this.chain = chain;
     this.scriptManager = scriptManager;
@@ -242,7 +245,7 @@ export class IcsConsumerProposalConfigMapGenerator implements IGenerator {
     const providerChain = this.config.chains.find(
       (c) => c.id === this.chain.ics.provider
     );
-    
+
     if (!providerChain) {
       console.warn(
         `Warning: ICS Provider chain '${this.chain.ics.provider}' not found. Skipping ICS proposal for '${this.chain.id}'.`
@@ -250,7 +253,8 @@ export class IcsConsumerProposalConfigMapGenerator implements IGenerator {
       return [];
     }
 
-    const processedProviderChain = this.defaultsManager.processChain(providerChain);
+    const processedProviderChain =
+      this.defaultsManager.processChain(providerChain);
 
     const proposal = {
       title: `Add ${this.chain.name} consumer chain`,
@@ -313,13 +317,21 @@ export class CosmosConfigMapGenerator implements IGenerator {
   private scriptManager: ScriptManager;
   private generators: IGenerator[];
 
-  constructor(chain: Chain, config: StarshipConfig, scriptManager: ScriptManager) {
+  constructor(
+    chain: Chain,
+    config: StarshipConfig,
+    scriptManager: ScriptManager
+  ) {
     this.config = config;
     this.chain = chain;
     this.scriptManager = scriptManager;
-    
+
     this.generators = [
-      new SetupScriptsConfigMapGenerator(this.chain, this.config, this.scriptManager),
+      new SetupScriptsConfigMapGenerator(
+        this.chain,
+        this.config,
+        this.scriptManager
+      ),
       new GenesisPatchConfigMapGenerator(this.chain, this.config),
       new IcsConsumerProposalConfigMapGenerator(this.chain, this.config)
     ];
@@ -340,7 +352,7 @@ export class GlobalConfigMapGenerator implements IGenerator {
 
   constructor(config: StarshipConfig, projectRoot?: string) {
     this.config = config;
-    
+
     this.generators = [
       new KeysConfigMapGenerator(this.config, projectRoot),
       new GlobalScriptsConfigMapGenerator(this.config, projectRoot)

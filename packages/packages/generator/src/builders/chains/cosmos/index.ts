@@ -2,7 +2,10 @@ import { StarshipConfig } from '@starship-ci/types';
 
 import { ScriptManager } from '../../../scripts';
 import { IGenerator, Manifest } from '../../../types';
-import { CosmosConfigMapGenerator, GlobalConfigMapGenerator } from './configmap';
+import {
+  CosmosConfigMapGenerator,
+  GlobalConfigMapGenerator
+} from './configmap';
 import { CosmosServiceGenerator } from './service';
 import { CosmosStatefulSetGenerator } from './statefulset';
 
@@ -21,9 +24,10 @@ export class CosmosBuilder implements IGenerator {
     this.generators = [];
 
     // Filter cosmos chains
-    const cosmosChains = this.config.chains?.filter(
-      (chain) => chain.name !== 'ethereum' && typeof chain.id === 'string'
-    ) || [];
+    const cosmosChains =
+      this.config.chains?.filter(
+        (chain) => chain.name !== 'ethereum' && typeof chain.id === 'string'
+      ) || [];
 
     if (cosmosChains.length === 0) {
       return; // No cosmos chains to process
@@ -37,15 +41,19 @@ export class CosmosBuilder implements IGenerator {
       // Services
       this.generators.push(new CosmosServiceGenerator(chain, this.config));
 
-      // StatefulSets  
-      this.generators.push(new CosmosStatefulSetGenerator(chain, this.config, this.scriptManager));
+      // StatefulSets
+      this.generators.push(
+        new CosmosStatefulSetGenerator(chain, this.config, this.scriptManager)
+      );
 
       // ConfigMaps
-      this.generators.push(new CosmosConfigMapGenerator(chain, this.config, this.scriptManager));
+      this.generators.push(
+        new CosmosConfigMapGenerator(chain, this.config, this.scriptManager)
+      );
     });
   }
 
   generate(): Manifest[] {
     return this.generators.flatMap((generator) => generator.generate());
   }
-} 
+}

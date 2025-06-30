@@ -15,24 +15,38 @@ export class CosmosStatefulSetGenerator implements IGenerator {
   private scriptManager: ScriptManager;
   private statefulSetGenerators: Array<IGenerator>;
 
-  constructor(chain: Chain, config: StarshipConfig, scriptManager: ScriptManager) {
+  constructor(
+    chain: Chain,
+    config: StarshipConfig,
+    scriptManager: ScriptManager
+  ) {
     this.config = config;
     this.chain = chain;
     this.scriptManager = scriptManager;
-    
+
     this.statefulSetGenerators = [
-      new CosmosGenesisStatefulSetGenerator(this.chain, this.config, this.scriptManager)
+      new CosmosGenesisStatefulSetGenerator(
+        this.chain,
+        this.config,
+        this.scriptManager
+      )
     ];
-    
+
     // Add validator StatefulSet if numValidators > 1
     if (this.chain.numValidators && this.chain.numValidators > 1) {
       this.statefulSetGenerators.push(
-        new CosmosValidatorStatefulSetGenerator(this.chain, this.config, this.scriptManager)
+        new CosmosValidatorStatefulSetGenerator(
+          this.chain,
+          this.config,
+          this.scriptManager
+        )
       );
     }
   }
 
   generate(): Array<Manifest> {
-    return this.statefulSetGenerators.flatMap((generator) => generator.generate());
+    return this.statefulSetGenerators.flatMap((generator) =>
+      generator.generate()
+    );
   }
-} 
+}

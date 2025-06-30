@@ -1,6 +1,5 @@
 import { Relayer, StarshipConfig } from '@starship-ci/types';
 
-import { DefaultsManager } from '../../defaults';
 import { IGenerator, Manifest } from '../../types';
 import { GoRelayerBuilder } from './go-relayer';
 import { HermesRelayerBuilder } from './hermes';
@@ -44,7 +43,7 @@ export class RelayerBuilder implements IGenerator {
     this.config = config;
 
     // Process relayers with defaults
-    this.relayers = config.relayers || []
+    this.relayers = config.relayers || [];
 
     this.generators = this.relayers.map((relayer) =>
       createBuilder(relayer, this.config)
