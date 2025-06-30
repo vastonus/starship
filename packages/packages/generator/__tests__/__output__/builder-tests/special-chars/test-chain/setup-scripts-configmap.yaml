@@ -10,6 +10,8 @@ metadata:
     app.kubernetes.io/name: test-chain
     app.kubernetes.io/part-of: test-chain-1
     app.kubernetes.io/role: setup-scripts
+    starship.io/chain-name: test-chain
+    starship.io/chain-id: test-chain-1
 data:
   create-genesis.sh: >
     #!/bin/bash

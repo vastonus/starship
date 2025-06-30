@@ -10,6 +10,8 @@ metadata:
     app.kubernetes.io/name: osmosis
     app.kubernetes.io/part-of: osmosis-1
     app.kubernetes.io/role: setup-scripts
+    starship.io/chain-name: osmosis
+    starship.io/chain-id: osmosis-1
 data:
   create-genesis.sh: >
     #!/bin/bash

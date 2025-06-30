@@ -397,7 +397,7 @@ export class CosmosGenesisStatefulSetGenerator implements IGenerator {
     const faucet = chain.faucet as FaucetConfig;
     return {
       name: 'faucet',
-      image: faucet.image || 'ghcr.io/cosmology-tech/starship/faucet:latest',
+      image: faucet.image || this.config.faucet?.image || 'ghcr.io/cosmology-tech/starship/faucet:latest',
       imagePullPolicy: this.config.images?.imagePullPolicy || 'IfNotPresent',
       env: [
         {

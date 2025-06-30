@@ -68,7 +68,44 @@ spec:
           command:
             - bash
             - '-c'
-            - /scripts/create-genesis.sh
+            - >-
+              VAL_INDEX=${HOSTNAME##*-}
+
+              echo "Validator Index: $VAL_INDEX"
+
+
+              if [ -f $CHAIN_DIR/config/genesis.json ]; then
+                echo "Genesis file exists, exiting init container"
+                exit 0
+              fi
+
+
+              echo "Running setup genesis script..."
+
+              bash -e /scripts/create-genesis.sh
+
+              bash -e /scripts/update-genesis.sh
+
+
+              echo "Create node id json file"
+
+              NODE_ID=$($CHAIN_BIN tendermint show-node-id)
+
+              echo '{"node_id":"'$NODE_ID'"}' > $CHAIN_DIR/config/node_id.json
+
+
+              echo "Create consensus key json file"
+
+              $CHAIN_BIN tendermint show-validator >
+              $CHAIN_DIR/config/consensus_key.json
+
+              cat $CHAIN_DIR/config/consensus_key.json
+
+
+              echo "Add custom accounts and balances"
+
+              CHAIN_GENESIS_CMD=$($CHAIN_BIN 2>&1 | grep -q "genesis-related
+              subcommands" && echo "genesis" || echo "")
           resources:
             limits:
               cpu: '0.5'
@@ -110,7 +147,13 @@ spec:
           command:
             - bash
             - '-c'
-            - /scripts/update-config.sh
+            - |-
+              VAL_INDEX=${HOSTNAME##*-}
+              echo "Validator Index: $VAL_INDEX"
+
+              echo "Running setup config script..."
+
+              bash -e /scripts/update-config.sh
           resources:
             limits:
               cpu: '0.5'
@@ -157,8 +200,10 @@ spec:
               #!/bin/bash
               set -euo pipefail
 
-              echo "Starting osmosisd validator..."
-              exec osmosisd start --home /root/.osmosisd --log_level info
+              START_ARGS=""
+
+
+              $CHAIN_BIN start $START_ARGS
           resources:
             limits:
               cpu: '0.5'
@@ -233,29 +278,70 @@ spec:
               value: '2'
             - name: FAUCET_PORT
               value: '8000'
+            - name: FAUCET_MEMO
+              value: faucet txn
             - name: FAUCET_GAS_PRICE
-              value: '0.025'
-            - name: FAUCET_PATH_PATTERN
-              value: ''
+              value: 1.25uosmo
+            - name: FAUCET_GAS_LIMIT
+              value: '2000000'
             - name: FAUCET_ADDRESS_PREFIX
               value: osmo
-            - name: FAUCET_TOKENS
-              value: uosmo
-            - name: FAUCET_CREDIT_AMOUNT_SEND
-              value: '10000000'
-            - name: FAUCET_CREDIT_AMOUNT_STAKE
-              value: '10000000'
-            - name: FAUCET_MAX_CREDIT
-              value: '99999999'
-            - name: FAUCET_MNEMONIC
-              value: ''
-            - name: FAUCET_CHAIN_ID
-              value: osmosis-1
-            - name: FAUCET_RPC_ENDPOINT
-              value: http://localhost:26657
+            - name: FAUCET_REFILL_FACTOR
+              value: '8'
+            - name: FAUCET_REFILL_THRESHOLD
+              value: '20'
+            - name: FAUCET_COOLDOWN_TIME
+              value: '0'
+            - name: COINS
+              value: 100000000000000uosmo,100000000000000uion
+            - name: HD_PATH
+              value: m/44'/118'/0'/0/0
           command:
-            - yarn
-            - start
+            - bash
+            - '-c'
+            - >-
+              export FAUCET_TOKENS=$(printf '%s\n' ${COINS//[[:digit:]]/})
+
+              for coin in ${COINS//,/ }
+
+              do
+                  var="FAUCET_CREDIT_AMOUNT_$(printf '%s\n' ${coin//[[:digit:]]/} | tr '[:lower:]' '[:upper:]')"
+                  amt="${coin//[!0-9]/}"
+
+                  if [ ${#amt} -gt 18 ]; then
+                    creditAmt=$(echo $amt | sed -e "s/000000$//")
+                    feesAmt=$(echo $amt | sed -e "s/0000000000000$//")
+                  else
+                    creditAmt=$(echo $amt | sed -e "s/0000$//")
+                    feesAmt=$(echo $amt | sed -e "s/00000000$//")
+                  fi
+
+                  export $var="$creditAmt"
+              done
+
+
+              export FAUCET_PATH_PATTERN="${HD_PATH:0:$((${#HD_PATH}-1))}a"
+
+              export FAUCET_MNEMONIC=$(jq -r ".faucet[0].mnemonic"
+              /configs/keys.json)
+
+
+              echo "FAUCET_MNEMONIC: $FAUCET_MNEMONIC"
+
+              echo "FAUCET_PATH_PATTERN: $FAUCET_PATH_PATTERN"
+
+
+              export | grep "FAUCET"
+
+
+              until bash -e /scripts/chain-rpc-ready.sh http://localhost:26657;
+              do
+                sleep 10;
+              done
+
+
+              /app/packages/faucet/bin/cosmos-faucet-dist start
+              "http://localhost:26657"
           resources:
             limits:
               cpu: '0.2'
@@ -266,6 +352,14 @@ spec:
           volumeMounts:
             - mountPath: /configs
               name: addresses
+            - mountPath: /scripts
+              name: scripts
+          readinessProbe:
+            httpGet:
+              path: /status
+              port: '8000'
+            initialDelaySeconds: 30
+            periodSeconds: 10
       volumes:
         - name: node
           emptyDir: {}
