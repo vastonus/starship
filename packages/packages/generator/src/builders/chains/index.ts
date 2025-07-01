@@ -1,5 +1,3 @@
-import { StarshipConfig } from '@starship-ci/types';
-
 import { GeneratorConfig, IGenerator, Manifest } from '../../types';
 import { CosmosBuilder } from './cosmos';
 import { EthereumBuilder } from './ethereum';

@@ -34,8 +34,10 @@ export class ScriptManager {
         this.configDir ? path.resolve(this.configDir, scriptPath) : null,
         path.resolve(this.packageRoot, scriptPath)
       ].filter(Boolean);
-      
-      throw new Error(`Script not found: ${scriptPath}. Searched in: ${searchPaths.join(', ')}`);
+
+      throw new Error(
+        `Script not found: ${scriptPath}. Searched in: ${searchPaths.join(', ')}`
+      );
     }
 
     return fs.readFileSync(fullScriptPath, 'utf8');

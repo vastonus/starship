@@ -40,7 +40,7 @@ export class IngressCertIssuerGenerator implements IGenerator {
             server: 'https://acme-v02.api.letsencrypt.org/directory',
             email: 'devops@cosmoslogy.zone',
             privateKeySecretRef: {
-              name,
+              name
             },
             solvers: [
               {

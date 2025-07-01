@@ -7,8 +7,8 @@ import * as yaml from 'js-yaml';
 import { join } from 'path';
 
 import { BuilderManager } from '../src/builders';
-import { loadConfig } from './test-utils/load';
 import { GeneratorConfig, Manifest } from '../src/types';
+import { loadConfig } from './test-utils/load';
 
 describe('BuilderManager Config Files Tests', () => {
   const configsDir = join(__dirname, 'configs');
@@ -88,7 +88,7 @@ describe('BuilderManager Config Files Tests', () => {
   // Create a test for each config file
   configFiles.forEach((configFileName) => {
     const configName = configFileName.replace('.yaml', '');
-    
+
     describe(`Config: ${configName}`, () => {
       let config: GeneratorConfig;
       let outputDir: string;
@@ -107,6 +107,8 @@ describe('BuilderManager Config Files Tests', () => {
         const manager = new BuilderManager(config);
         manifests = manager.build(outputDir);
 
+        expect(manifests.length).toBeGreaterThan(0);
+
         // Verify files were generated
         const files = getAllYamlFiles(outputDir);
         expect(files.length).toBeGreaterThan(0);
@@ -114,9 +116,10 @@ describe('BuilderManager Config Files Tests', () => {
 
       it(`should generate valid YAML manifests for ${configName}`, () => {
         const yamlFiles = loadYamlFiles(outputDir);
-        
+
         // Verify all files are valid YAML with required fields
         Object.entries(yamlFiles).forEach(([filePath, content]) => {
+          expect(filePath).toBeDefined;
           expect(content).toBeDefined();
           expect(content.apiVersion).toBeDefined();
           expect(content.kind).toBeDefined();
@@ -129,7 +132,8 @@ describe('BuilderManager Config Files Tests', () => {
       });
 
       it(`should have proper file organization for ${configName}`, () => {
-        const { fileStructure, resourceCounts } = analyzeFileStructure(outputDir);
+        const { fileStructure, resourceCounts } =
+          analyzeFileStructure(outputDir);
 
         expect(fileStructure).toMatchSnapshot(`${configName}-file-structure`);
         expect(resourceCounts).toMatchSnapshot(`${configName}-resource-counts`);
@@ -155,7 +159,9 @@ describe('BuilderManager Config Files Tests', () => {
             expect(ingress.spec.rules).toBeDefined();
             expect(ingress.spec.tls).toBeDefined();
             expect(ingress.metadata.annotations).toBeDefined();
-            expect(ingress.metadata.annotations['cert-manager.io/issuer']).toBeDefined();
+            expect(
+              ingress.metadata.annotations['cert-manager.io/issuer']
+            ).toBeDefined();
           });
 
           // Validate cert issuer structure
@@ -169,16 +175,24 @@ describe('BuilderManager Config Files Tests', () => {
         // Test monitoring-specific features
         if (config.monitoring?.enabled) {
           const prometheusDeployments = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'Deployment' && content.metadata.name === 'prometheus'
+            (content: any) =>
+              content.kind === 'Deployment' &&
+              content.metadata.name === 'prometheus'
           );
           const grafanaDeployments = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'Deployment' && content.metadata.name === 'grafana'
+            (content: any) =>
+              content.kind === 'Deployment' &&
+              content.metadata.name === 'grafana'
           );
           const prometheusConfigs = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'ConfigMap' && content.metadata.name === 'prometheus-config'
+            (content: any) =>
+              content.kind === 'ConfigMap' &&
+              content.metadata.name === 'prometheus-config'
           );
           const grafanaConfigs = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'ConfigMap' && content.metadata.name.includes('grafana')
+            (content: any) =>
+              content.kind === 'ConfigMap' &&
+              content.metadata.name.includes('grafana')
           );
           const clusterRoles = Object.values(yamlFiles).filter(
             (content: any) => content.kind === 'ClusterRole'
@@ -194,7 +208,7 @@ describe('BuilderManager Config Files Tests', () => {
           const prometheusConfig = prometheusConfigs[0] as any;
           const prometheusYml = prometheusConfig.data['prometheus.yml'];
           expect(prometheusYml).toBeDefined();
-          
+
           if (config.chains?.some((chain: any) => chain.metrics)) {
             expect(prometheusYml).toContain('job_name:');
             expect(prometheusYml).toContain('static_configs:');
@@ -204,10 +218,13 @@ describe('BuilderManager Config Files Tests', () => {
         // Test registry-specific features
         if (config.registry?.enabled) {
           const registryDeployments = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'Deployment' && content.metadata.name === 'registry'
+            (content: any) =>
+              content.kind === 'Deployment' &&
+              content.metadata.name === 'registry'
           );
           const registryServices = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'Service' && content.metadata.name === 'registry'
+            (content: any) =>
+              content.kind === 'Service' && content.metadata.name === 'registry'
           );
 
           expect(registryDeployments.length).toBe(1);
@@ -217,10 +234,13 @@ describe('BuilderManager Config Files Tests', () => {
         // Test explorer-specific features
         if (config.explorer?.enabled) {
           const explorerDeployments = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'Deployment' && content.metadata.name === 'explorer'
+            (content: any) =>
+              content.kind === 'Deployment' &&
+              content.metadata.name === 'explorer'
           );
           const explorerServices = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'Service' && content.metadata.name === 'explorer'
+            (content: any) =>
+              content.kind === 'Service' && content.metadata.name === 'explorer'
           );
 
           expect(explorerDeployments.length).toBe(1);
@@ -230,12 +250,16 @@ describe('BuilderManager Config Files Tests', () => {
         // Test chain-specific features
         if (config.chains?.length > 0) {
           const chainStatefulSets = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'StatefulSet' && 
-            content.metadata.labels?.['app.kubernetes.io/component'] === 'chain'
+            (content: any) =>
+              content.kind === 'StatefulSet' &&
+              content.metadata.labels?.['app.kubernetes.io/component'] ===
+                'chain'
           );
           const chainServices = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'Service' && 
-            content.metadata.labels?.['app.kubernetes.io/component'] === 'chain'
+            (content: any) =>
+              content.kind === 'Service' &&
+              content.metadata.labels?.['app.kubernetes.io/component'] ===
+                'chain'
           );
 
           expect(chainStatefulSets.length).toBeGreaterThan(0);
@@ -243,8 +267,12 @@ describe('BuilderManager Config Files Tests', () => {
 
           // Validate chain manifests have proper labels
           [...chainStatefulSets, ...chainServices].forEach((manifest: any) => {
-            expect(manifest.metadata.labels['app.kubernetes.io/component']).toBe('chain');
-            expect(manifest.metadata.labels['starship.io/chain-name']).toBeDefined();
+            expect(
+              manifest.metadata.labels['app.kubernetes.io/component']
+            ).toBe('chain');
+            expect(
+              manifest.metadata.labels['starship.io/chain-name']
+            ).toBeDefined();
           });
         }
 
@@ -255,15 +283,20 @@ describe('BuilderManager Config Files Tests', () => {
           const allStatefulSets = Object.values(yamlFiles).filter(
             (content: any) => content.kind === 'StatefulSet'
           );
-          
+
           const relayerStatefulSets = allStatefulSets.filter((content: any) => {
             // Check if it's in a relayer directory or has relayer-like naming
-            const filePath = Object.keys(yamlFiles).find(path => yamlFiles[path] === content);
+            const filePath = Object.keys(yamlFiles).find(
+              (path) => yamlFiles[path] === content
+            );
             const isInRelayerDir = filePath?.includes('/relayer/');
-            const hasRelayerName = content.metadata.name?.includes('hermes') || 
-                                  content.metadata.name?.includes('relayer');
-            const hasRelayerComponent = content.metadata.labels?.['app.kubernetes.io/component'] === 'relayer';
-            
+            const hasRelayerName =
+              content.metadata.name?.includes('hermes') ||
+              content.metadata.name?.includes('relayer');
+            const hasRelayerComponent =
+              content.metadata.labels?.['app.kubernetes.io/component'] ===
+              'relayer';
+
             return isInRelayerDir || hasRelayerName || hasRelayerComponent;
           });
 
@@ -271,36 +304,44 @@ describe('BuilderManager Config Files Tests', () => {
 
           // Validate relayer manifests have proper labels (with defensive checks)
           relayerStatefulSets.forEach((manifest: any) => {
-            const component = manifest.metadata.labels?.['app.kubernetes.io/component'];
+            const component =
+              manifest.metadata.labels?.['app.kubernetes.io/component'];
             if (component) {
               expect(component).toBe('relayer');
             } else {
               // Log warning but don't fail - this might be a missing label issue
-              console.warn(`Relayer StatefulSet ${manifest.metadata.name} is missing app.kubernetes.io/component label`);
+              console.warn(
+                `Relayer StatefulSet ${manifest.metadata.name} is missing app.kubernetes.io/component label`
+              );
             }
             // Note: app.kubernetes.io/role is optional for relayers
           });
         }
 
         // Test Ethereum-specific features
-        const hasEthereumChains = config.chains?.some((chain: any) => 
-          chain.name === 'ethereum' || chain.name?.startsWith('ethereum-')
+        const hasEthereumChains = config.chains?.some(
+          (chain: any) =>
+            chain.name === 'ethereum' || chain.name?.startsWith('ethereum-')
         );
-        
+
         if (hasEthereumChains) {
           const ethereumStatefulSets = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'StatefulSet' &&
-            (content.metadata.name?.includes('ethereum') || 
-             content.metadata.labels?.['starship.io/chain-name']?.includes('ethereum'))
+            (content: any) =>
+              content.kind === 'StatefulSet' &&
+              (content.metadata.name?.includes('ethereum') ||
+                content.metadata.labels?.['starship.io/chain-name']?.includes(
+                  'ethereum'
+                ))
           );
 
           expect(ethereumStatefulSets.length).toBeGreaterThan(0);
 
           // Validate Ethereum StatefulSets have required containers
           ethereumStatefulSets.forEach((statefulSet: any) => {
-            const containers = statefulSet.spec?.template?.spec?.containers || [];
+            const containers =
+              statefulSet.spec?.template?.spec?.containers || [];
             const containerNames = containers.map((c: any) => c.name);
-            
+
             // Should have geth, beacon-chain, and validator containers
             expect(containerNames).toContain('geth');
             expect(containerNames).toContain('beacon-chain');
@@ -311,8 +352,10 @@ describe('BuilderManager Config Files Tests', () => {
         // Test frontend-specific features
         if (config.frontends?.length > 0) {
           const frontendDeployments = Object.values(yamlFiles).filter(
-            (content: any) => content.kind === 'Deployment' && 
-            content.metadata.labels?.['app.kubernetes.io/component'] === 'frontend'
+            (content: any) =>
+              content.kind === 'Deployment' &&
+              content.metadata.labels?.['app.kubernetes.io/component'] ===
+                'frontend'
           );
 
           expect(frontendDeployments.length).toBe(config.frontends.length);
@@ -324,7 +367,8 @@ describe('BuilderManager Config Files Tests', () => {
 
         // Check that all Deployments and StatefulSets have resource specifications
         const workloadManifests = Object.values(yamlFiles).filter(
-          (content: any) => content.kind === 'Deployment' || content.kind === 'StatefulSet'
+          (content: any) =>
+            content.kind === 'Deployment' || content.kind === 'StatefulSet'
         );
 
         workloadManifests.forEach((manifest: any) => {
@@ -357,7 +401,9 @@ describe('BuilderManager Config Files Tests', () => {
               ])
             );
           } catch (error) {
-            throw new Error(`Label validation failed for file ${configName}: ${manifest.metadata.name}, kind: ${manifest.kind}, error: ${error}`);
+            throw new Error(
+              `Label validation failed for file ${configName}: ${manifest.metadata.name}, kind: ${manifest.kind}, error: ${error}`
+            );
           }
         });
       });
@@ -373,9 +419,10 @@ describe('BuilderManager Config Files Tests', () => {
       configFiles.forEach((configFileName) => {
         const configName = configFileName.replace('.yaml', '');
         const outputDir = join(testOutputDir, configName);
-        
+
         if (existsSync(outputDir)) {
-          const { fileStructure, resourceCounts } = analyzeFileStructure(outputDir);
+          const { fileStructure, resourceCounts } =
+            analyzeFileStructure(outputDir);
           allFileStructures[configName] = fileStructure;
           allResourceCounts[configName] = resourceCounts;
         }
@@ -386,8 +433,8 @@ describe('BuilderManager Config Files Tests', () => {
     });
 
     it('should validate that ingress and monitoring configs generate expected resources', () => {
-      const ingressConfigs = configFiles.filter(name => 
-        name.includes('ingress') || name.includes('monitoring')
+      const ingressConfigs = configFiles.filter(
+        (name) => name.includes('ingress') || name.includes('monitoring')
       );
 
       const analysis: Record<string, any> = {};
@@ -400,19 +447,27 @@ describe('BuilderManager Config Files Tests', () => {
 
         if (existsSync(outputDir)) {
           const yamlFiles = loadYamlFiles(outputDir);
-          
+
           analysis[configName] = {
             hasIngress: config.ingress?.enabled,
             hasMonitoring: config.monitoring?.enabled,
-            ingressResourceCount: Object.values(yamlFiles).filter((c: any) => c.kind === 'Ingress').length,
-            issuerResourceCount: Object.values(yamlFiles).filter((c: any) => c.kind === 'Issuer').length,
-            prometheusResourceCount: Object.values(yamlFiles).filter((c: any) => 
-              c.kind === 'Deployment' && c.metadata.name === 'prometheus'
+            ingressResourceCount: Object.values(yamlFiles).filter(
+              (c: any) => c.kind === 'Ingress'
             ).length,
-            grafanaResourceCount: Object.values(yamlFiles).filter((c: any) => 
-              c.kind === 'Deployment' && c.metadata.name === 'grafana'
+            issuerResourceCount: Object.values(yamlFiles).filter(
+              (c: any) => c.kind === 'Issuer'
             ).length,
-            clusterRoleCount: Object.values(yamlFiles).filter((c: any) => c.kind === 'ClusterRole').length
+            prometheusResourceCount: Object.values(yamlFiles).filter(
+              (c: any) =>
+                c.kind === 'Deployment' && c.metadata.name === 'prometheus'
+            ).length,
+            grafanaResourceCount: Object.values(yamlFiles).filter(
+              (c: any) =>
+                c.kind === 'Deployment' && c.metadata.name === 'grafana'
+            ).length,
+            clusterRoleCount: Object.values(yamlFiles).filter(
+              (c: any) => c.kind === 'ClusterRole'
+            ).length
           };
         }
       });

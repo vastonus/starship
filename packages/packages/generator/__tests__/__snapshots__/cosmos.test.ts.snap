@@ -170,6 +170,7 @@ exports[`Cosmos Generator Tests Manifest Generation should generate all manifest
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -799,6 +800,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -2740,7 +2742,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis",
+        "app.kubernetes.io/name": "setup-scripts-osmosis-1",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -2860,6 +2862,7 @@ exports[`Cosmos Generator Tests Manifest Generation should generate all manifest
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -3489,6 +3492,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -4777,7 +4781,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis",
+        "app.kubernetes.io/name": "setup-scripts-osmosis-1",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -4978,6 +4982,7 @@ exports[`Cosmos Generator Tests Manifest Generation should handle cometmock conf
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -5607,6 +5612,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -6734,7 +6740,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "cosmoshub",
+        "app.kubernetes.io/name": "setup-scripts-cosmoshub-4",
         "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -6863,6 +6869,7 @@ exports[`Cosmos Generator Tests Manifest Generation should handle different fauc
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -7492,6 +7499,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -8745,7 +8753,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis",
+        "app.kubernetes.io/name": "setup-scripts-osmosis-1",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -8865,6 +8873,7 @@ exports[`Cosmos Generator Tests Manifest Generation should handle different fauc
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -9494,6 +9503,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -10782,7 +10792,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis",
+        "app.kubernetes.io/name": "setup-scripts-osmosis-1",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",

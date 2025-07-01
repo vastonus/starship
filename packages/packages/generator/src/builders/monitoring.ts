@@ -1,6 +1,6 @@
 import { StarshipConfig } from '@starship-ci/types';
-import { ConfigMap, Deployment, Service } from 'kubernetesjs';
 import { readdirSync, readFileSync } from 'fs';
+import { ConfigMap, Deployment, Service } from 'kubernetesjs';
 import { join } from 'path';
 
 import * as helpers from '../helpers';
@@ -466,11 +466,15 @@ export class GrafanaConfigMapGenerator implements IGenerator {
 
   private loadGrafanaDashboards(): Record<string, string> {
     const dashboards: Record<string, string> = {};
-    const dashboardsDir = join(this.projectRoot, 'configs', 'grafana-dashboards');
-    
+    const dashboardsDir = join(
+      this.projectRoot,
+      'configs',
+      'grafana-dashboards'
+    );
+
     try {
       const files = readdirSync(dashboardsDir);
-      
+
       if (!files.length) {
         throw new Error(
           `Expected to find Grafana dashboard configuration files in '${dashboardsDir}' but directory is empty. Please ensure dashboard JSON files are present.`
@@ -491,14 +495,17 @@ export class GrafanaConfigMapGenerator implements IGenerator {
         );
       }
     } catch (error) {
-      if (error instanceof Error && error.message.includes('Expected to find')) {
+      if (
+        error instanceof Error &&
+        error.message.includes('Expected to find')
+      ) {
         throw error; // Re-throw our custom errors
       }
       throw new Error(
         `Failed to load Grafana dashboard configurations from '${dashboardsDir}'. Please ensure the directory exists and contains dashboard JSON files. Error: ${error}`
       );
     }
-    
+
     return dashboards;
   }
 
@@ -780,7 +787,7 @@ export class MonitoringBuilder implements IGenerator {
         new PrometheusConfigMapGenerator(config),
         new PrometheusServiceGenerator(config),
         new PrometheusDeploymentGenerator(config),
-        
+
         // Grafana
         new GrafanaConfigMapGenerator(config, projectRoot),
         new GrafanaServiceGenerator(config),

@@ -42,7 +42,7 @@ export class KeysConfigMapGenerator implements IGenerator {
               ...helpers.getCommonLabels(this.config),
               'app.kubernetes.io/component': 'configmap',
               'app.kubernetes.io/part-of': 'global',
-              'app.kubernetes.io/name': 'keys',
+              'app.kubernetes.io/name': 'keys'
             }
           },
           data: {

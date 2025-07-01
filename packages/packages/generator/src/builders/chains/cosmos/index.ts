@@ -1,5 +1,3 @@
-import { StarshipConfig } from '@starship-ci/types';
-
 import { ScriptManager } from '../../../scripts';
 import { GeneratorConfig, IGenerator, Manifest } from '../../../types';
 import {

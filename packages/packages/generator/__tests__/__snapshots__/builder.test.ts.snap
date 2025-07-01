@@ -591,6 +591,7 @@ exports[`BuilderManager Tests Advanced Configuration Testing should handle Comet
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -1220,6 +1221,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -2347,7 +2349,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "cosmoshub",
+        "app.kubernetes.io/name": "setup-scripts-cosmoshub-4",
         "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -2467,6 +2469,7 @@ exports[`BuilderManager Tests Advanced Configuration Testing should handle CosmJ
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -3096,6 +3099,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -4349,7 +4353,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis",
+        "app.kubernetes.io/name": "setup-scripts-osmosis-1",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -4469,6 +4473,7 @@ exports[`BuilderManager Tests Advanced Configuration Testing should handle build
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -5098,6 +5103,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -6461,7 +6467,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "persistencecore",
+        "app.kubernetes.io/name": "setup-scripts-core-1",
         "app.kubernetes.io/part-of": "core-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -7340,6 +7346,7 @@ exports[`BuilderManager Tests Advanced Configuration Testing should handle relay
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -7969,6 +7976,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -9109,7 +9117,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "cosmoshub",
+        "app.kubernetes.io/name": "setup-scripts-cosmoshub-4",
         "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -9801,6 +9809,7 @@ cat $CHAIN_DIR/config/config.toml",
       "labels": {
         "app.kubernetes.io/component": "explorer",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "explorer",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -9815,6 +9824,7 @@ cat $CHAIN_DIR/config/config.toml",
       "labels": {
         "app.kubernetes.io/component": "explorer",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "explorer",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -9902,6 +9912,7 @@ cat $CHAIN_DIR/config/config.toml",
       "labels": {
         "app.kubernetes.io/component": "explorer",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "explorer",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -11183,7 +11194,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis",
+        "app.kubernetes.io/name": "setup-scripts-osmosis-1",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -11879,6 +11890,7 @@ cat $CHAIN_DIR/config/config.toml",
       "labels": {
         "app.kubernetes.io/component": "registry",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "registry-config",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -11893,6 +11905,7 @@ cat $CHAIN_DIR/config/config.toml",
       "labels": {
         "app.kubernetes.io/component": "registry",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "registry",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -12015,6 +12028,7 @@ cat $CHAIN_DIR/config/config.toml",
       "labels": {
         "app.kubernetes.io/component": "registry",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "registry",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -12724,6 +12738,7 @@ exports[`BuilderManager Tests Complex Configuration Scenarios should handle conf
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "full-testnet",
@@ -13353,6 +13368,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "full-testnet",
@@ -13370,6 +13386,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "explorer",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "explorer",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "full-testnet",
@@ -13384,6 +13401,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "explorer",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "explorer",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "full-testnet",
@@ -13471,6 +13489,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "explorer",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "explorer",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "full-testnet",
@@ -14812,7 +14831,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis",
+        "app.kubernetes.io/name": "setup-scripts-osmosis-1",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -14833,6 +14852,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "registry",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "registry-config",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "full-testnet",
@@ -14847,6 +14867,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "registry",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "registry",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "full-testnet",
@@ -14959,6 +14980,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "registry",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "registry",
         "app.kubernetes.io/part-of": "starship",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "full-testnet",
@@ -15123,6 +15145,7 @@ exports[`BuilderManager Tests File Organization Edge Cases should handle chains 
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "special-testnet",
@@ -15752,6 +15775,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "special-testnet",
@@ -17071,7 +17095,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "test-chain",
+        "app.kubernetes.io/name": "setup-scripts-test-chain-1",
         "app.kubernetes.io/part-of": "test-chain-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -17290,6 +17314,7 @@ exports[`BuilderManager Tests Multi Chain Generation should generate complete mu
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -17919,6 +17944,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -19059,7 +19085,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "cosmoshub",
+        "app.kubernetes.io/name": "setup-scripts-cosmoshub-4",
         "app.kubernetes.io/part-of": "cosmoshub-4",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -21000,7 +21026,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis",
+        "app.kubernetes.io/name": "setup-scripts-osmosis-1",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
@@ -21801,6 +21827,7 @@ exports[`BuilderManager Tests Single Chain Generation should generate complete s
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "keys",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -22430,6 +22457,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "configmap",
         "app.kubernetes.io/managed-by": "starship",
+        "app.kubernetes.io/name": "setup-scripts",
         "app.kubernetes.io/part-of": "global",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
         "starship.io/name": "starship-generator-test",
@@ -23757,7 +23785,7 @@ $CHAIN_BIN tendermint show-node-id
       "labels": {
         "app.kubernetes.io/component": "chain",
         "app.kubernetes.io/managed-by": "starship",
-        "app.kubernetes.io/name": "osmosis",
+        "app.kubernetes.io/name": "setup-scripts-osmosis-1",
         "app.kubernetes.io/part-of": "osmosis-1",
         "app.kubernetes.io/role": "setup-scripts",
         "app.kubernetes.io/version": "4.0.0-alpha.0",
