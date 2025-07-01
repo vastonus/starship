@@ -119,7 +119,7 @@ describe('BuilderManager Config Files Tests', () => {
 
         // Verify all files are valid YAML with required fields
         Object.entries(yamlFiles).forEach(([filePath, content]) => {
-          expect(filePath).toBeDefined;
+          expect(filePath).toBeDefined();
           expect(content).toBeDefined();
           expect(content.apiVersion).toBeDefined();
           expect(content.kind).toBeDefined();
