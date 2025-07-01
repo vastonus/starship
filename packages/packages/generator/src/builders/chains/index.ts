@@ -1,17 +1,17 @@
 import { StarshipConfig } from '@starship-ci/types';
 
-import { IGenerator, Manifest } from '../../types';
+import { GeneratorConfig, IGenerator, Manifest } from '../../types';
 import { CosmosBuilder } from './cosmos';
 import { EthereumBuilder } from './ethereum';
 
 const chainBuilderRegistry: Record<
   string,
-  new (config: StarshipConfig) => IGenerator
+  new (config: GeneratorConfig) => IGenerator
 > = {
   ethereum: EthereumBuilder
 };
 
-function createBuilder(chainName: string, config: StarshipConfig): IGenerator {
+function createBuilder(chainName: string, config: GeneratorConfig): IGenerator {
   const builder = chainBuilderRegistry[chainName] || CosmosBuilder;
   return new builder(config);
 }
@@ -20,10 +20,10 @@ function createBuilder(chainName: string, config: StarshipConfig): IGenerator {
  * Main ChainBuilder that uses the factory pattern to create appropriate builders
  */
 export class ChainBuilder implements IGenerator {
-  private config: StarshipConfig;
+  private config: GeneratorConfig;
   private generators: IGenerator[] = [];
 
-  constructor(config: StarshipConfig) {
+  constructor(config: GeneratorConfig) {
     this.config = config;
 
     // Create builders for each chain

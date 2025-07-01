@@ -1,4 +1,7 @@
 import { StarshipConfig } from '@starship-ci/types';
+import { ConfigMap, Deployment, Service } from 'kubernetesjs';
+import { readdirSync, readFileSync } from 'fs';
+import { join } from 'path';
 
 import * as helpers from '../helpers';
 import { IGenerator, Manifest } from '../types';
@@ -14,21 +17,24 @@ export class PrometheusConfigMapGenerator implements IGenerator {
     this.config = config;
   }
 
-  generate(): Array<Manifest> {
+  generate(): Array<ConfigMap> {
     if (!this.config.monitoring?.enabled) {
       return [];
     }
+
+    const name = 'prometheus-config';
 
     return [
       {
         apiVersion: 'v1',
         kind: 'ConfigMap',
         metadata: {
-          name: 'prometheus-config',
+          name,
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'monitoring',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': name
           }
         },
         data: {
@@ -231,16 +237,19 @@ export class PrometheusRbacGenerator implements IGenerator {
       return [];
     }
 
+    const name = 'prometheus';
+
     return [
       {
         apiVersion: 'rbac.authorization.k8s.io/v1',
         kind: 'ClusterRole',
         metadata: {
-          name: 'prometheus',
+          name,
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'monitoring',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': name
           }
         },
         rules: [
@@ -270,11 +279,12 @@ export class PrometheusRbacGenerator implements IGenerator {
         apiVersion: 'rbac.authorization.k8s.io/v1',
         kind: 'ClusterRoleBinding',
         metadata: {
-          name: 'prometheus',
+          name,
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'monitoring',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': name
           }
         },
         roleRef: {
@@ -301,7 +311,7 @@ export class PrometheusServiceGenerator implements IGenerator {
     this.config = config;
   }
 
-  generate(): Array<Manifest> {
+  generate(): Array<Service> {
     if (!this.config.monitoring?.enabled) {
       return [];
     }
@@ -315,7 +325,8 @@ export class PrometheusServiceGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'monitoring',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': 'prometheus'
           },
           annotations: {
             'prometheus.io/scrape': 'true',
@@ -329,7 +340,7 @@ export class PrometheusServiceGenerator implements IGenerator {
               name: 'http',
               port: 9090,
               protocol: 'TCP',
-              targetPort: 9090
+              targetPort: '9090'
             }
           ],
           selector: {
@@ -348,7 +359,7 @@ export class PrometheusDeploymentGenerator implements IGenerator {
     this.config = config;
   }
 
-  generate(): Array<Manifest> {
+  generate(): Array<Deployment> {
     if (!this.config.monitoring?.enabled) {
       return [];
     }
@@ -401,7 +412,7 @@ export class PrometheusDeploymentGenerator implements IGenerator {
                     }
                   ],
                   resources: helpers.getResourceObject(
-                    this.config.monitoring.resources || {
+                    this.config.monitoring?.resources || {
                       cpu: '0.2',
                       memory: '400M'
                     }
@@ -446,12 +457,52 @@ export class PrometheusDeploymentGenerator implements IGenerator {
  */
 export class GrafanaConfigMapGenerator implements IGenerator {
   private config: StarshipConfig;
+  private projectRoot: string;
 
-  constructor(config: StarshipConfig) {
+  constructor(config: StarshipConfig, projectRoot: string = process.cwd()) {
     this.config = config;
+    this.projectRoot = projectRoot;
   }
 
-  generate(): Array<Manifest> {
+  private loadGrafanaDashboards(): Record<string, string> {
+    const dashboards: Record<string, string> = {};
+    const dashboardsDir = join(this.projectRoot, 'configs', 'grafana-dashboards');
+    
+    try {
+      const files = readdirSync(dashboardsDir);
+      
+      if (!files.length) {
+        throw new Error(
+          `Expected to find Grafana dashboard configuration files in '${dashboardsDir}' but directory is empty. Please ensure dashboard JSON files are present.`
+        );
+      }
+
+      files.forEach((file) => {
+        if (file.endsWith('.json')) {
+          const filePath = join(dashboardsDir, file);
+          const content = readFileSync(filePath, 'utf-8');
+          dashboards[file] = content;
+        }
+      });
+
+      if (Object.keys(dashboards).length === 0) {
+        throw new Error(
+          `Expected to find Grafana dashboard JSON files in '${dashboardsDir}' but no .json files were found. Please ensure dashboard configuration files are present.`
+        );
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message.includes('Expected to find')) {
+        throw error; // Re-throw our custom errors
+      }
+      throw new Error(
+        `Failed to load Grafana dashboard configurations from '${dashboardsDir}'. Please ensure the directory exists and contains dashboard JSON files. Error: ${error}`
+      );
+    }
+    
+    return dashboards;
+  }
+
+  generate(): Array<ConfigMap> {
     if (!this.config.monitoring?.enabled) {
       return [];
     }
@@ -465,7 +516,8 @@ export class GrafanaConfigMapGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'monitoring',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': 'grafana-datasources'
           }
         },
         data: {
@@ -497,7 +549,8 @@ export class GrafanaConfigMapGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'monitoring',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': 'grafana-dashboard-providers'
           }
         },
         data: {
@@ -529,23 +582,11 @@ export class GrafanaConfigMapGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'monitoring',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': 'grafana-dashboards'
           }
         },
-        data: {
-          // Note: In Helm template, this would load dashboard files from configs/grafana-dashboards/*.json
-          // For now, we'll include a basic placeholder
-          'basic-dashboard.json': JSON.stringify(
-            {
-              dashboard: {
-                title: 'Starship Basic Dashboard',
-                panels: []
-              }
-            },
-            null,
-            2
-          )
-        }
+        data: this.loadGrafanaDashboards()
       }
     ];
   }
@@ -572,7 +613,8 @@ export class GrafanaServiceGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'monitoring',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': 'grafana'
           },
           annotations: {
             'prometheus.io/scrape': 'true',
@@ -618,7 +660,8 @@ export class GrafanaDeploymentGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'monitoring',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': 'grafana'
           }
         },
         spec: {
@@ -726,7 +769,7 @@ export class MonitoringBuilder implements IGenerator {
   private config: StarshipConfig;
   private generators: Array<IGenerator>;
 
-  constructor(config: StarshipConfig) {
+  constructor(config: StarshipConfig, projectRoot: string = process.cwd()) {
     this.config = config;
     this.generators = [];
 
@@ -737,9 +780,9 @@ export class MonitoringBuilder implements IGenerator {
         new PrometheusConfigMapGenerator(config),
         new PrometheusServiceGenerator(config),
         new PrometheusDeploymentGenerator(config),
-
+        
         // Grafana
-        new GrafanaConfigMapGenerator(config),
+        new GrafanaConfigMapGenerator(config, projectRoot),
         new GrafanaServiceGenerator(config),
         new GrafanaDeploymentGenerator(config)
       ];

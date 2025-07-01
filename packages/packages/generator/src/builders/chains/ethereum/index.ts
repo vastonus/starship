@@ -1,6 +1,6 @@
 import { StarshipConfig } from '@starship-ci/types';
 
-import { IGenerator, Manifest } from '../../../types';
+import { GeneratorConfig, IGenerator, Manifest } from '../../../types';
 import { EthereumConfigMapGenerator } from './configmap';
 import { EthereumServiceGenerator } from './service';
 import { EthereumStatefulSetGenerator } from './statefulset';
@@ -10,10 +10,10 @@ import { EthereumStatefulSetGenerator } from './statefulset';
  * Orchestrates ConfigMap, Service, and StatefulSet generation for all Ethereum chains
  */
 export class EthereumBuilder implements IGenerator {
-  private config: StarshipConfig;
+  private config: GeneratorConfig;
   private generators: IGenerator[];
 
-  constructor(config: StarshipConfig) {
+  constructor(config: GeneratorConfig) {
     this.config = config;
     this.generators = [];
 

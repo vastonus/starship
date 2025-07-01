@@ -4,22 +4,38 @@ import * as path from 'path';
 
 export class ScriptManager {
   private packageRoot: string;
+  private configDir?: string;
 
-  constructor(packageRoot?: string) {
+  constructor(packageRoot?: string, configDir?: string) {
     // Default to the generator package root (where scripts/ directory is located)
     // __dirname is src/, so we go up one level to get to the package root
     this.packageRoot = packageRoot || path.resolve(__dirname, '..');
+    this.configDir = configDir;
   }
 
   /**
    * Load a script from the filesystem
    */
   loadScript(scriptPath: string): string {
-    // Resolve the script path relative to the package root
-    const fullScriptPath = path.resolve(this.packageRoot, scriptPath);
+    let fullScriptPath: string;
 
+    // Try config-relative path first (for test configs and custom scripts)
+    if (this.configDir) {
+      fullScriptPath = path.resolve(this.configDir, scriptPath);
+      if (fs.existsSync(fullScriptPath)) {
+        return fs.readFileSync(fullScriptPath, 'utf8');
+      }
+    }
+
+    // Fall back to package root relative path (for default scripts)
+    fullScriptPath = path.resolve(this.packageRoot, scriptPath);
     if (!fs.existsSync(fullScriptPath)) {
-      throw new Error(`Script not found: ${fullScriptPath}`);
+      const searchPaths = [
+        this.configDir ? path.resolve(this.configDir, scriptPath) : null,
+        path.resolve(this.packageRoot, scriptPath)
+      ].filter(Boolean);
+      
+      throw new Error(`Script not found: ${scriptPath}. Searched in: ${searchPaths.join(', ')}`);
     }
 
     return fs.readFileSync(fullScriptPath, 'utf8');

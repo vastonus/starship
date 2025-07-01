@@ -74,6 +74,7 @@ export class FrontendDeploymentGenerator implements IGenerator {
           labels: {
             'app.kubernetes.io/component': 'frontend',
             'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': this.frontend.name,
             ...helpers.getCommonLabels(this.config)
           }
         },
@@ -95,11 +96,10 @@ export class FrontendDeploymentGenerator implements IGenerator {
                 tier: 'frontend'
               },
               labels: {
+                ...helpers.getCommonLabels(this.config),
                 'app.kubernetes.io/instance': this.frontend.name,
                 'app.kubernetes.io/type': this.frontend.type,
                 'app.kubernetes.io/name': this.frontend.name,
-                'app.kubernetes.io/rawname': this.frontend.name,
-                'app.kubernetes.io/version': getGeneratorVersion()
               }
             },
             spec: {
@@ -155,3 +155,4 @@ export class FrontendBuilder implements IGenerator {
     return this.generators.flatMap((generator) => generator.generate());
   }
 }
+ 
