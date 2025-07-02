@@ -52,3 +52,23 @@ port-forward:
 .PHONY: stop-forward
 stop-forward:
 	-pkill -f "port-forward"
+
+###############################################################################
+###                              Output Helm                                ###
+###############################################################################
+
+CONFIG_NAME := $(basename $(notdir $(HELM_FILE)))
+HELM_OUTPUT := manifests/$(CONFIG_NAME).yaml
+CONFIG_FILES := $(wildcard configs/*.yaml)
+
+.PHONY: helm-manifest
+helm-export:
+	@echo "Generating Helm manifest for $(HELM_FILE)..."
+	@make debug HELM_FILE=$(HELM_FILE) | awk '/^MANIFEST:/{flag=1; next} flag' > $(HELM_OUTPUT)
+	@echo "Saved to $(HELM_OUTPUT)"
+
+all-helm-export:
+	@for file in $(CONFIG_FILES); do \
+		echo ">>> Generating Helm manifest for $$file"; \
+		make helm-export HELM_FILE=$$file; \
+	done

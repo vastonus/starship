@@ -11,7 +11,7 @@ import { GeneratorConfig, Manifest } from '../src/types';
 import { loadConfig } from './test-utils/load';
 
 describe('BuilderManager Config Files Tests', () => {
-  const configsDir = join(__dirname, 'configs');
+  const configsDir = join(__dirname, '../../../__fixtures__/configs');
   const testOutputDir = join(__dirname, '__output__', 'config-tests');
 
   beforeEach(() => {
