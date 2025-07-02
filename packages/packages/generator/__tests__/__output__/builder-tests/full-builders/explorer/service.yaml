@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/managed-by: starship
     app.kubernetes.io/component: explorer
     app.kubernetes.io/part-of: starship
+    app.kubernetes.io/name: explorer
 spec:
   clusterIP: None
   ports:

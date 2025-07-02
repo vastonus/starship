@@ -1,7 +1,5 @@
-import { StarshipConfig } from '@starship-ci/types';
-
 import { ScriptManager } from '../../../scripts';
-import { IGenerator, Manifest } from '../../../types';
+import { GeneratorConfig, IGenerator, Manifest } from '../../../types';
 import {
   CosmosConfigMapGenerator,
   GlobalConfigMapGenerator
@@ -14,13 +12,13 @@ import { CosmosStatefulSetGenerator } from './statefulset';
  * Orchestrates ConfigMap, Service, and StatefulSet generation for all Cosmos chains
  */
 export class CosmosBuilder implements IGenerator {
-  private config: StarshipConfig;
+  private config: GeneratorConfig;
   private scriptManager: ScriptManager;
   private generators: IGenerator[];
 
-  constructor(config: StarshipConfig) {
+  constructor(config: GeneratorConfig) {
     this.config = config;
-    this.scriptManager = new ScriptManager();
+    this.scriptManager = new ScriptManager(undefined, config.configDir);
     this.generators = [];
 
     // Filter cosmos chains (exclude ethereum chains)

@@ -1,0 +1,21 @@
+apiVersion: cert-manager.io/v1
+kind: Issuer
+metadata:
+  name: cert-issuer
+  labels:
+    starship.io/name: starship-ingress-test
+    app.kubernetes.io/version: 4.0.0-alpha.0
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: starship
+    app.kubernetes.io/name: cert-issuer
+spec:
+  acme:
+    server: https://acme-v02.api.letsencrypt.org/directory
+    email: devops@cosmoslogy.zone
+    privateKeySecretRef:
+      name: cert-issuer
+    solvers:
+      - http01:
+          ingress:
+            class: nginx

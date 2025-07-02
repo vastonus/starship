@@ -58,3 +58,7 @@ export interface DefaultsConfig {
 export interface IGenerator {
   generate(): Array<Manifest>;
 }
+
+export interface GeneratorConfig extends StarshipConfig {
+  configDir?: string;
+}

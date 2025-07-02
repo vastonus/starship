@@ -41,7 +41,8 @@ export class KeysConfigMapGenerator implements IGenerator {
             labels: {
               ...helpers.getCommonLabels(this.config),
               'app.kubernetes.io/component': 'configmap',
-              'app.kubernetes.io/part-of': 'global'
+              'app.kubernetes.io/part-of': 'global',
+              'app.kubernetes.io/name': 'keys'
             }
           },
           data: {
@@ -107,7 +108,8 @@ export class GlobalScriptsConfigMapGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'configmap',
-            'app.kubernetes.io/part-of': 'global'
+            'app.kubernetes.io/part-of': 'global',
+            'app.kubernetes.io/name': 'setup-scripts'
           }
         },
         data
@@ -169,7 +171,7 @@ export class SetupScriptsConfigMapGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'chain',
-            'app.kubernetes.io/name': this.chain.name,
+            'app.kubernetes.io/name': `setup-scripts-${helpers.getHostname(this.chain)}`,
             'app.kubernetes.io/part-of': helpers.getChainId(this.chain),
             'app.kubernetes.io/role': 'setup-scripts',
             'starship.io/chain-name': this.chain.name,

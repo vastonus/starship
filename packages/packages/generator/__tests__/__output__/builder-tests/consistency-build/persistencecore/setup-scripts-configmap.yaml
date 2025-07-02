@@ -7,7 +7,7 @@ metadata:
     app.kubernetes.io/version: 4.0.0-alpha.0
     app.kubernetes.io/managed-by: starship
     app.kubernetes.io/component: chain
-    app.kubernetes.io/name: persistencecore
+    app.kubernetes.io/name: setup-scripts-core-1
     app.kubernetes.io/part-of: core-1
     app.kubernetes.io/role: setup-scripts
     starship.io/chain-name: persistencecore

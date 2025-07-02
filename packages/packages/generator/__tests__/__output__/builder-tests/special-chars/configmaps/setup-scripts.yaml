@@ -8,6 +8,7 @@ metadata:
     app.kubernetes.io/managed-by: starship
     app.kubernetes.io/component: configmap
     app.kubernetes.io/part-of: global
+    app.kubernetes.io/name: setup-scripts
 data:
   build-chain.sh: >
     #!/bin/bash

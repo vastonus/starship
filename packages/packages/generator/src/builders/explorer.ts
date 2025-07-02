@@ -64,7 +64,8 @@ export class ExplorerConfigMapGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'explorer',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': 'explorer'
           }
         },
         data: chainConfigs
@@ -93,7 +94,8 @@ export class ExplorerServiceGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'explorer',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': 'explorer'
           }
         },
         spec: {
@@ -135,7 +137,8 @@ export class ExplorerDeploymentGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'explorer',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': 'explorer'
           }
         },
         spec: {

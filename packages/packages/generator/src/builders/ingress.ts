@@ -20,16 +20,19 @@ export class IngressCertIssuerGenerator implements IGenerator {
       return [];
     }
 
+    const name = this.config.ingress.certManager?.issuer || 'cert-issuer';
+
     return [
       {
         apiVersion: 'cert-manager.io/v1',
         kind: 'Issuer',
         metadata: {
-          name: this.config.ingress.certManager?.issuer || 'cert-issuer',
+          name,
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'ingress',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': name
           }
         },
         spec: {
@@ -37,7 +40,7 @@ export class IngressCertIssuerGenerator implements IGenerator {
             server: 'https://acme-v02.api.letsencrypt.org/directory',
             email: 'devops@cosmoslogy.zone',
             privateKeySecretRef: {
-              name: this.config.ingress.certManager?.issuer || 'cert-issuer'
+              name
             },
             solvers: [
               {
@@ -85,7 +88,8 @@ export class IngressResourceGenerator implements IGenerator {
           labels: {
             ...helpers.getCommonLabels(this.config),
             'app.kubernetes.io/component': 'ingress',
-            'app.kubernetes.io/part-of': 'starship'
+            'app.kubernetes.io/part-of': 'starship',
+            'app.kubernetes.io/name': `${ingressType}-ingress`
           },
           annotations: {
             'nginx.ingress.kubernetes.io/rewrite-target': '/$1',

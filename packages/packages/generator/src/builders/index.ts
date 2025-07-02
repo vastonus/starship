@@ -1,10 +1,9 @@
-import { StarshipConfig } from '@starship-ci/types';
 import * as fs from 'fs';
 import * as yaml from 'js-yaml';
 import * as path from 'path';
 
 import { applyDefaults } from '../defaults';
-import { Manifest } from '../types';
+import { GeneratorConfig, Manifest } from '../types';
 import { ChainBuilder } from './chains';
 import { ExplorerBuilder } from './explorer';
 import { FrontendBuilder } from './frontend';
@@ -14,9 +13,9 @@ import { RegistryBuilder } from './registry';
 import { RelayerBuilder } from './relayers';
 
 export class BuilderManager {
-  private config: StarshipConfig;
+  private config: GeneratorConfig;
 
-  constructor(config: StarshipConfig) {
+  constructor(config: GeneratorConfig) {
     this.config = applyDefaults(config);
   }
 
@@ -76,7 +75,7 @@ export class BuilderManager {
     });
   }
 
-  build(outputDir: string): void {
+  build(outputDir: string): Manifest[] {
     const builders = [
       new ChainBuilder(this.config),
       new RegistryBuilder(this.config),
@@ -94,5 +93,7 @@ export class BuilderManager {
     });
 
     this.writeManifests(allManifests, outputDir);
+
+    return allManifests;
   }
 }

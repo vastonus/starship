@@ -1,0 +1,40 @@
+name: starship-ingress-test
+version: 1.7.0
+
+chains:
+  - id: osmosis-1
+    name: osmosis
+    numValidators: 1
+    faucet:
+      enabled: true
+      type: starship
+    ports:
+      rest: 1313
+      rpc: 26653
+      exposer: 38083
+      faucet: 8001
+
+registry:
+  enabled: true
+  ports:
+    rest: 8081
+    grpc: 9091
+
+explorer:
+  enabled: true
+  type: ping-pub
+  ports:
+    rest: 8080
+
+frontends:
+  - name: my-app
+    image: nginx:latest
+    ports:
+      http: 3000
+
+ingress:
+  enabled: true
+  type: nginx
+  host: "*.example.com"
+  certManager:
+    issuer: "cert-issuer" 
