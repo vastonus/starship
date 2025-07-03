@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: my-app
+  labels:
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: starship
+    app.kubernetes.io/name: my-app
+    starship.io/name: starship-ingress-test
+    app.kubernetes.io/version: 4.0.0-alpha.0
+    app.kubernetes.io/managed-by: starship
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: my-app
+      app.kubernetes.io/name: my-app
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: frontend
+        sla: high
+        tier: frontend
+      labels:
+        starship.io/name: starship-ingress-test
+        app.kubernetes.io/version: 4.0.0-alpha.0
+        app.kubernetes.io/managed-by: starship
+        app.kubernetes.io/instance: my-app
+        app.kubernetes.io/name: my-app
+    spec:
+      containers:
+        - name: my-app
+          image: nginx:latest
+          imagePullPolicy: IfNotPresent
+          ports: []
+          env: []
+          resources:
+            limits:
+              cpu: '0.2'
+              memory: 200M
+            requests:
+              cpu: '0.2'
+              memory: 200M

@@ -1,0 +1,62 @@
+{
+  "name": "@starship-ci/client",
+  "version": "4.0.0-alpha.0",
+  "author": "Dan Lynch <pyramation@gmail.com>",
+  "description": "Starship CI Client",
+  "main": "index.js",
+  "module": "esm/index.js",
+  "types": "index.d.ts",
+  "homepage": "https://github.com/hyperweb-io/starship",
+  "license": "SEE LICENSE IN LICENSE",
+  "publishConfig": {
+    "access": "public",
+    "directory": "dist"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/hyperweb-io/starship"
+  },
+  "bugs": {
+    "url": "https://github.com/hyperweb-io/starship/issues"
+  },
+  "scripts": {
+    "copy": "copyfiles -f ../../LICENSE README.md package.json dist",
+    "clean": "del dist/**",
+    "prepare": "npm run build",
+    "build": "npm run clean; tsc; tsc -p tsconfig.esm.json; npm run copy",
+    "lint": "eslint .",
+    "format": "eslint . --fix",
+    "test": "jest",
+    "test:watch": "jest --watch"
+  },
+  "keywords": [
+    "blockchain",
+    "blockchain-simulation",
+    "blockchain-testing",
+    "TDD",
+    "multi-chain",
+    "crypto",
+    "cryptocurrency",
+    "ethereum",
+    "bitcoin",
+    "cosmos",
+    "smart-contracts",
+    "decentralized",
+    "DApps",
+    "web3",
+    "interchain"
+  ],
+  "dependencies": {
+    "@starship-ci/types": "^4.0.0-alpha.0",
+    "axios": "^1.6.7",
+    "chalk": "^4.1.0",
+    "deepmerge": "^4.3.1",
+    "js-yaml": "^4.1.0",
+    "mkdirp": "3.0.1",
+    "shelljs": "^0.8.5"
+  },
+  "devDependencies": {
+    "@types/js-yaml": "^4.0.9",
+    "@types/shelljs": "^0.8.15"
+  }
+}

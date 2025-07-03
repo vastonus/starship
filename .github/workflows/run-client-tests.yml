@@ -6,24 +6,49 @@ on:
       - main
       - release/*
     paths:
-      - "clients/js/**"
+      - "packages/**"
       - ".github/workflows/run-client-tests.yml"
   pull_request:
     branches:
       - main
       - v1
     paths:
-      - "clients/js/**"
+      - "packages/**"
       - ".github/workflows/run-client-tests.yml"
   workflow_dispatch:
 
 jobs:
+  generator-tests:
+    runs-on: ubuntu-latest
+
+    defaults:
+      run:
+        working-directory: packages
+    
+    steps:
+      - name: Checkout Repository 🛎️
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20.x'
+
+      - name: Install Dependencies
+        run: yarn install
+
+      - name: Build Project
+        run: yarn build
+
+      - name: Test @starship-ci/generator
+        run: cd packages/generator && yarn test
+
   starshipjs-tests:
     runs-on: ubuntu-latest
 
     defaults:
       run:
-        working-directory: clients/js
+        working-directory: packages
 
     steps:
       - name: Checkout Repository 🛎️

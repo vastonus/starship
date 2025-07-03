@@ -1,0 +1,111 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Cosmos Integration Tests Advanced Integration Scenarios should handle complex multi-chain with different faucet types: complex-multi-faucet-setup 1`] = `
+{
+  "hasCosmjsChain": true,
+  "hasStarshipChain": true,
+  "statefulSetCount": 2,
+  "totalManifests": 7,
+}
+`;
+
+exports[`Cosmos Integration Tests Configuration Validation should handle missing configuration gracefully: invalid-config-handling 1`] = `
+{
+  "error": null,
+  "handled": true,
+}
+`;
+
+exports[`Cosmos Integration Tests Configuration Validation should skip non-cosmos chains: skip-ethereum-chains 1`] = `
+{
+  "ethereumSkipped": true,
+  "manifestCount": 0,
+}
+`;
+
+exports[`Cosmos Integration Tests Configuration Validation should validate required chain properties: chain-validation-results 1`] = `
+{
+  "complete-chain": {
+    "error": null,
+    "manifestCount": 5,
+    "success": true,
+  },
+  "missing-binary": {
+    "error": null,
+    "manifestCount": 5,
+    "success": true,
+  },
+  "missing-denom": {
+    "error": null,
+    "manifestCount": 5,
+    "success": true,
+  },
+}
+`;
+
+exports[`Cosmos Integration Tests Direct CosmosBuilder Integration should generate complete single-chain setup using CosmosBuilder: complete-single-chain-setup-builder 1`] = `
+{
+  "configMapCount": 4,
+  "serviceCount": 1,
+  "statefulSetCount": 1,
+  "totalManifests": 6,
+}
+`;
+
+exports[`Cosmos Integration Tests Direct CosmosBuilder Integration should handle different chain types in same deployment: mixed-chain-types-setup 1`] = `
+{
+  "cosmoshubCount": 5,
+  "osmosisCount": 5,
+}
+`;
+
+exports[`Cosmos Integration Tests Resource Content Verification should generate correct environment variables: environment-variables 1`] = `
+{
+  "containerCount": 3,
+  "envVarCount": 10,
+  "hasChainId": true,
+  "hasDenom": true,
+  "hasValidatorContainer": true,
+}
+`;
+
+exports[`Cosmos Integration Tests Resource Content Verification should generate correct labels and annotations: resource-labels-annotations 1`] = `
+{
+  "serviceLabels": {
+    "app.kubernetes.io/component": "chain",
+    "app.kubernetes.io/managed-by": "starship",
+    "app.kubernetes.io/name": "osmosis-1-genesis",
+    "app.kubernetes.io/role": "genesis",
+    "app.kubernetes.io/type": "osmosis-1-service",
+    "app.kubernetes.io/version": "4.0.0-alpha.0",
+    "starship.io/chain-id": "osmosis-1",
+    "starship.io/chain-name": "osmosis",
+    "starship.io/name": "starship-generator-test",
+  },
+  "serviceName": "osmosis-1-genesis",
+}
+`;
+
+exports[`Cosmos Integration Tests Resource Content Verification should generate correct port mappings: port-mappings 1`] = `
+{
+  "hasRpcPort": true,
+  "portCount": 10,
+}
+`;
+
+exports[`Cosmos Integration Tests Resource Content Verification should handle special configurations correctly: special-configurations 1`] = `
+{
+  "build-enabled": {
+    "hasGenesis": true,
+    "manifestCount": 6,
+  },
+  "cometmock": {
+    "hasGenesis": true,
+    "manifestCount": 4,
+  },
+  "cosmjs-faucet": {
+    "hasGenesis": true,
+    "manifestCount": 4,
+  },
+}
+`;
