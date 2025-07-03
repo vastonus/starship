@@ -57,8 +57,8 @@ spec:
               UPGRADE_NAME=genesis CODE_TAG={{ $chain.build.source }} bash -e /scripts/build-chain.sh
               {{- end }}
           env:
-            {{ include "devnet.defaultEvnVars" $chain | indent 12 }}
-            {{ include "devnet.evnVars" $chain | indent 12 }}
+            {{ include "devnet.defaultEnvVars" $chain | indent 12 }}
+            {{ include "devnet.envVars" $chain | indent 12 }}
             - name: CODE_REF
               value: {{ $chain.repo }}
             - name: UPGRADE_DIR
@@ -81,8 +81,8 @@ spec:
           image: {{ $chain.image }}
           imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
           env:
-            {{- include "devnet.defaultEvnVars" $chain | indent 12 }}
-            {{- include "devnet.evnVars" $chain | indent 12 }}
+            {{- include "devnet.defaultEnvVars" $chain | indent 12 }}
+            {{- include "devnet.envVars" $chain | indent 12 }}
             {{- include "devnet.timeoutVars" $.Values | indent 12 }}
             {{- include "devnet.genesisVars" $dataExposer | indent 12 }}
             - name: KEYS_CONFIG
@@ -132,8 +132,8 @@ spec:
           image: {{ $chain.image }}
           imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
           env:
-            {{- include "devnet.defaultEvnVars" $chain | indent 12 }}
-            {{- include "devnet.evnVars" $chain | indent 12 }}
+            {{- include "devnet.defaultEnvVars" $chain | indent 12 }}
+            {{- include "devnet.envVars" $chain | indent 12 }}
             {{- include "devnet.timeoutVars" $.Values | indent 12 }}
             {{- include "devnet.genesisVars" $dataExposer | indent 12 }}
             - name: KEYS_CONFIG
@@ -181,8 +181,8 @@ spec:
           image: {{ $icsChain.image }}
           imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
           env:
-            {{- include "devnet.defaultEvnVars" $chain | indent 12 }}
-            {{- include "devnet.evnVars" $chain | indent 12 }}
+            {{- include "devnet.defaultEnvVars" $chain | indent 12 }}
+            {{- include "devnet.envVars" $chain | indent 12 }}
             - name: NAMESPACE
               valueFrom:
                 fieldRef:
@@ -217,8 +217,8 @@ spec:
           image: {{ $chain.image }}
           imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
           env:
-            {{- include "devnet.defaultEvnVars" $chain | indent 12 }}
-            {{- include "devnet.evnVars" $chain | indent 12 }}
+            {{- include "devnet.defaultEnvVars" $chain | indent 12 }}
+            {{- include "devnet.envVars" $chain | indent 12 }}
             {{- include "devnet.genesisVars" $dataExposer | indent 12}}
             - name: KEYS_CONFIG
               value: /configs/keys.json
@@ -302,8 +302,8 @@ spec:
           image: {{ $.Values.exposer.image }}
           imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
           env:
-            {{- include "devnet.defaultEvnVars" $chain | indent 12 }}
-            {{- include "devnet.evnVars" $chain | indent 12 }}
+            {{- include "devnet.defaultEnvVars" $chain | indent 12 }}
+            {{- include "devnet.envVars" $chain | indent 12 }}
             {{- include "devnet.genesisVars" $dataExposer | indent 12}}
             - name: EXPOSER_HTTP_PORT
               value: "8081"
