@@ -22,6 +22,36 @@ for multichain use cases
 
 > Automated docs: https://deepwiki.com/hyperweb-io/starship
 
+## Starship v1 vs v2
+
+### Starship v1 (Legacy - Stable)
+- **Repository**: [v1 branch](https://github.com/hyperweb-io/starship/tree/v1)
+- **Status**: **Stable and recommended for production use**
+- **Architecture**: Hybrid approach with mixed technologies
+  - **Client**: TypeScript-based client library
+  - **Infrastructure**: Helm charts for Kubernetes deployment
+  - **Services**: Go microservices for core components
+  - **Deployment**: Traditional Helm-based workflow with shell commands
+
+### Starship v2 (Current - Under Development)
+- **Repository**: [Main branch](https://github.com/hyperweb-io/starship) (current)
+- **Status**: **🚧 Under Active Development - Use v1 for stable deployments**
+- **Architecture**: Migration from Helm to KubernetesJS-based architecture
+  - **Goal**: Replace shell command dependencies (`kubectl`, `helm`, `docker`) with direct API calls
+  - **YAML Generation**: Generate Kubernetes manifests for inspection before deployment
+  - **Direct API Access**: Use KubernetesJS for direct Kubernetes API communication
+  - **Deployment**: Programmatic resource management via Kubernetes API
+
+### Key Goals of v2 Migration ([Epic #695](https://github.com/hyperweb-io/starship/issues/695))
+- **Eliminate Shell Dependencies**: Replace `kubectl`, `helm`, `docker` commands with API calls
+- **Better Error Handling**: Structured error responses instead of opaque shell command failures
+- **YAML Inspection**: Generate and review Kubernetes manifests before deployment
+- **Platform Independence**: Remove OS-specific shell command compatibility issues
+- **Improved Debugging**: Direct access to Kubernetes resource status and events
+- **Enhanced Testing**: Mock KubernetesJS client instead of complex shell command mocking
+
+> **⚠️ Important**: For production use, please use the stable [v1 branch](https://github.com/hyperweb-io/starship/tree/v1). The main branch (v2) is under active development as part of the architectural migration.
+
 ## Prerequisites
 To get started, you'll need:
 

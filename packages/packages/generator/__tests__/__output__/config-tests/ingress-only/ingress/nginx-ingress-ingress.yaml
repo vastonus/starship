@@ -1,0 +1,98 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  labels:
+    starship.io/name: starship-ingress-test
+    app.kubernetes.io/version: 4.0.0-alpha.0
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: starship
+    app.kubernetes.io/name: nginx-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    cert-manager.io/issuer: cert-issuer
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - explorer.example.com
+      secretName: explorer.nginx-ingress-tls
+    - hosts:
+        - registry.example.com
+      secretName: registry.nginx-ingress-tls
+    - hosts:
+        - rest.osmosis-1-genesis.example.com
+      secretName: rest.osmosis-1-genesis.nginx-ingress-tls
+    - hosts:
+        - rpc.osmosis-1-genesis.example.com
+      secretName: rpc.osmosis-1-genesis.nginx-ingress-tls
+    - hosts:
+        - my-app.example.com
+      secretName: my-app.nginx-ingress-tls
+  rules:
+    - host: explorer.example.com
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: explorer
+                port:
+                  name: http
+    - host: registry.example.com
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: registry
+                port:
+                  name: http
+    - host: rest.osmosis-1-genesis.example.com
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: osmosis-1-genesis
+                port:
+                  name: rest
+          - pathType: ImplementationSpecific
+            path: /faucet/(.*)
+            backend:
+              service:
+                name: osmosis-1-genesis
+                port:
+                  name: faucet
+          - pathType: ImplementationSpecific
+            path: /exposer/(.*)
+            backend:
+              service:
+                name: osmosis-1-genesis
+                port:
+                  name: exposer
+    - host: rpc.osmosis-1-genesis.example.com
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: osmosis-1-genesis
+                port:
+                  name: rpc
+    - host: my-app.example.com
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: my-app
+                port:
+                  name: http

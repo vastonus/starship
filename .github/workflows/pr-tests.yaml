@@ -80,11 +80,11 @@ jobs:
 
       - name: Install starship CLI
         run: |
-          cd clients/js
+          cd packages
           yarn
           yarn build
           chmod +x node_modules/.bin/starship
-          echo "PATH=$GITHUB_WORKSPACE/clients/js/node_modules/.bin:$PATH" >> $GITHUB_ENV
+          echo "PATH=$GITHUB_WORKSPACE/packages/node_modules/.bin:$PATH" >> $GITHUB_ENV
 
       - name: Setup Test infra
         id: starship-action

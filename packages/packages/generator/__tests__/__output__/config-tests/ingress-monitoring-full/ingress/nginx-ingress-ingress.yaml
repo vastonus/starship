@@ -1,0 +1,155 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: nginx-ingress
+  labels:
+    starship.io/name: starship-e2e-tests-full-stack
+    app.kubernetes.io/version: 4.0.0-alpha.0
+    app.kubernetes.io/managed-by: starship
+    app.kubernetes.io/component: ingress
+    app.kubernetes.io/part-of: starship
+    app.kubernetes.io/name: nginx-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /$1
+    nginx.ingress.kubernetes.io/use-regex: 'true'
+    cert-manager.io/issuer: letsencrypt-prod
+spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - explorer.starship-test.io
+      secretName: explorer.nginx-ingress-tls
+    - hosts:
+        - registry.starship-test.io
+      secretName: registry.nginx-ingress-tls
+    - hosts:
+        - rest.osmosis-1-genesis.starship-test.io
+      secretName: rest.osmosis-1-genesis.nginx-ingress-tls
+    - hosts:
+        - rpc.osmosis-1-genesis.starship-test.io
+      secretName: rpc.osmosis-1-genesis.nginx-ingress-tls
+    - hosts:
+        - rest.cosmoshub-4-genesis.starship-test.io
+      secretName: rest.cosmoshub-4-genesis.nginx-ingress-tls
+    - hosts:
+        - rpc.cosmoshub-4-genesis.starship-test.io
+      secretName: rpc.cosmoshub-4-genesis.nginx-ingress-tls
+    - hosts:
+        - web-app.starship-test.io
+      secretName: web-app.nginx-ingress-tls
+  rules:
+    - host: explorer.starship-test.io
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: explorer
+                port:
+                  name: http
+    - host: registry.starship-test.io
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: registry
+                port:
+                  name: http
+    - host: rest.osmosis-1-genesis.starship-test.io
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: osmosis-1-genesis
+                port:
+                  name: rest
+          - pathType: ImplementationSpecific
+            path: /faucet/(.*)
+            backend:
+              service:
+                name: osmosis-1-genesis
+                port:
+                  name: faucet
+          - pathType: ImplementationSpecific
+            path: /exposer/(.*)
+            backend:
+              service:
+                name: osmosis-1-genesis
+                port:
+                  name: exposer
+    - host: rpc.osmosis-1-genesis.starship-test.io
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: osmosis-1-genesis
+                port:
+                  name: rpc
+    - host: rest.cosmoshub-4-genesis.starship-test.io
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: cosmoshub-4-genesis
+                port:
+                  name: rest
+          - pathType: ImplementationSpecific
+            path: /faucet/(.*)
+            backend:
+              service:
+                name: cosmoshub-4-genesis
+                port:
+                  name: faucet
+          - pathType: ImplementationSpecific
+            path: /exposer/(.*)
+            backend:
+              service:
+                name: cosmoshub-4-genesis
+                port:
+                  name: exposer
+    - host: rpc.cosmoshub-4-genesis.starship-test.io
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: cosmoshub-4-genesis
+                port:
+                  name: rpc
+    - host: rest.hermes-osmos-cosmos.starship-test.io
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: hermes-osmos-cosmos
+                port:
+                  name: rest
+          - pathType: ImplementationSpecific
+            path: /exposer/(.*)
+            backend:
+              service:
+                name: hermes-osmos-cosmos
+                port:
+                  name: exposer
+    - host: web-app.starship-test.io
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: /(.*)
+            backend:
+              service:
+                name: web-app
+                port:
+                  name: http

@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: web-app
+  labels:
+    app.kubernetes.io/component: frontend
+    app.kubernetes.io/part-of: starship
+    app.kubernetes.io/name: web-app
+    starship.io/name: starship-e2e-tests-full-stack
+    app.kubernetes.io/version: 4.0.0-alpha.0
+    app.kubernetes.io/managed-by: starship
+spec:
+  replicas: 1
+  revisionHistoryLimit: 3
+  selector:
+    matchLabels:
+      app.kubernetes.io/instance: web-app
+      app.kubernetes.io/name: web-app
+  template:
+    metadata:
+      annotations:
+        quality: release
+        role: frontend
+        sla: high
+        tier: frontend
+      labels:
+        starship.io/name: starship-e2e-tests-full-stack
+        app.kubernetes.io/version: 4.0.0-alpha.0
+        app.kubernetes.io/managed-by: starship
+        app.kubernetes.io/instance: web-app
+        app.kubernetes.io/name: web-app
+    spec:
+      containers:
+        - name: web-app
+          image: nginx:latest
+          imagePullPolicy: IfNotPresent
+          ports: []
+          env: []
+          resources:
+            limits:
+              cpu: '0.5'
+              memory: 1Gi
+            requests:
+              cpu: '0.5'
+              memory: 1Gi
