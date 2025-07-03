@@ -60,7 +60,7 @@ Convert $chain.id to name usable by templates
 {{/*
 Environment variables for chain from configmaps
 */}}
-{{- define "devnet.defaultEvnVars" }}
+{{- define "devnet.defaultEnvVars" }}
 - name: DENOM
   value: {{ .denom }}
 - name: COINS
