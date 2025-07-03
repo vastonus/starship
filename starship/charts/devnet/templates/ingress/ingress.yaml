@@ -31,6 +31,12 @@ spec:
     - hosts:
         - "rpc.{{ $chain.id }}-genesis.{{ $host }}"
       secretName: rpc.{{ $chain.id }}-genesis.{{ $.Values.ingress.type }}-ingress-tls
+    - hosts:
+        - "grpc.{{ $chain.id }}-genesis.{{ $host }}"
+      secretName: grpc.{{ $chain.id }}-genesis.{{ $.Values.ingress.type }}-ingress-tls
+    - hosts:
+        - "grpc-web.{{ $chain.id }}-genesis.{{ $host }}"
+      secretName: grpc-web.{{ $chain.id }}-genesis.{{ $.Values.ingress.type }}-ingress-tls
     {{- end }}
     {{- range $frontend := $.Values.frontends }}
     - hosts:
@@ -97,6 +103,26 @@ spec:
                 name: {{ $chain.id }}-genesis
                 port:
                   name: rpc
+    - host: "grpc.{{ $chain.id }}-genesis.{{ $host }}"
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: "/(.*)"
+            backend:
+              service:
+                name: {{ $chain.id }}-genesis
+                port:
+                  name: grpc
+    - host: "grpc-web.{{ $chain.id }}-genesis.{{ $host }}"
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: "/(.*)"
+            backend:
+              service:
+                name: {{ $chain.id }}-genesis
+                port:
+                  name: grpc-web
     {{- end }}
     {{- range $relayer := $.Values.relayers }}
     {{- if eq $relayer.type "hermes" }}
