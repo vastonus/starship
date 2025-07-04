@@ -31,12 +31,6 @@ spec:
     - hosts:
         - "rpc.{{ $chain.id }}-genesis.{{ $host }}"
       secretName: rpc.{{ $chain.id }}-genesis.{{ $.Values.ingress.type }}-ingress-tls
-    - hosts:
-        - "grpc.{{ $chain.id }}-genesis.{{ $host }}"
-      secretName: grpc.{{ $chain.id }}-genesis.{{ $.Values.ingress.type }}-ingress-tls
-    - hosts:
-        - "grpc-web.{{ $chain.id }}-genesis.{{ $host }}"
-      secretName: grpc-web.{{ $chain.id }}-genesis.{{ $.Values.ingress.type }}-ingress-tls
     {{- end }}
     {{- range $frontend := $.Values.frontends }}
     - hosts:
@@ -103,32 +97,6 @@ spec:
                 name: {{ $chain.id }}-genesis
                 port:
                   name: rpc
-    - host: "grpc.{{ $chain.id }}-genesis.{{ $host }}"
-      metadata:
-        annotations:
-          nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
-      http:
-        paths:
-          - pathType: ImplementationSpecific
-            path: "/(.*)"
-            backend:
-              service:
-                name: {{ $chain.id }}-genesis
-                port:
-                  name: grpc
-    - host: "grpc-web.{{ $chain.id }}-genesis.{{ $host }}"
-      metadata:
-        annotations:
-          nginx.ingress.kubernetes.io/backend-protocol: "GRPC-WEB"
-      http:
-        paths:
-          - pathType: ImplementationSpecific
-            path: "/(.*)"
-            backend:
-              service:
-                name: {{ $chain.id }}-genesis
-                port:
-                  name: grpc-web
     {{- end }}
     {{- range $relayer := $.Values.relayers }}
     {{- if eq $relayer.type "hermes" }}
@@ -162,6 +130,66 @@ spec:
                 name: {{ $frontend.name }}
                 port:
                   name: http
+    {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $.Values.ingress.type }}-grpc-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    cert-manager.io/issuer: "{{ $.Values.ingress.certManager.issuer }}"
+spec:
+  ingressClassName: {{ $.Values.ingress.type }}
+  tls:
+    {{- range $chain := $.Values.chains }}
+    - hosts:
+        - "grpc.{{ $chain.id }}-genesis.{{ $host }}"
+      secretName: grpc.{{ $chain.id }}-genesis.{{ $.Values.ingress.type }}-ingress-tls
+    {{- end }}
+  rules:
+    {{- range $chain := $.Values.chains }}
+    - host: "grpc.{{ $chain.id }}-genesis.{{ $host }}"
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: "/(.*)"
+            backend:
+              service:
+                name: {{ $chain.id }}-genesis
+                port:
+                  name: grpc
+    {{- end }}
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ $.Values.ingress.type }}-grpc-web-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/backend-protocol: "GRPC-WEB"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    cert-manager.io/issuer: "{{ $.Values.ingress.certManager.issuer }}"
+spec:
+  ingressClassName: {{ $.Values.ingress.type }}
+  tls:
+    {{- range $chain := $.Values.chains }}
+    - hosts:
+        - "grpc-web.{{ $chain.id }}-genesis.{{ $host }}"
+      secretName: grpc-web.{{ $chain.id }}-genesis.{{ $.Values.ingress.type }}-ingress-tls
+    {{- end }}
+  rules:
+    {{- range $chain := $.Values.chains }}
+    - host: "grpc-web.{{ $chain.id }}-genesis.{{ $host }}"
+      http:
+        paths:
+          - pathType: ImplementationSpecific
+            path: "/(.*)"
+            backend:
+              service:
+                name: {{ $chain.id }}-genesis
+                port:
+                  name: grpc-web
     {{- end }}
 ---
 {{- end }}
