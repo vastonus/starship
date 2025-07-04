@@ -104,6 +104,9 @@ spec:
                 port:
                   name: rpc
     - host: "grpc.{{ $chain.id }}-genesis.{{ $host }}"
+      metadata:
+        annotations:
+          nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
       http:
         paths:
           - pathType: ImplementationSpecific
@@ -114,6 +117,9 @@ spec:
                 port:
                   name: grpc
     - host: "grpc-web.{{ $chain.id }}-genesis.{{ $host }}"
+      metadata:
+        annotations:
+          nginx.ingress.kubernetes.io/backend-protocol: "GRPC-WEB"
       http:
         paths:
           - pathType: ImplementationSpecific
