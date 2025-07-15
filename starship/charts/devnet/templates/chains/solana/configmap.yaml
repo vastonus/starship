@@ -20,6 +20,8 @@ data:
     {{- $.Files.Get "scripts/solana/bootstrap-validator.sh" | nindent 4 }}
   validator-x.sh: |-
     {{- $.Files.Get "scripts/solana/validator-x.sh" | nindent 4 }}
+  validator.sh: |-
+    {{- $.Files.Get "scripts/solana/validator.sh" | nindent 4 }}
   bench-tps.sh: |-
     {{- $.Files.Get "scripts/solana/bench-tps.sh" | nindent 4 }}
 {{- end }}

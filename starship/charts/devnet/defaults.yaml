@@ -834,6 +834,9 @@ defaultChains:
       validator-x:
         name: validator-x.sh
         file: scripts/solana/validator-x.sh
+      validator:
+        name: validator.sh
+        file: scripts/solana/validator.sh
       bench-tps:
         name: bench-tps.sh
         file: scripts/solana/bench-tps.sh
