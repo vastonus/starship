@@ -151,6 +151,11 @@ chains:
     file: Dockerfile.xpla
     tags:
       - main
+  - name: solana
+    base: solanalabs/solana
+    file: Dockerfile.solana
+    tags:
+      - v1.18.26
   - name: ethereum/client-go
     base: ethereum/client-go
     file: Dockerfile.base
