@@ -1,0 +1,26 @@
+{{- range $chain := .Values.chains }}
+{{- if eq $chain.type "solana" }}
+{{ $defaultFile := $.Files.Get "defaults.yaml" | fromYaml }}
+{{ $chain := include "devnet.fullchain" (dict "name" $chain.id "file" $defaultFile "context" $) | fromJson }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: setup-scripts-{{ $chain.hostname }}
+data:
+  common.sh: |-
+    {{- $.Files.Get "scripts/solana/common.sh" | nindent 4 }}
+  fetch-perf-libs.sh: |-
+    {{- $.Files.Get "scripts/solana/fetch-perf-libs.sh" | nindent 4 }}
+  setup.sh: |-
+    {{- $.Files.Get "scripts/solana/setup.sh" | nindent 4 }}
+  faucet.sh: |-
+    {{- $.Files.Get "scripts/solana/faucet.sh" | nindent 4 }}
+  bootstrap-validator.sh: |-
+    {{- $.Files.Get "scripts/solana/bootstrap-validator.sh" | nindent 4 }}
+  validator-x.sh: |-
+    {{- $.Files.Get "scripts/solana/validator-x.sh" | nindent 4 }}
+  bench-tps.sh: |-
+    {{- $.Files.Get "scripts/solana/bench-tps.sh" | nindent 4 }}
+{{- end }}
+{{- end }} 

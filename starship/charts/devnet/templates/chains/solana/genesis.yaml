@@ -1,0 +1,33 @@
+{{- range $chain := .Values.chains }}
+{{- if eq $chain.type "solana" }}
+{{ $defaultFile := $.Files.Get "defaults.yaml" | fromYaml }}
+{{ $chain := include "devnet.fullchain" (dict "name" $chain.id "file" $defaultFile "context" $) | fromJson }}
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: "{{ $chain.hostname }}-genesis"
+spec:
+  template:
+    spec:
+      containers:
+      - name: genesis
+        image: {{ $chain.image }}
+        command: ["/bin/bash", "-c"]
+        args:
+          - |
+            /scripts/fetch-perf-libs.sh
+            /scripts/setup.sh
+            /scripts/bootstrap-validator.sh
+        volumeMounts:
+        - name: scripts
+          mountPath: /scripts
+      volumes:
+      - name: scripts
+        configMap:
+          name: setup-scripts-{{ $chain.hostname }}
+          defaultMode: 0777
+      restartPolicy: Never
+  backoffLimit: 1
+{{- end }}
+{{- end }} 
