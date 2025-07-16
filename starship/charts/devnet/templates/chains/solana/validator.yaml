@@ -1,5 +1,5 @@
 {{- range $chain := .Values.chains }}
-{{- if eq $chain.type "solana" }}
+{{- if eq $chain.name "solana" }}
 {{ $defaultFile := $.Files.Get "defaults.yaml" | fromYaml }}
 {{ $chain := include "devnet.fullchain" (dict "name" $chain.id "file" $defaultFile "context" $) | fromJson }}
 ---

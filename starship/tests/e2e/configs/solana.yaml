@@ -1,0 +1,11 @@
+name: starship-e2e-tests
+version: 1.7.0
+
+chains:
+- id: solana
+  name: solana
+  numValidators: 1
+  ports:
+    rest: 1317
+    rpc: 26657
+    grpc: 9091

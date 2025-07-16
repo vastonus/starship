@@ -1,41 +1,66 @@
 #!/usr/bin/env bash
-#
-# Creates a full-featured setup for a multinode Solana testnet
-#
 
 here=$(dirname "$0")
 # shellcheck source=multinode-demo/common.sh
 source "$here"/common.sh
 
-# Create a keypair for the faucet
-#
-# The faucet is a Solana account that is funded with a large amount of SOL at
-# genesis. It is then used to fund other accounts on the testnet.
-#
-# The faucet keypair is created in the config directory so that it can be easily
-# accessed by the faucet service.
-#
-if [[ ! -f "$SOLANA_CONFIG_DIR"/faucet.json ]]; then
-  "$solana_keygen" new --no-passphrase -o "$SOLANA_CONFIG_DIR"/faucet.json
+set -e
+
+rm -rf "$SOLANA_CONFIG_DIR"/bootstrap-validator
+mkdir -p "$SOLANA_CONFIG_DIR"/bootstrap-validator
+
+# Create genesis ledger
+if [[ -r $FAUCET_KEYPAIR ]]; then
+  cp -f "$FAUCET_KEYPAIR" "$SOLANA_CONFIG_DIR"/faucet.json
+else
+  $solana_keygen new --no-passphrase -fso "$SOLANA_CONFIG_DIR"/faucet.json
 fi
 
-# Create the genesis ledger
-#
-# The genesis ledger is the first block in the blockchain. It contains a number
-# of configuration settings, as well as the initial set of accounts and their
-# balances.
-#
-# The genesis ledger is created using the solana-genesis command. The command
-# takes a number of arguments, including the location of the faucet keypair,
-# the initial amount of SOL to fund the faucet with, and the location of the
-# ledger directory.
-#
+if [[ -f $BOOTSTRAP_VALIDATOR_IDENTITY_KEYPAIR ]]; then
+  cp -f "$BOOTSTRAP_VALIDATOR_IDENTITY_KEYPAIR" "$SOLANA_CONFIG_DIR"/bootstrap-validator/identity.json
+else
+  $solana_keygen new --no-passphrase -so "$SOLANA_CONFIG_DIR"/bootstrap-validator/identity.json
+fi
+if [[ -f $BOOTSTRAP_VALIDATOR_STAKE_KEYPAIR ]]; then
+  cp -f "$BOOTSTRAP_VALIDATOR_STAKE_KEYPAIR" "$SOLANA_CONFIG_DIR"/bootstrap-validator/stake-account.json
+else
+  $solana_keygen new --no-passphrase -so "$SOLANA_CONFIG_DIR"/bootstrap-validator/stake-account.json
+fi
+if [[ -f $BOOTSTRAP_VALIDATOR_VOTE_KEYPAIR ]]; then
+  cp -f "$BOOTSTRAP_VALIDATOR_VOTE_KEYPAIR" "$SOLANA_CONFIG_DIR"/bootstrap-validator/vote-account.json
+else
+  $solana_keygen new --no-passphrase -so "$SOLANA_CONFIG_DIR"/bootstrap-validator/vote-account.json
+fi
+
 args=(
-  --faucet-pubkey "$SOLANA_CONFIG_DIR"/faucet.json
-  --faucet-lamports 500000000000000000
-  --ledger "$SOLANA_CONFIG_DIR"/ledger
-  --bootstrap-validator-lamports 500000000000000000
-  --bootstrap-validator-stake-lamports 100000000000000000
+  "$@"
+  --max-genesis-archive-unpacked-size 1073741824
+  --enable-warmup-epochs
+  --bootstrap-validator "$SOLANA_CONFIG_DIR"/bootstrap-validator/identity.json
+                        "$SOLANA_CONFIG_DIR"/bootstrap-validator/vote-account.json
+                        "$SOLANA_CONFIG_DIR"/bootstrap-validator/stake-account.json
 )
 
-"$solana_genesis" "${args[@]}" 
+"$here"/fetch-core-bpf.sh
+if [[ -r core-bpf-genesis-args.sh ]]; then
+  CORE_BPF_GENESIS_ARGS=$(cat core-bpf-genesis-args.sh)
+  #shellcheck disable=SC2207
+  #shellcheck disable=SC2206
+  args+=($CORE_BPF_GENESIS_ARGS)
+fi
+
+"$here"/fetch-spl.sh
+if [[ -r spl-genesis-args.sh ]]; then
+  SPL_GENESIS_ARGS=$(cat spl-genesis-args.sh)
+  #shellcheck disable=SC2207
+  #shellcheck disable=SC2206
+  args+=($SPL_GENESIS_ARGS)
+fi
+
+default_arg --ledger "$SOLANA_CONFIG_DIR"/bootstrap-validator
+default_arg --faucet-pubkey "$SOLANA_CONFIG_DIR"/faucet.json
+default_arg --faucet-lamports 500000000000000000
+default_arg --hashes-per-tick auto
+default_arg --cluster-type development
+
+$solana_genesis "${args[@]}"

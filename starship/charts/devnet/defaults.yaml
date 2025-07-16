@@ -815,34 +815,7 @@ defaultChains:
     hdPath: m/44'/501'/0'/0'
     coinType: 501
     repo: https://github.com/solana-labs/solana
-    scripts:
-      common:
-        name: common.sh
-        file: scripts/solana/common.sh
-      fetch-perf-libs:
-        name: fetch-perf-libs.sh
-        file: scripts/solana/fetch-perf-libs.sh
-      setup:
-        name: setup.sh
-        file: scripts/solana/setup.sh
-      faucet:
-        name: faucet.sh
-        file: scripts/solana/faucet.sh
-      bootstrap-validator:
-        name: bootstrap-validator.sh
-        file: scripts/solana/bootstrap-validator.sh
-      validator-x:
-        name: validator-x.sh
-        file: scripts/solana/validator-x.sh
-      validator:
-        name: validator.sh
-        file: scripts/solana/validator.sh
-      bench-tps:
-        name: bench-tps.sh
-        file: scripts/solana/bench-tps.sh
     faucet:
-      enabled: true
-    bench:
       enabled: true
     assets:
       - base: lamports
