@@ -1,7 +1,6 @@
 #!/usr/bin/env bash
 
 here=$(dirname "$0")
-# shellcheck source=multinode-demo/common.sh
 source "$here"/common.sh
 
 set -e

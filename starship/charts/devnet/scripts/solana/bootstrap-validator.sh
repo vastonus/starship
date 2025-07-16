@@ -5,6 +5,7 @@
 set -e
 
 here=$(dirname "$0")
+source "$here"/common.sh
 
 if [[ "$SOLANA_GPU_MISSING" -eq 1 ]]; then
   echo "Testnet requires GPUs, but none were found!  Aborting..."

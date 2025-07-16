@@ -84,8 +84,7 @@ spec:
             - bash
             - "-c"
             - |
-              sleep 1000000000000000000000
-
+              echo "Running bootstrap validator script..."
               bash -e {{ $chain.home }}/scripts/bootstrap-validator.sh
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:

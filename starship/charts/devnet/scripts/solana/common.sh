@@ -27,7 +27,7 @@ solana_program() {
     printf "solana"
   else
     if [[ $program == "validator" || $program == "ledger-tool" || $program == "watchtower" || $program == "install" ]]; then
-      printf "agave-%s" "$program"
+      printf "solana-%s" "$program"
     else
       printf "solana-%s" "$program"
     fi

@@ -9,3 +9,6 @@ chains:
     rest: 1317
     rpc: 26657
     grpc: 9091
+  resources:
+    cpu: 2000m
+    memory: 2048Mi
