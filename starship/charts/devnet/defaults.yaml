@@ -805,7 +805,7 @@ defaultChains:
         coingecko_id: xpla
   solana:
     type: solana
-    image: ghcr.io/hyperweb-io/starship/solana:v1.18.26
+    image: ghcr.io/hyperweb-io/starship/solana-agave:v2.3.4
     home: /root/.solana
     binary: solana-validator
     prefix: sol
@@ -814,7 +814,7 @@ defaultChains:
     coins: 1000000000000000lamports
     hdPath: m/44'/501'/0'/0'
     coinType: 501
-    repo: https://github.com/solana-labs/solana
+    repo: https://github.com/anzaxyz/agave
     faucet:
       enabled: true
     assets:
