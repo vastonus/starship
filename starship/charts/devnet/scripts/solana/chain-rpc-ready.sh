@@ -93,4 +93,4 @@ fi
 
 echo 1>&2 "Solana RPC at $RPC_URL is ready and healthy"
 echo "Health: $health_status, Slot: $current_slot, Cluster Nodes: $node_count"
-exit 0 
+exit 0
