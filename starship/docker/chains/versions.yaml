@@ -156,6 +156,14 @@ chains:
     file: Dockerfile.solana
     tags:
       - v1.18.26
+  - name: solana-agave
+    base: anzaxyz/agave
+    file: Dockerfile.solana
+    tags:
+      - v2.3.4
+      - v2.3.3
+      - v2.2.20
+      - v2.2.19
   - name: ethereum/client-go
     base: ethereum/client-go
     file: Dockerfile.base
