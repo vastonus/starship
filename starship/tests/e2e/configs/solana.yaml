@@ -6,9 +6,9 @@ chains:
   name: solana
   numValidators: 1
   ports:
-    rest: 1317
-    rpc: 26657
-    grpc: 9091
+    rpc: 8899
+    ws: 8900
+    faucet: 9900
   resources:
     cpu: 2000m
     memory: 2048Mi
