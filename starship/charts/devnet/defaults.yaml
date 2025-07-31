@@ -817,6 +817,7 @@ defaultChains:
     repo: https://github.com/anzaxyz/agave
     faucet:
       enabled: true
+      type: solana-faucet
     assets:
       - base: lamports
         description: "The native token of Solana"
@@ -1037,6 +1038,9 @@ defaultFaucet:
     concurrency: 5
   starship:
     image: ghcr.io/hyperweb-io/starship/faucet:20250325-2207109
+    concurrency: 5
+  solana-faucet:
+    image: ghcr.io/hyperweb-io/starship/solana-agave:v2.3.4
     concurrency: 5
 
 defaultCometmock:

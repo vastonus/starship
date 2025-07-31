@@ -53,7 +53,8 @@
           "type": "string",
           "enum": [
             "cosmjs",
-            "starship"
+            "starship",
+            "solana-faucet"
           ]
         },
         "image": {

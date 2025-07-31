@@ -164,6 +164,40 @@ spec:
           volumeMounts:
             - mountPath: {{ $chain.home }}
               name: node
+        {{- if $chain.faucet.enabled }}
+        {{- if eq $chain.faucet.type "solana-faucet" }}
+        - name: faucet
+          image: {{ $chain.image }}
+          imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
+          env:
+            {{- include "devnet.genesisVars" $dataExposer | indent 12}}
+            - name: SOLANA_CONFIG_DIR
+              value: {{ $chain.home }}
+            - name: SOLANA_FAUCET_PORT
+              value: "9900"
+            - name: SOLANA_FAUCET_ALLOW_IP
+              value: "0.0.0.0/0"
+            - name: SOLANA_FAUCET_PER_TIME_CAP
+              value: "1000000000000000000"
+          command:
+            - bash
+            - -c
+            - |
+              set -ex
+              solana-faucet \
+                --keypair {{ $chain.home }}/faucet.json \
+                --port $SOLANA_FAUCET_PORT \
+                --allow-ip $SOLANA_FAUCET_ALLOW_IP \
+                --per-time-cap $SOLANA_FAUCET_PER_TIME_CAP \
+                --per-request-cap $SOLANA_FAUCET_PER_REQUEST_CAP
+          resources: {{- include "getResourceObject" $chain.faucet.resources | trim | nindent 12 }}
+          volumeMounts:
+            - mountPath: {{ $chain.home }}
+              name: node
+            - mountPath: /scripts
+              name: scripts
+        {{- end }}
+        {{- end }}
       volumes:
         - name: node
           emptyDir: { }
