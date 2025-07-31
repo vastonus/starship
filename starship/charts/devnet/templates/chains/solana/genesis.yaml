@@ -71,6 +71,8 @@ spec:
 
               echo "Set config"
               solana config set --url localhost
+              solana config set --keypair $CHAIN_DIR/bootstrap-validator/identity.json
+              cp /root/.config/solana/cli/config.yml $CHAIN_DIR/config/config.yml
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:
             - mountPath: {{ $chain.home }}
@@ -98,6 +100,9 @@ spec:
             - bash
             - "-c"
             - |
+              mkdir -p /root/.config/solana/cli/
+              cp $CHAIN_DIR/config/config.yml /root/.config/solana/cli/config.yml
+
               echo "Running bootstrap validator script..."
               bash -e {{ $chain.home }}/scripts/bootstrap-validator.sh
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
@@ -152,6 +157,8 @@ spec:
               value: {{ $chain.home }}/bootstrap-validator/genesis.bin
             - name: EXPOSER_NODE_ID_FILE
               value: {{ $chain.home }}/config/node_id.json
+            - name: EXPOSER_CONFIG_FILE
+              value: {{ $chain.home }}/config/config.yml
           command: [ "exposer" ]
           resources: {{- include "getResourceObject" $.Values.exposer.resources | trim | nindent 12 }}
           volumeMounts:
