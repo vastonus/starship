@@ -4,7 +4,7 @@ version: 1.7.0
 chains:
 - id: solana
   name: solana
-  numValidators: 1
+  numValidators: 2
   ports:
     rpc: 8899
     ws: 8900

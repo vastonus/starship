@@ -1,8 +1,10 @@
 {{- range $chain := .Values.chains }}
 {{- if eq $chain.name "solana" }}
 {{- if gt $chain.numValidators 1.0 }}
+{{- $dataExposer := dict "chain" $chain.id "port" ($.Values.exposer.ports.rest | quote | default "8081") }}
 {{ $defaultFile := $.Files.Get "defaults.yaml" | fromYaml }}
 {{ $chain := include "devnet.fullchain" (dict "name" $chain.id "file" $defaultFile "context" $) | fromJson }}
+{{ $initParams := dict "chains" (list $chain.id) "port" $.Values.exposer.ports.rest "context" $ }}
 ---
 apiVersion: apps/v1
 kind: StatefulSet
@@ -17,22 +19,140 @@ spec:
       app.kubernetes.io/name: {{ $chain.id }}-validator
   template:
     metadata:
+      annotations:
+        quality: release
+        role: api-gateway
+        sla: high
+        tier: gateway
       labels:
         app.kubernetes.io/instance: {{ $chain.name }}
+        app.kubernetes.io/type: {{ $chain.id }}
         app.kubernetes.io/name: {{ $chain.id }}-validator
+        app.kubernetes.io/rawname: {{ $chain.id }}
+        app.kubernetes.io/version: {{ $.Chart.AppVersion }}
     spec:
+      {{- include "imagePullSecrets" $chain | indent 6 }}
+      initContainers:
+        {{- include "devnet.init.wait" $initParams | indent 8 }}
+        - name: init-validator
+          image: {{ $chain.image }}
+          imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
+          env:
+            {{- include "devnet.defaultEvnVars" $chain | indent 12 }}
+            {{- include "devnet.evnVars" $chain | indent 12 }}
+            {{- include "devnet.timeoutVars" $.Values | indent 12 }}
+            {{- include "devnet.genesisVars" $dataExposer | indent 12 }}
+            - name: KEYS_CONFIG
+              value: /configs/keys.json
+            - name: FAUCET_ENABLED
+              value: "{{ $chain.faucet.enabled }}"
+            - name: NUM_VALIDATORS
+              value: "{{ $chain.numValidators }}"
+            - name: SOLANA_CONFIG_DIR
+              value: {{ $chain.home }}
+          command:
+            - bash
+            - "-c"
+            - |
+              set -ex
+              
+              VAL_INDEX=${HOSTNAME##*-}
+              echo "Validator Index: $VAL_INDEX"
+
+              echo "Move scripts to config dir"
+              mkdir -p $SOLANA_CONFIG_DIR/scripts/
+              cp -L /scripts/* $SOLANA_CONFIG_DIR/scripts/
+              chmod +x $SOLANA_CONFIG_DIR/scripts/*
+
+              # Run validator setup
+              solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/identity.json
+              solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/vote-account.json
+              solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/authorized-withdrawer.json
+
+              # Set config
+              solana config set --url http://solana-genesis.svc.cluster.local:8899
+              solana config set --keypair $SOLANA_CONFIG_DIR/identity.json
+
+              echo "Create node id json file"
+              mkdir -p $SOLANA_CONFIG_DIR/config/
+              NODE_ID=$(solana address --keypair $SOLANA_CONFIG_DIR/identity.json)
+              echo '{"node_id":"'$NODE_ID'"}' > $SOLANA_CONFIG_DIR/config/node_id.json
+
+              # Transfer from faucet
+              ## Get validator pubkey
+              VALIDATOR_PUBKEY=$(solana-keygen pubkey $SOLANA_CONFIG_DIR/identity.json)
+              solana airdrop 100 $VALIDATOR_PUBKEY
+              ## Verify balance
+              solana balance $VALIDATOR_PUBKEY
+
+              cp /root/.config/solana/cli/config.yml $SOLANA_CONFIG_DIR/config/config.yml
+          resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
+          volumeMounts:
+            - mountPath: {{ $chain.home }}
+              name: node
+            - mountPath: /scripts
+              name: scripts
       containers:
-      - name: validator
-        image: {{ $chain.image }}
-        command: ["/bin/bash", "-c"]
-        args:
-          - |
-            VAL_INDEX=${HOSTNAME##*-}
-            /scripts/validator-x.sh $VAL_INDEX
-        volumeMounts:
-        - name: scripts
-          mountPath: /scripts
+        - name: validator
+          image: {{ $chain.image }}
+          imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
+          env:
+            {{- include "devnet.defaultEvnVars" $chain | indent 12 }}
+            {{- include "devnet.evnVars" $chain | indent 12 }}
+            {{- include "devnet.timeoutVars" $.Values | indent 12 }}
+            {{- include "devnet.genesisVars" $dataExposer | indent 12 }}
+            - name: KEYS_CONFIG
+              value: /configs/keys.json
+            - name: FAUCET_ENABLED
+              value: "{{ $chain.faucet.enabled }}"
+            - name: NUM_VALIDATORS
+              value: "{{ $chain.numValidators }}"
+            - name: SOLANA_CONFIG_DIR
+              value: {{ $chain.home }}
+          command: ["/bin/bash", "-c"]
+          args:
+            - |
+              set -ex
+
+              # Copy config
+              mkdir -p /root/.config/solana/cli/
+              cp $SOLANA_CONFIG_DIR/config/config.yml /root/.config/solana/cli/config.yml
+
+              agave-validator \
+                --identity $SOLANA_CONFIG_DIR/identity.json \
+                --vote-account $SOLANA_CONFIG_DIR/vote-account.json \
+                --authorized-withdrawer $SOLANA_CONFIG_DIR/authorized-withdrawer.json \
+                --rpc-port 8899 \
+                --entrypoint solana-genesis.svc.cluster.local:8001
+          resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
+          volumeMounts:
+            - mountPath: {{ $chain.home }}
+              name: node
+            - mountPath: /scripts
+              name: scripts
+        - name: exposer
+          image: {{ $.Values.exposer.image }}
+          imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
+          env:
+            {{- include "devnet.genesisVars" $dataExposer | indent 12}}
+            - name: EXPOSER_HTTP_PORT
+              value: "8081"
+            - name: EXPOSER_GRPC_PORT
+              value: "9099"
+            - name: EXPOSER_GENESIS_FILE
+              value: {{ $chain.home }}/genesis.bin
+            - name: EXPOSER_NODE_ID_FILE
+              value: {{ $chain.home }}/config/node_id.json
+            - name: EXPOSER_CONFIG_FILE
+              value: {{ $chain.home }}/config/config.yml
+          command: [ "exposer" ]
+          resources: {{- include "getResourceObject" $.Values.exposer.resources | trim | nindent 12 }}
+          volumeMounts:
+            - mountPath: {{ $chain.home }}
+              name: node
       volumes:
+      - name: node
+        emptyDir: { }
       - name: scripts
         configMap:
           name: setup-scripts-{{ $chain.hostname }}
