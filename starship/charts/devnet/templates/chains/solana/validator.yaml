@@ -55,7 +55,7 @@ spec:
             - "-c"
             - |
               set -ex
-              
+
               VAL_INDEX=${HOSTNAME##*-}
               echo "Validator Index: $VAL_INDEX"
 
@@ -70,7 +70,7 @@ spec:
               solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/authorized-withdrawer.json
 
               # Set config
-              solana config set --url http://solana-genesis.svc.cluster.local:8899
+              solana config set --url http://solana-genesis.$NAMESPACE.svc.cluster.local:8899
               solana config set --keypair $SOLANA_CONFIG_DIR/identity.json
 
               echo "Create node id json file"
@@ -123,7 +123,7 @@ spec:
                 --vote-account $SOLANA_CONFIG_DIR/vote-account.json \
                 --authorized-withdrawer $SOLANA_CONFIG_DIR/authorized-withdrawer.json \
                 --rpc-port 8899 \
-                --entrypoint solana-genesis.svc.cluster.local:8001
+                --entrypoint solana-genesis.$NAMESPACE.svc.cluster.local:8001
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:
             - mountPath: {{ $chain.home }}
