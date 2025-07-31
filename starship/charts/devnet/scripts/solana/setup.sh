@@ -3,7 +3,7 @@
 here=$(dirname "$0")
 source "$here"/common.sh
 
-set -e
+set -ex
 
 rm -rf "$SOLANA_CONFIG_DIR"/bootstrap-validator
 mkdir -p "$SOLANA_CONFIG_DIR"/bootstrap-validator
@@ -33,6 +33,7 @@ fi
 
 args=(
   "$@"
+  --bootstrap-validator-lamports 500000000000
   --max-genesis-archive-unpacked-size 1073741824
   --enable-warmup-epochs
   --bootstrap-validator "$SOLANA_CONFIG_DIR"/bootstrap-validator/identity.json

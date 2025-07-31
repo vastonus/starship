@@ -1,5 +1,6 @@
 {{- range $chain := .Values.chains }}
 {{- if eq $chain.name "solana" }}
+{{ $dataExposer := dict "chain" $chain.id "port" ($.Values.exposer.ports.rest | quote | default "8081") }}
 {{ $defaultFile := $.Files.Get "defaults.yaml" | fromYaml }}
 {{ $chain := include "devnet.fullchain" (dict "name" $chain.id "file" $defaultFile "context" $) | fromJson }}
 {{ $dataPublicRPC := dict "chain" $chain.id "port" "'8899'" }}
@@ -62,6 +63,11 @@ spec:
 
               echo "Running setup genesis script..."
               bash -e {{ $chain.home }}/scripts/setup.sh
+
+              echo "Create node id json file"
+              mkdir -p $CHAIN_DIR/config/
+              NODE_ID=$(solana address --keypair $CHAIN_DIR/bootstrap-validator/identity.json)
+              echo '{"node_id":"'$NODE_ID'"}' > $CHAIN_DIR/config/node_id.json
 
               echo "Set config"
               solana config set --url localhost
@@ -133,6 +139,24 @@ spec:
             periodSeconds: 30
             timeoutSeconds: 15
             failureThreshold: 5
+        - name: exposer
+          image: {{ $.Values.exposer.image }}
+          imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
+          env:
+            {{- include "devnet.genesisVars" $dataExposer | indent 12}}
+            - name: EXPOSER_HTTP_PORT
+              value: "8081"
+            - name: EXPOSER_GRPC_PORT
+              value: "9099"
+            - name: EXPOSER_GENESIS_FILE
+              value: {{ $chain.home }}/bootstrap-validator/genesis.bin
+            - name: EXPOSER_NODE_ID_FILE
+              value: {{ $chain.home }}/config/node_id.json
+          command: [ "exposer" ]
+          resources: {{- include "getResourceObject" $.Values.exposer.resources | trim | nindent 12 }}
+          volumeMounts:
+            - mountPath: {{ $chain.home }}
+              name: node
       volumes:
         - name: node
           emptyDir: { }
