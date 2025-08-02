@@ -67,7 +67,9 @@ spec:
               echo "Create node id json file"
               mkdir -p $CHAIN_DIR/config/
               NODE_ID=$(solana address --keypair $CHAIN_DIR/bootstrap-validator/identity.json)
+              NODE_PUBKEY=$(solana-keygen pubkey $CHAIN_DIR/bootstrap-validator/identity.json)
               echo '{"node_id":"'$NODE_ID'"}' > $CHAIN_DIR/config/node_id.json
+              echo '{"priv_key":{"type":"solana","value":"'$NODE_PUBKEY'"}}' > $CHAIN_DIR/config/node_key.json
 
               echo "Set config"
               solana config set --url localhost
@@ -100,6 +102,8 @@ spec:
             - bash
             - "-c"
             - |
+              set -ex
+
               mkdir -p /root/.config/solana/cli/
               cp $CHAIN_DIR/config/config.yml /root/.config/solana/cli/config.yml
 
@@ -159,6 +163,8 @@ spec:
               value: {{ $chain.home }}/config/node_id.json
             - name: EXPOSER_CONFIG_FILE
               value: {{ $chain.home }}/config/config.yml
+            - name: EXPOSER_NODE_KEY_FILE
+              value: {{ $chain.home }}/config/node_key.json
           command: [ "exposer" ]
           resources: {{- include "getResourceObject" $.Values.exposer.resources | trim | nindent 12 }}
           volumeMounts:

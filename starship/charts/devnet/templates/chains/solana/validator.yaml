@@ -65,9 +65,21 @@ spec:
               chmod +x $SOLANA_CONFIG_DIR/scripts/*
 
               # Run validator setup
-              solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/identity.json
-              solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/vote-account.json
-              solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/authorized-withdrawer.json
+              if [ ! -f $SOLANA_CONFIG_DIR/identity.json ]; then
+                solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/identity.json
+              fi
+              if [ ! -f $SOLANA_CONFIG_DIR/vote-account.json ]; then
+                solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/vote-account.json
+              fi
+              if [ ! -f $SOLANA_CONFIG_DIR/authorized-voter.json ]; then
+                solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/authorized-voter.json
+              fi
+              if [ ! -f $SOLANA_CONFIG_DIR/authorized-withdrawer.json ]; then
+                solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/authorized-withdrawer.json
+              fi
+              if [ ! -f $SOLANA_CONFIG_DIR/stake-account.json ]; then
+                solana-keygen new --no-passphrase -so $SOLANA_CONFIG_DIR/stake-account.json
+              fi
 
               # Set config
               solana config set --url http://solana-genesis.$NAMESPACE.svc.cluster.local:8899
@@ -78,12 +90,39 @@ spec:
               NODE_ID=$(solana address --keypair $SOLANA_CONFIG_DIR/identity.json)
               echo '{"node_id":"'$NODE_ID'"}' > $SOLANA_CONFIG_DIR/config/node_id.json
 
-              # Transfer from faucet
-              ## Get validator pubkey
+              # Setup validator accounts (like multinode-demo)
               VALIDATOR_PUBKEY=$(solana-keygen pubkey $SOLANA_CONFIG_DIR/identity.json)
-              solana airdrop 100 $VALIDATOR_PUBKEY
-              ## Verify balance
+              STAKE_ACCOUNT_PUBKEY=$(solana-keygen pubkey $SOLANA_CONFIG_DIR/stake-account.json)
+              VOTE_ACCOUNT_PUBKEY=$(solana-keygen pubkey $SOLANA_CONFIG_DIR/vote-account.json)
+              AUTHORIZED_WITHDRAWER_PUBKEY=$(solana-keygen pubkey $SOLANA_CONFIG_DIR/authorized-withdrawer.json)
+
+              # Fund validator identity account
+              echo "Funding validator identity account with 500 SOL"
+              solana airdrop 500 $VALIDATOR_PUBKEY
+
+              # Create vote account with both authorities
+              echo "Creating validator vote account"
+              solana create-vote-account $SOLANA_CONFIG_DIR/vote-account.json $SOLANA_CONFIG_DIR/identity.json $AUTHORIZED_WITHDRAWER_PUBKEY
+
+              # Vote for the vote account
+              echo "Voting for the vote account"
+              solana vote-account $VOTE_ACCOUNT_PUBKEY
+
+              # Verify balance
+              echo "Validator identity account balance:"
               solana balance $VALIDATOR_PUBKEY
+
+              # Create stake account
+              echo "Creating stake account"
+              solana create-stake-account $SOLANA_CONFIG_DIR/stake-account.json 10
+              solana delegate-stake $STAKE_ACCOUNT_PUBKEY $VOTE_ACCOUNT_PUBKEY
+
+              # Get bootstrap validator's public key
+              BOOTSTRAP_PUBKEY=$(curl -s http://solana-genesis.$NAMESPACE.svc.cluster.local:8081/node_key | jq -r '.priv_key.value')
+              echo "Bootstrap validator public key: $BOOTSTRAP_PUBKEY"
+
+              POD_IP=$(hostname -i | awk '{print $1}')
+              echo "Pod IP: $POD_IP"
 
               cp /root/.config/solana/cli/config.yml $SOLANA_CONFIG_DIR/config/config.yml
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
@@ -96,6 +135,9 @@ spec:
         - name: validator
           image: {{ $chain.image }}
           imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
+          #securityContext:
+          #  runAsUser: 0  # Run as root to set ulimit
+          #  fsGroup: 0
           env:
             {{- include "devnet.defaultEvnVars" $chain | indent 12 }}
             {{- include "devnet.evnVars" $chain | indent 12 }}
@@ -118,12 +160,30 @@ spec:
               mkdir -p /root/.config/solana/cli/
               cp $SOLANA_CONFIG_DIR/config/config.yml /root/.config/solana/cli/config.yml
 
+              # Get bootstrap validator's public key
+              BOOTSTRAP_PUBKEY=$(curl -s http://solana-genesis.$NAMESPACE.svc.cluster.local:8081/node_key | jq -r '.priv_key.value')
+              echo "Bootstrap validator public key: $BOOTSTRAP_PUBKEY"
+
+              POD_IP=$(hostname -i | awk '{print $1}')
+              
               agave-validator \
                 --identity $SOLANA_CONFIG_DIR/identity.json \
+                --max-genesis-archive-unpacked-size 1073741824 \
                 --vote-account $SOLANA_CONFIG_DIR/vote-account.json \
-                --authorized-withdrawer $SOLANA_CONFIG_DIR/authorized-withdrawer.json \
+                --bind-address 0.0.0.0 \
+                --rpc-bind-address 0.0.0.0 \
                 --rpc-port 8899 \
-                --entrypoint solana-genesis.$NAMESPACE.svc.cluster.local:8001
+                --gossip-port 8001 \
+                --public-rpc-address $POD_IP:8899 \
+                --rpc-faucet-address solana-genesis.$NAMESPACE.svc.cluster.local:9900 \
+                --allow-private-addr \
+                --entrypoint solana-genesis.$NAMESPACE.svc.cluster.local:8001 \
+                --known-validator $BOOTSTRAP_PUBKEY \
+                --no-os-network-limits-test \
+                --log - \
+                --full-rpc-api \
+                --no-incremental-snapshots \
+                --require-tower
           resources: {{- include "devnet.node.resources" ( dict "node" $chain "context" $ ) | trim | nindent 12 }}
           volumeMounts:
             - mountPath: {{ $chain.home }}

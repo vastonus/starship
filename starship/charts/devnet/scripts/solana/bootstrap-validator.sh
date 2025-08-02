@@ -148,11 +148,15 @@ if [[ $maybeRequireTower = true ]]; then
   args+=(--require-tower)
 fi
 
+POD_IP=$(hostname -i | awk '{print $1}')
+
 args+=(
   --ledger "$ledger_dir"
+  --public-rpc-address $POD_IP:8899
   --bind-address 0.0.0.0
   --rpc-bind-address 0.0.0.0
   --rpc-port 8899
+  --gossip-host $POD_IP
   --snapshot-interval-slots 200
   --no-incremental-snapshots
   --identity "$identity"

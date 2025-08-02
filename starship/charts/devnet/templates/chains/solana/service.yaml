@@ -21,9 +21,9 @@ spec:
       port: 8900
       protocol: TCP
       targetPort: 8900
-    - name: p2p
+    - name: p2p-udp
       port: 8001
-      protocol: TCP
+      protocol: UDP
       targetPort: 8001
     {{- if $chain.metrics }}
     - name: metrics
