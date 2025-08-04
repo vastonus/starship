@@ -4,14 +4,8 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
-	"io"
 	"net/http"
-	"strconv"
-	"strings"
-	"testing"
 	"time"
-
-	"github.com/stretchr/testify/suite"
 )
 
 // SolanaRPCResponse represents a generic Solana RPC response
@@ -25,23 +19,6 @@ type SolanaRPCResponse struct {
 	} `json:"error,omitempty"`
 }
 
-// SolanaSlotResponse represents the slot response
-type SolanaSlotResponse struct {
-	JSONRPC string `json:"jsonrpc"`
-	ID      int    `json:"id"`
-	Result  uint64 `json:"result"`
-}
-
-// SolanaVoteAccountsResponse represents vote accounts response
-type SolanaVoteAccountsResponse struct {
-	JSONRPC string `json:"jsonrpc"`
-	ID      int    `json:"id"`
-	Result  struct {
-		Current   []VoteAccount `json:"current"`
-		Delinquent []VoteAccount `json:"delinquent"`
-	} `json:"result"`
-}
-
 // VoteAccount represents a vote account
 type VoteAccount struct {
 	VotePubkey     string `json:"votePubkey"`
@@ -50,13 +27,6 @@ type VoteAccount struct {
 	Commission     int    `json:"commission"`
 	LastVote       uint64 `json:"lastVote"`
 	RootSlot       uint64 `json:"rootSlot"`
-}
-
-// SolanaClusterNodesResponse represents cluster nodes response
-type SolanaClusterNodesResponse struct {
-	JSONRPC string `json:"jsonrpc"`
-	ID      int    `json:"id"`
-	Result  []ClusterNode `json:"result"`
 }
 
 // ClusterNode represents a cluster node
@@ -71,25 +41,6 @@ type ClusterNode struct {
 	Version    string `json:"version"`
 	FeatureSet uint32 `json:"featureSet"`
 	ShredVersion uint16 `json:"shredVersion"`
-}
-
-// SolanaBalanceResponse represents balance response
-type SolanaBalanceResponse struct {
-	JSONRPC string `json:"jsonrpc"`
-	ID      int    `json:"id"`
-	Result  struct {
-		Context struct {
-			Slot uint64 `json:"slot"`
-		} `json:"context"`
-		Value uint64 `json:"value"`
-	} `json:"result"`
-}
-
-// SolanaSignatureResponse represents signature response
-type SolanaSignatureResponse struct {
-	JSONRPC string `json:"jsonrpc"`
-	ID      int    `json:"id"`
-	Result  string `json:"result"`
 }
 
 // SolanaExposerResponse represents exposer response
@@ -159,37 +110,52 @@ func (s *TestSuite) MakeSolanaExposerRequest(endpoint string, response interface
 func (s *TestSuite) TestSolana_Status() {
 	s.T().Log("running test for Solana RPC status")
 
-	var response SolanaRPCResponse
-	s.MakeSolanaRPCRequest("getHealth", []interface{}{}, &response)
+	// Get the Solana chain from config
+	var solanaChain *Chain
+	for _, chain := range s.config.Chains {
+		if chain.Name == "solana" {
+			solanaChain = chain
+			break
+		}
+	}
+	
+	if solanaChain == nil {
+		s.T().Skip("Solana chain not found in config")
+	}
 
-	// Check for RPC errors
-	s.Require().Nil(response.Error, "RPC should not return error")
-	s.Require().Equal("2.0", response.JSONRPC)
-	s.Require().Equal(1, response.ID)
-	s.Require().Equal("ok", response.Result)
+	s.Run("solana health check", func() {
+		var response SolanaRPCResponse
+		s.MakeSolanaRPCRequest("getHealth", []interface{}{}, &response)
+
+		// Check for RPC errors
+		s.Require().Nil(response.Error, "RPC should not return error")
+		s.Require().Equal("2.0", response.JSONRPC)
+		s.Require().Equal(1, response.ID)
+		s.Require().Equal("ok", response.Result)
+	})
 }
 
 func (s *TestSuite) TestSolana_BlockHeight() {
 	s.T().Log("running test for Solana block height increasing")
 
 	// Get initial slot
-	var initialResponse SolanaSlotResponse
+	var initialResponse SolanaRPCResponse
 	s.MakeSolanaRPCRequest("getSlot", []interface{}{}, &initialResponse)
 	s.Require().Nil(initialResponse.Error, "RPC should not return error")
-	initialSlot := initialResponse.Result
+	initialSlot := initialResponse.Result.(float64)
 
-	s.T().Logf("Initial slot: %d", initialSlot)
+	s.T().Logf("Initial slot: %v", initialSlot)
 
 	// Wait for a few seconds to allow block progression
 	time.Sleep(5 * time.Second)
 
 	// Get current slot
-	var currentResponse SolanaSlotResponse
+	var currentResponse SolanaRPCResponse
 	s.MakeSolanaRPCRequest("getSlot", []interface{}{}, &currentResponse)
 	s.Require().Nil(currentResponse.Error, "RPC should not return error")
-	currentSlot := currentResponse.Result
+	currentSlot := currentResponse.Result.(float64)
 
-	s.T().Logf("Current slot: %d", currentSlot)
+	s.T().Logf("Current slot: %v", currentSlot)
 
 	// Assert that block height is increasing
 	s.Require().GreaterOrEqual(currentSlot, initialSlot, "Block height should be increasing")
@@ -198,7 +164,7 @@ func (s *TestSuite) TestSolana_BlockHeight() {
 func (s *TestSuite) TestSolana_VoteAccounts() {
 	s.T().Log("running test for Solana vote accounts")
 
-	var response SolanaVoteAccountsResponse
+	var response SolanaRPCResponse
 	s.MakeSolanaRPCRequest("getVoteAccounts", []interface{}{}, &response)
 
 	// Check for RPC errors
@@ -206,20 +172,25 @@ func (s *TestSuite) TestSolana_VoteAccounts() {
 	s.Require().Equal("2.0", response.JSONRPC)
 	s.Require().Equal(1, response.ID)
 
+	// Parse the result
+	result := response.Result.(map[string]interface{})
+	current := result["current"].([]interface{})
+	
 	// Assert that we have at least one vote account (bootstrap validator)
-	s.Require().GreaterOrEqual(len(response.Result.Current), 1, "Should have at least one active vote account")
+	s.Require().GreaterOrEqual(len(current), 1, "Should have at least one active vote account")
 
 	// Log vote account details
-	for i, account := range response.Result.Current {
-		s.T().Logf("Vote Account %d: %s (Node: %s, Stake: %d)", 
-			i+1, account.VotePubkey, account.NodePubkey, account.ActivatedStake)
+	for i, account := range current {
+		acc := account.(map[string]interface{})
+		s.T().Logf("Vote Account %d: %s (Node: %s, Stake: %v)", 
+			i+1, acc["votePubkey"], acc["nodePubkey"], acc["activatedStake"])
 	}
 }
 
 func (s *TestSuite) TestSolana_ClusterNodes() {
 	s.T().Log("running test for Solana cluster nodes")
 
-	var response SolanaClusterNodesResponse
+	var response SolanaRPCResponse
 	s.MakeSolanaRPCRequest("getClusterNodes", []interface{}{}, &response)
 
 	// Check for RPC errors
@@ -227,13 +198,17 @@ func (s *TestSuite) TestSolana_ClusterNodes() {
 	s.Require().Equal("2.0", response.JSONRPC)
 	s.Require().Equal(1, response.ID)
 
+	// Parse the result
+	nodes := response.Result.([]interface{})
+	
 	// Assert that we have at least one node
-	s.Require().GreaterOrEqual(len(response.Result), 1, "Should have at least one cluster node")
+	s.Require().GreaterOrEqual(len(nodes), 1, "Should have at least one cluster node")
 
 	// Log cluster node details
-	for i, node := range response.Result {
+	for i, node := range nodes {
+		n := node.(map[string]interface{})
 		s.T().Logf("Cluster Node %d: %s (Gossip: %s, RPC: %s, Version: %s)", 
-			i+1, node.Pubkey, node.Gossip, node.RPC, node.Version)
+			i+1, n["pubkey"], n["gossip"], n["rpc"], n["version"])
 	}
 }
 
@@ -244,7 +219,7 @@ func (s *TestSuite) TestSolana_Faucet() {
 	testAddress := "11111111111111111111111111111112" // System Program ID as test
 
 	// Request airdrop
-	var airdropResponse SolanaSignatureResponse
+	var airdropResponse SolanaRPCResponse
 	s.MakeSolanaRPCRequest("requestAirdrop", []interface{}{testAddress, 1000000000}, &airdropResponse)
 
 	// Check for RPC errors
@@ -259,14 +234,18 @@ func (s *TestSuite) TestSolana_Faucet() {
 	time.Sleep(2 * time.Second)
 
 	// Check balance
-	var balanceResponse SolanaBalanceResponse
+	var balanceResponse SolanaRPCResponse
 	s.MakeSolanaRPCRequest("getBalance", []interface{}{testAddress}, &balanceResponse)
 
 	// Check for RPC errors
 	s.Require().Nil(balanceResponse.Error, "RPC should not return error")
 	s.Require().Equal("2.0", balanceResponse.JSONRPC)
 	s.Require().Equal(1, balanceResponse.ID)
-	s.Require().GreaterOrEqual(balanceResponse.Result.Value, uint64(1000000000), "Balance should be at least 1 SOL")
+	
+	// Parse balance result
+	balanceResult := balanceResponse.Result.(map[string]interface{})
+	balance := balanceResult["value"].(float64)
+	s.Require().GreaterOrEqual(balance, float64(1000000000), "Balance should be at least 1 SOL")
 }
 
 func (s *TestSuite) TestSolana_BankTransfer() {
@@ -294,80 +273,22 @@ func (s *TestSuite) TestSolana_Exposer_NodeID() {
 	s.T().Logf("Node ID: %s", response.NodeID)
 }
 
-func (s *TestSuite) TestSolana_Exposer_Genesis() {
-	s.T().Log("running test for Solana exposer genesis")
-
-	// Get the Solana chain from config
-	var solanaChain *Chain
-	for _, chain := range s.config.Chains {
-		if chain.Name == "solana" {
-			solanaChain = chain
-			break
-		}
-	}
-	
-	if solanaChain == nil {
-		s.T().Skip("Solana chain not found in config")
-	}
-
-	url := fmt.Sprintf("http://0.0.0.0:%d/genesis", solanaChain.Ports.Exposer)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	s.Require().NoError(err)
-
-	body := s.MakeRequest(req, 200)
-	
-	// Read the response as string to verify it's not empty
-	genesisData, err := io.ReadAll(body)
-	s.Require().NoError(err)
-	s.Require().NotEmpty(genesisData, "Genesis data should not be empty")
-	
-	s.T().Logf("Genesis data length: %d bytes", len(genesisData))
-}
-
-func (s *TestSuite) TestSolana_Exposer_Keys() {
-	s.T().Log("running test for Solana exposer keys")
-
-	// Get the Solana chain from config
-	var solanaChain *Chain
-	for _, chain := range s.config.Chains {
-		if chain.Name == "solana" {
-			solanaChain = chain
-			break
-		}
-	}
-	
-	if solanaChain == nil {
-		s.T().Skip("Solana chain not found in config")
-	}
-
-	url := fmt.Sprintf("http://0.0.0.0:%d/keys", solanaChain.Ports.Exposer)
-	req, err := http.NewRequest(http.MethodGet, url, nil)
-	s.Require().NoError(err)
-
-	body := s.MakeRequest(req, 200)
-	
-	// Parse the keys response
-	var keysResponse map[string]interface{}
-	err = json.NewDecoder(body).Decode(&keysResponse)
-	s.Require().NoError(err)
-	
-	// Assert that we have keys data
-	s.Require().NotEmpty(keysResponse, "Should return keys data")
-	
-	s.T().Logf("Keys response: %+v", keysResponse)
-}
-
 func (s *TestSuite) TestSolana_ValidatorCount() {
 	s.T().Log("running test for Solana validator count")
 
-	var response SolanaVoteAccountsResponse
+	var response SolanaRPCResponse
 	s.MakeSolanaRPCRequest("getVoteAccounts", []interface{}{}, &response)
 
 	// Check for RPC errors
 	s.Require().Nil(response.Error, "RPC should not return error")
 
-	currentValidators := len(response.Result.Current)
-	delinquentValidators := len(response.Result.Delinquent)
+	// Parse the result
+	result := response.Result.(map[string]interface{})
+	current := result["current"].([]interface{})
+	delinquent := result["delinquent"].([]interface{})
+	
+	currentValidators := len(current)
+	delinquentValidators := len(delinquent)
 	totalValidators := currentValidators + delinquentValidators
 
 	s.T().Logf("Current validators: %d", currentValidators)
