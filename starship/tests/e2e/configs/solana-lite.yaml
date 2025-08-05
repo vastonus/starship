@@ -15,5 +15,11 @@ chains:
     memory: 1200Mi
 
 exposer:
-  cpu: 100m
-  memory: 100Mi
+  resources:
+    cpu: 100m
+    memory: 100Mi
+
+faucet:
+  resources:
+    cpu: 100m
+    memory: 100Mi
