@@ -11,8 +11,8 @@ chains:
     exposer: 8001
     faucet: 9900
   resources:
-    cpu: 1200m
-    memory: 1200Mi
+    cpu: 1500m
+    memory: 1500Mi
 
 exposer:
   resources:
