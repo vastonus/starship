@@ -234,7 +234,7 @@ func (s *TestSuite) TestSolana_Faucet() {
 	s.T().Logf("Airdrop transaction signature: %s", airdropResponse.Result)
 
 	// Wait for transaction confirmation
-	time.Sleep(5 * time.Second)
+	time.Sleep(15 * time.Second)
 
 	// Check balance
 	var balanceResponse SolanaRPCResponse
