@@ -218,6 +218,9 @@ func (s *TestSuite) TestSolana_Faucet() {
 	// Create a test address (you might want to generate a real keypair)
 	testAddress := "11111111111111111111111111111112" // System Program ID as test
 
+	// Wait for transaction confirmation
+	time.Sleep(10 * time.Second)
+
 	// Request airdrop
 	var airdropResponse SolanaRPCResponse
 	s.MakeSolanaRPCRequest("requestAirdrop", []interface{}{testAddress, 1000000000}, &airdropResponse)
