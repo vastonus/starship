@@ -8,7 +8,7 @@ chains:
   ports:
     rpc: 8899
     ws: 8900
-    exposer: 8081
+    exposer: 8001
     faucet: 9900
   resources:
     cpu: 2000m
