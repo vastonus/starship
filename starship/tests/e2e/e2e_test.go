@@ -176,7 +176,7 @@ func (s *TestSuite) TestChainsEth_Block() {
 	s.T().Log("Running test for eth_blockNumber endpoint")
 
 	for _, chain := range s.config.Chains {
-		if !strings.HasPrefix(chain.Name, "ethereum") || chain.Name == "solana" {
+		if !strings.HasPrefix(chain.Name, "ethereum") {
 			continue
 		}
 
