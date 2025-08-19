@@ -78,7 +78,7 @@ const defaultPorts: PodPorts = {
       rpc: 8899,
       ws: 8900,
       exposer: 8081,
-      faucet: 8000
+      faucet: 9900
     },
     defaultPorts: {
       rpc: 26657,
