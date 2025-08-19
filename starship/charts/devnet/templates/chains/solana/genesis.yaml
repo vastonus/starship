@@ -37,8 +37,8 @@ spec:
           image: {{ $chain.image }}
           imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
           env:
-            {{- include "devnet.defaultEvnVars" $chain | indent 12 }}
-            {{- include "devnet.evnVars" $chain | indent 12 }}
+            {{- include "devnet.defaultEnvVars" $chain | indent 12 }}
+            {{- include "devnet.envVars" $chain | indent 12 }}
             {{- include "devnet.timeoutVars" $.Values | indent 12 }}
             {{- include "devnet.genesisVars" $dataPublicRPC | indent 12 }}
             - name: KEYS_CONFIG
@@ -86,8 +86,8 @@ spec:
           image: {{ $chain.image }}
           imagePullPolicy: {{ $.Values.images.imagePullPolicy }}
           env:
-            {{- include "devnet.defaultEvnVars" $chain | indent 12 }}
-            {{- include "devnet.evnVars" $chain | indent 12 }}
+            {{- include "devnet.defaultEnvVars" $chain | indent 12 }}
+            {{- include "devnet.envVars" $chain | indent 12 }}
             {{- include "devnet.timeoutVars" $.Values | indent 12 }}
             {{- include "devnet.genesisVars" $dataPublicRPC | indent 12 }}
             - name: FAUCET_ENABLED
