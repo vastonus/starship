@@ -14,6 +14,7 @@
    <a href="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml"><img height="20" src="https://github.com/hyperweb-io/starship/actions/workflows/run-client-tests.yml/badge.svg" alt="Client Tests" /></a>
    <a href="https://www.npmjs.com/package/@starship-ci/cli"><img height="20" src="https://img.shields.io/npm/v/@starship-ci/cli.svg" alt="NPM Version" /></a>
    <a href="https://github.com/hyperweb-io/starship/tree/main/charts/devnet"><img height="20" src="https://img.shields.io/badge/devnet-1.8.0-blue" alt="Devnet Version" /></a>
+   <a href="https://deepwiki.com/hyperweb-io/starship"><img height="20" src="https://deepwiki.com/badge.svg" alt="Deepwiki" /></a>
 </p>
 
 Universal interchain development environment in k8s. The vision of this project
